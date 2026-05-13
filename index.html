@@ -1,0 +1,470 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BillSafe — Vos factures, toujours en sécurité</title>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=DM+Sans:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --lime: #CAFF40;
+    --lime-dark: #a8d92e;
+    --dark: #0D0D0D;
+    --dark2: #161616;
+    --dark3: #1E1E1E;
+    --gray: #888;
+    --gray2: #555;
+    --white: #FFFFFF;
+    --font-head: 'Manrope', sans-serif;
+    --font-body: 'DM Sans', sans-serif;
+  }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    font-family: var(--font-body);
+    background: #F4F4F0;
+    color: var(--dark);
+    overflow-x: hidden;
+  }
+
+  /* ─── NAV ─── */
+  nav {
+    position: fixed; top: 20px; left: 50%; transform: translateX(-50%);
+    width: calc(100% - 48px); max-width: 1100px;
+    background: var(--dark);
+    border-radius: 100px;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 12px 12px 12px 24px;
+    z-index: 1000;
+    box-shadow: 0 8px 40px rgba(0,0,0,0.18);
+  }
+  .nav-brand { display: flex; align-items: center; gap: 8px; color: var(--white); font-family: var(--font-head); font-weight: 700; font-size: 17px; }
+  .nav-logo { width: 28px; height: 28px; background: var(--lime); border-radius: 8px; display: flex; align-items: center; justify-content: center; }
+  .nav-logo svg { width: 16px; height: 16px; }
+  .nav-links { display: flex; gap: 4px; }
+  .nav-links a { color: #aaa; text-decoration: none; font-size: 14px; font-family: var(--font-body); padding: 8px 16px; border-radius: 100px; transition: all 0.2s; }
+  .nav-links a:hover { color: var(--white); background: rgba(255,255,255,0.08); }
+  .nav-cta { background: var(--lime); color: var(--dark); font-family: var(--font-head); font-weight: 700; font-size: 14px; padding: 10px 22px; border-radius: 100px; text-decoration: none; transition: all 0.2s; }
+  .nav-cta:hover { background: var(--lime-dark); transform: scale(0.98); }
+
+  /* ─── HERO ─── */
+  .hero {
+    min-height: 100vh;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    text-align: center;
+    padding: 140px 24px 80px;
+    position: relative; overflow: hidden;
+    background: #F4F4F0;
+  }
+  .hero::before {
+    content: '';
+    position: absolute; inset: 0;
+    background: radial-gradient(ellipse 60% 50% at 50% 60%, rgba(202,255,64,0.12) 0%, transparent 70%);
+    pointer-events: none;
+  }
+  .hero-badge {
+    display: inline-flex; align-items: center; gap: 6px;
+    background: var(--dark); color: var(--white);
+    font-size: 12px; font-weight: 500;
+    padding: 6px 14px; border-radius: 100px;
+    margin-bottom: 28px;
+    animation: fadeUp 0.6s ease both;
+  }
+  .hero-badge-dot { width: 6px; height: 6px; background: var(--lime); border-radius: 50%; }
+  .hero h1 {
+    font-family: var(--font-head); font-weight: 800;
+    font-size: clamp(38px, 6vw, 72px);
+    line-height: 1.08; letter-spacing: -0.03em;
+    color: var(--dark);
+    max-width: 820px;
+    margin-bottom: 20px;
+    animation: fadeUp 0.6s 0.1s ease both;
+  }
+  .hero h1 span { color: #2a7a50; }
+  .hero-sub {
+    font-size: clamp(14px, 2vw, 17px);
+    color: #555; line-height: 1.7;
+    max-width: 480px; margin: 0 auto 36px;
+    animation: fadeUp 0.6s 0.2s ease both;
+  }
+  .hero-btns {
+    display: flex; gap: 12px; justify-content: center; flex-wrap: wrap;
+    margin-bottom: 64px;
+    animation: fadeUp 0.6s 0.3s ease both;
+  }
+  .btn-lime { background: var(--lime); color: var(--dark); font-family: var(--font-head); font-weight: 700; font-size: 15px; padding: 14px 28px; border-radius: 100px; text-decoration: none; border: none; cursor: pointer; transition: all 0.2s; }
+  .btn-lime:hover { background: var(--lime-dark); transform: translateY(-1px); }
+  .btn-dark { background: var(--dark); color: var(--white); font-family: var(--font-head); font-weight: 600; font-size: 15px; padding: 14px 28px; border-radius: 100px; text-decoration: none; border: none; cursor: pointer; transition: all 0.2s; }
+  .btn-dark:hover { background: #222; transform: translateY(-1px); }
+
+  /* ─── PHONE MOCKUP ─── */
+  .hero-visual {
+    position: relative; width: 100%; max-width: 820px; height: 380px;
+    animation: fadeUp 0.7s 0.4s ease both;
+  }
+  .phone-frame {
+    position: absolute; left: 50%; transform: translateX(-50%);
+    width: 200px; bottom: 0;
+    background: var(--dark); border-radius: 36px;
+    padding: 10px;
+    box-shadow: 0 32px 80px rgba(0,0,0,0.22), 0 4px 20px rgba(0,0,0,0.12);
+    z-index: 3;
+  }
+  .phone-screen {
+    background: #111; border-radius: 28px; overflow: hidden;
+    padding: 16px 14px; min-height: 340px;
+  }
+  .phone-notch { width: 60px; height: 20px; background: #000; border-radius: 20px; margin: 0 auto 16px; display: flex; align-items: center; justify-content: center; }
+  .p-time { font-family: var(--font-head); font-size: 10px; color: var(--white); font-weight: 700; }
+  .phone-greeting { font-size: 10px; color: #777; margin-bottom: 2px; font-family: var(--font-body); }
+  .phone-name { font-family: var(--font-head); font-weight: 700; font-size: 13px; color: var(--white); margin-bottom: 14px; }
+  .phone-balance-label { font-size: 9px; color: #666; margin-bottom: 2px; }
+  .phone-balance { font-family: var(--font-head); font-weight: 800; font-size: 22px; color: var(--white); margin-bottom: 14px; }
+  .phone-btn { background: var(--lime); color: var(--dark); font-size: 10px; font-weight: 700; font-family: var(--font-head); padding: 8px 14px; border-radius: 100px; text-align: center; margin-bottom: 14px; cursor: pointer; }
+  .phone-row { display: flex; justify-content: space-between; margin-bottom: 10px; }
+  .phone-bill-item { background: #1a1a1a; border-radius: 10px; padding: 8px 10px; flex: 1; }
+  .phone-bill-item + .phone-bill-item { margin-left: 6px; }
+  .pb-label { font-size: 8px; color: #666; margin-bottom: 2px; }
+  .pb-val { font-family: var(--font-head); font-weight: 700; font-size: 11px; color: var(--white); }
+  .pb-badge { display: inline-block; background: rgba(202,255,64,0.15); color: var(--lime); font-size: 7px; font-weight: 700; padding: 2px 5px; border-radius: 20px; margin-top: 3px; }
+  .pb-badge.red { background: rgba(255,80,80,0.12); color: #ff8080; }
+  .phone-mini-bar { display: flex; align-items: flex-end; gap: 3px; height: 40px; margin-top: 8px; }
+  .pmb { border-radius: 3px 3px 0 0; flex: 1; }
+
+  /* FLOATING CARDS */
+  .float-card {
+    position: absolute;
+    background: var(--white);
+    border-radius: 16px;
+    padding: 14px 18px;
+    box-shadow: 0 12px 40px rgba(0,0,0,0.10);
+    z-index: 4;
+  }
+  .fc-left { left: 2%; top: 30px; min-width: 170px; animation: floatLeft 3s ease-in-out infinite; }
+  .fc-right { right: 2%; top: 20px; min-width: 175px; animation: floatRight 3.5s ease-in-out infinite; }
+  .fc-label { font-size: 10px; color: #999; margin-bottom: 3px; font-family: var(--font-body); }
+  .fc-amount { font-family: var(--font-head); font-weight: 800; font-size: 20px; color: var(--dark); }
+  .fc-sub { font-size: 10px; color: #aaa; margin-top: 2px; display: flex; align-items: center; gap: 4px; }
+  .fc-up { color: #2a7a50; font-weight: 700; }
+  .fc-tag { display: inline-block; background: var(--dark); color: var(--lime); font-size: 9px; font-weight: 700; padding: 3px 8px; border-radius: 20px; margin-bottom: 6px; }
+
+  /* STATS ROW IN CARD */
+  .fc-stat-row { display: flex; gap: 10px; margin-top: 8px; }
+  .fc-stat { text-align: center; }
+  .fc-stat-val { font-family: var(--font-head); font-weight: 800; font-size: 13px; color: var(--dark); }
+  .fc-stat-lbl { font-size: 9px; color: #aaa; }
+
+  @keyframes floatLeft { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-8px)} }
+  @keyframes floatRight { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-10px)} }
+  @keyframes fadeUp { from{opacity:0;transform:translateY(20px)} to{opacity:1;transform:translateY(0)} }
+
+  /* ─── TRUST BAND ─── */
+  .trust { background: var(--white); padding: 36px 24px; text-align: center; border-top: 1px solid #eee; border-bottom: 1px solid #eee; }
+  .trust p { font-size: 13px; color: #999; margin-bottom: 24px; letter-spacing: 0.02em; }
+  .trust-logos { display: flex; align-items: center; justify-content: center; gap: 40px; flex-wrap: wrap; }
+  .trust-logo { font-family: var(--font-head); font-weight: 700; font-size: 15px; color: #bbb; letter-spacing: -0.01em; display: flex; align-items: center; gap: 6px; transition: color 0.2s; }
+  .trust-logo:hover { color: #666; }
+  .trust-logo svg { width: 16px; height: 16px; opacity: 0.5; }
+
+  /* ─── FEATURES ─── */
+  .features { padding: 100px 24px; max-width: 1100px; margin: 0 auto; }
+  .section-eyebrow { font-size: 12px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: #2a7a50; margin-bottom: 12px; }
+  .section-title { font-family: var(--font-head); font-weight: 800; font-size: clamp(28px, 4vw, 48px); letter-spacing: -0.02em; color: var(--dark); max-width: 560px; line-height: 1.1; margin-bottom: 60px; }
+  .feat-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; }
+  .feat-card { background: var(--white); border-radius: 24px; padding: 32px; transition: transform 0.2s, box-shadow 0.2s; cursor: default; }
+  .feat-card:hover { transform: translateY(-4px); box-shadow: 0 20px 60px rgba(0,0,0,0.08); }
+  .feat-card.dark { background: var(--dark); }
+  .feat-card.lime { background: var(--lime); }
+  .feat-icon { width: 48px; height: 48px; border-radius: 14px; display: flex; align-items: center; justify-content: center; margin-bottom: 20px; font-size: 22px; }
+  .fi-dark { background: var(--dark); }
+  .fi-lime { background: var(--lime); }
+  .fi-gray { background: #f0f0f0; }
+  .feat-card h3 { font-family: var(--font-head); font-weight: 700; font-size: 18px; margin-bottom: 10px; color: var(--dark); line-height: 1.3; }
+  .feat-card.dark h3 { color: var(--white); }
+  .feat-card.lime h3 { color: var(--dark); }
+  .feat-card p { font-size: 14px; color: #666; line-height: 1.7; }
+  .feat-card.dark p { color: #aaa; }
+  .feat-card.lime p { color: #2a2a2a; }
+
+  /* ─── HOW IT WORKS ─── */
+  .how { background: var(--dark); padding: 100px 24px; }
+  .how-inner { max-width: 1100px; margin: 0 auto; }
+  .how .section-eyebrow { color: var(--lime); }
+  .how .section-title { color: var(--white); }
+  .steps { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 24px; margin-top: 48px; }
+  .step { padding: 32px; border: 1px solid #2a2a2a; border-radius: 24px; transition: border-color 0.2s; }
+  .step:hover { border-color: #444; }
+  .step-num { font-family: var(--font-head); font-weight: 800; font-size: 40px; color: #222; margin-bottom: 16px; line-height: 1; }
+  .step h3 { font-family: var(--font-head); font-weight: 700; font-size: 17px; color: var(--white); margin-bottom: 8px; }
+  .step p { font-size: 13px; color: #777; line-height: 1.7; }
+
+  /* ─── COMPANIES ─── */
+  .companies { padding: 100px 24px; max-width: 1100px; margin: 0 auto; }
+  .co-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; margin-top: 48px; }
+  .co-card { background: var(--white); border-radius: 20px; padding: 28px; text-align: center; transition: all 0.2s; border: 2px solid transparent; }
+  .co-card:hover { border-color: var(--lime); transform: translateY(-2px); }
+  .co-icon { font-size: 32px; margin-bottom: 10px; }
+  .co-name { font-family: var(--font-head); font-weight: 700; font-size: 16px; color: var(--dark); }
+  .co-type { font-size: 12px; color: #999; margin-top: 3px; }
+  .co-pill { display: inline-block; background: var(--lime); color: var(--dark); font-size: 10px; font-weight: 700; padding: 3px 10px; border-radius: 20px; margin-top: 10px; }
+
+  /* ─── CTA ─── */
+  .cta-section { background: var(--lime); padding: 100px 24px; text-align: center; }
+  .cta-section h2 { font-family: var(--font-head); font-weight: 800; font-size: clamp(30px, 5vw, 58px); letter-spacing: -0.03em; color: var(--dark); max-width: 600px; margin: 0 auto 20px; line-height: 1.1; }
+  .cta-section p { font-size: 16px; color: #2a2a2a; margin-bottom: 36px; max-width: 400px; margin-left: auto; margin-right: auto; }
+  .cta-btns { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+  .btn-dark-cta { background: var(--dark); color: var(--white); font-family: var(--font-head); font-weight: 700; font-size: 15px; padding: 14px 30px; border-radius: 100px; text-decoration: none; transition: all 0.2s; }
+  .btn-dark-cta:hover { background: #222; }
+  .btn-outline { background: transparent; color: var(--dark); font-family: var(--font-head); font-weight: 700; font-size: 15px; padding: 14px 30px; border-radius: 100px; text-decoration: none; border: 2px solid rgba(0,0,0,0.2); transition: all 0.2s; }
+  .btn-outline:hover { background: rgba(0,0,0,0.06); }
+
+  /* ─── FOOTER ─── */
+  footer { background: var(--dark); padding: 40px 24px; text-align: center; }
+  footer p { font-size: 13px; color: #555; }
+  footer span { color: var(--lime); font-weight: 700; }
+
+  /* ─── MOBILE ─── */
+  @media (max-width: 700px) {
+    .nav-links { display: none; }
+    .fc-left, .fc-right { display: none; }
+    .hero-visual { height: 280px; }
+    .phone-frame { width: 160px; }
+    .phone-screen { min-height: 260px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <div class="nav-brand">
+    <div class="nav-logo">
+      <svg viewBox="0 0 16 16" fill="none"><path d="M8 1L2 4v4c0 3.3 2.5 6.4 6 7 3.5-.6 6-3.7 6-7V4L8 1z" fill="#0D0D0D"/></svg>
+    </div>
+    BillSafe
+  </div>
+  <div class="nav-links">
+    <a href="#features">Fonctions</a>
+    <a href="#how">Comment ça marche</a>
+    <a href="#companies">Sociétés</a>
+    <a href="#contact">Contact</a>
+  </div>
+  <a class="nav-cta" href="pages/auth.html">Créer un compte</a>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-badge">
+    <div class="hero-badge-dot"></div>
+    Sécurité & Transparence pour le Cameroun
+  </div>
+  <h1>Ne perdez plus jamais<br>une <span>facture payée</span></h1>
+  <p class="hero-sub">Stockez vos quittances ENEO, CamWater et Camtel en ligne. Montrez une preuve de paiement en 2 secondes, partout, depuis votre téléphone.</p>
+  <div class="hero-btns">
+    <a class="btn-lime" href="pages/auth.html">Commencer gratuitement</a>
+    <a class="btn-dark" href="#how">Voir une démo</a>
+  </div>
+
+  <!-- VISUAL -->
+  <div class="hero-visual">
+    <!-- Left floating card -->
+    <div class="float-card fc-left">
+      <div class="fc-tag">💡 ENEO</div>
+      <div class="fc-label">Montant payé — Avr 2026</div>
+      <div class="fc-amount">24 500 FCFA</div>
+      <div class="fc-sub"><span class="fc-up">✓ Payée</span> · 3 avr 2026</div>
+    </div>
+
+    <!-- Phone -->
+    <div class="phone-frame">
+      <div class="phone-screen">
+        <div class="phone-notch"><span class="p-time">9:41</span></div>
+        <div class="phone-greeting">Bonjour 👋</div>
+        <div class="phone-name">Jean Ndoumbe</div>
+        <div class="phone-balance-label">Total dépensé ce mois</div>
+        <div class="phone-balance">187 500 FCFA</div>
+        <div class="phone-btn">📄 Mes factures</div>
+        <div class="phone-row">
+          <div class="phone-bill-item">
+            <div class="pb-label">ENEO</div>
+            <div class="pb-val">24 500</div>
+            <div class="pb-badge">✓ Payée</div>
+          </div>
+          <div class="phone-bill-item">
+            <div class="pb-label">CamWater</div>
+            <div class="pb-val">8 200</div>
+            <div class="pb-badge red">⏳ Due</div>
+          </div>
+        </div>
+        <div class="phone-mini-bar">
+          <div class="pmb" style="height:40%;background:#CAFF40;opacity:0.5"></div>
+          <div class="pmb" style="height:65%;background:#CAFF40;opacity:0.7"></div>
+          <div class="pmb" style="height:55%;background:#CAFF40;opacity:0.6"></div>
+          <div class="pmb" style="height:80%;background:#CAFF40"></div>
+          <div class="pmb" style="height:70%;background:#CAFF40;opacity:0.8"></div>
+          <div class="pmb" style="height:40%;background:#333"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right floating card -->
+    <div class="float-card fc-right">
+      <div class="fc-label">Dépenses — 6 mois</div>
+      <div class="fc-amount">1 124 500 F</div>
+      <div class="fc-stat-row">
+        <div class="fc-stat">
+          <div class="fc-stat-val">36</div>
+          <div class="fc-stat-lbl">Factures</div>
+        </div>
+        <div class="fc-stat">
+          <div class="fc-stat-val">3</div>
+          <div class="fc-stat-lbl">Sociétés</div>
+        </div>
+        <div class="fc-stat">
+          <div class="fc-stat-val">0</div>
+          <div class="fc-stat-lbl">Perdues</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- TRUST -->
+<div class="trust">
+  <p>Conçu pour les abonnés de ces sociétés</p>
+  <div class="trust-logos">
+    <div class="trust-logo">⚡ ENEO</div>
+    <div class="trust-logo">💧 CamWater</div>
+    <div class="trust-logo">📡 Camtel</div>
+    <div class="trust-logo">🏗 SONODE</div>
+    <div class="trust-logo">🔥 TRADEX</div>
+    <div class="trust-logo">📺 Canal Cameroun</div>
+  </div>
+</div>
+
+<!-- FEATURES -->
+<section class="features" id="features">
+  <div class="section-eyebrow">Fonctionnalités</div>
+  <div class="section-title">Tout ce dont vous avez besoin</div>
+  <div class="feat-grid">
+    <div class="feat-card dark">
+      <div class="feat-icon fi-lime">📤</div>
+      <h3>Stockage cloud sécurisé</h3>
+      <p>Photographiez ou scannez chaque facture. Elle est sauvegardée instantanément et accessible depuis n'importe quel appareil.</p>
+    </div>
+    <div class="feat-card">
+      <div class="feat-icon fi-dark">📊</div>
+      <h3>Tableau de bord des dépenses</h3>
+      <p>Visualisez combien vous dépensez chez ENEO, CamWater et Camtel chaque mois. Repérez facilement les anomalies.</p>
+    </div>
+    <div class="feat-card lime">
+      <div class="feat-icon fi-dark">🔔</div>
+      <h3>Alertes avant date limite</h3>
+      <p>Recevez des rappels par SMS ou email avant la date d'expiration. Plus de pénalités, plus de stress.</p>
+    </div>
+    <div class="feat-card">
+      <div class="feat-icon fi-gray">⚡</div>
+      <h3>Preuve de paiement en 2 sec</h3>
+      <p>ENEO ou CamWater vous demande une ancienne quittance? Montrez-la directement depuis votre téléphone.</p>
+    </div>
+    <div class="feat-card">
+      <div class="feat-icon fi-gray">🔒</div>
+      <h3>Données cryptées</h3>
+      <p>Toutes vos factures sont chiffrées. Seul vous avez accès à vos documents confidentiels.</p>
+    </div>
+    <div class="feat-card dark">
+      <div class="feat-icon fi-lime">📱</div>
+      <h3>100% mobile-friendly</h3>
+      <p>Fonctionne parfaitement sur Android et iPhone. Conçu pour la connexion mobile camerounaise.</p>
+    </div>
+  </div>
+</section>
+
+<!-- HOW IT WORKS -->
+<section class="how" id="how">
+  <div class="how-inner">
+    <div class="section-eyebrow">Comment ça marche</div>
+    <div class="section-title">Simple comme bonjour</div>
+    <div class="steps">
+      <div class="step">
+        <div class="step-num">01</div>
+        <h3>Créez votre compte</h3>
+        <p>Inscrivez-vous gratuitement avec votre numéro de téléphone ou email. Aucune carte bancaire requise.</p>
+      </div>
+      <div class="step">
+        <div class="step-num">02</div>
+        <h3>Scannez vos factures</h3>
+        <p>Prenez une photo de chaque facture payée. Notre appli la reconnaît et remplit les champs automatiquement.</p>
+      </div>
+      <div class="step">
+        <div class="step-num">03</div>
+        <h3>Retrouvez-les en un clic</h3>
+        <p>Recherchez par société, date ou montant. Montrez la quittance au guichet directement depuis l'écran.</p>
+      </div>
+      <div class="step">
+        <div class="step-num">04</div>
+        <h3>Dormez tranquille</h3>
+        <p>Fini les disputes avec les agents. Vos preuves de paiement sont là, pour toujours, quoi qu'il arrive.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- COMPANIES -->
+<section class="companies" id="companies">
+  <div class="section-eyebrow">Compatibilité</div>
+  <div class="section-title">Fonctionne avec toutes vos sociétés</div>
+  <div class="co-grid">
+    <div class="co-card">
+      <div class="co-icon">⚡</div>
+      <div class="co-name">ENEO</div>
+      <div class="co-type">Électricité</div>
+      <div class="co-pill">Supporté</div>
+    </div>
+    <div class="co-card">
+      <div class="co-icon">💧</div>
+      <div class="co-name">CamWater</div>
+      <div class="co-type">Eau potable</div>
+      <div class="co-pill">Supporté</div>
+    </div>
+    <div class="co-card">
+      <div class="co-icon">📡</div>
+      <div class="co-name">Camtel</div>
+      <div class="co-type">Téléphone / Internet</div>
+      <div class="co-pill">Supporté</div>
+    </div>
+    <div class="co-card">
+      <div class="co-icon">🏗</div>
+      <div class="co-name">SONODE</div>
+      <div class="co-type">Travaux publics</div>
+      <div class="co-pill">Bientôt</div>
+    </div>
+    <div class="co-card">
+      <div class="co-icon">🔥</div>
+      <div class="co-name">TRADEX</div>
+      <div class="co-type">Carburant</div>
+      <div class="co-pill">Bientôt</div>
+    </div>
+  </div>
+</section>
+
+<!-- CTA -->
+<section class="cta-section" id="cta">
+  <h2>Commencez à protéger vos factures aujourd'hui</h2>
+  <p>Rejoignez des milliers de Camerounais qui ne perdent plus leurs quittances.</p>
+  <div class="cta-btns">
+    <a class="btn-dark-cta" href="pages/auth.html">Créer un compte gratuit</a>
+    <a class="btn-outline" href="pages/auth.html">En savoir plus</a>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <p>© 2026 <span>BillSafe</span> · Fait avec ❤️ pour le Cameroun · Douala, Cameroun</p>
+</footer>
+
+</body>
+</html>

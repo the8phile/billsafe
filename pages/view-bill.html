@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BillSafe — Facture partagée</title>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=DM+Sans:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --lime: #CAFF40; --dark: #0D0D0D; --white: #fff; --gray: #888;
+    --green: #2a7a50; --green-bg: #f0fff5; --red: #ff5f5f;
+    --font-h: 'Manrope', sans-serif; --font-b: 'DM Sans', sans-serif;
+  }
+  body { font-family: var(--font-b); background: #F4F4F0; min-height: 100vh; display: flex; flex-direction: column; align-items: center; padding: 40px 20px; }
+
+  .top-brand { display: flex; align-items: center; gap: 10px; margin-bottom: 32px; }
+  .brand-logo { width: 38px; height: 38px; background: var(--dark); border-radius: 12px; display: flex; align-items: center; justify-content: center; }
+  .brand-logo span { font-size: 20px; }
+  .brand-name { font-family: var(--font-h); font-weight: 800; font-size: 20px; color: var(--dark); }
+  .brand-sub { font-size: 12px; color: var(--gray); }
+
+  /* LOADING */
+  .loading { text-align: center; padding: 60px 20px; }
+  .loading-spinner { width: 40px; height: 40px; border: 3px solid #e0e0e0; border-top-color: var(--dark); border-radius: 50%; animation: spin 0.8s linear infinite; margin: 0 auto 16px; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .loading p { font-size: 14px; color: var(--gray); }
+
+  /* ERROR */
+  .error-box { background: var(--white); border-radius: 20px; padding: 48px 32px; text-align: center; max-width: 400px; }
+  .error-icon { font-size: 48px; margin-bottom: 16px; }
+  .error-box h2 { font-family: var(--font-h); font-weight: 800; font-size: 22px; color: var(--dark); margin-bottom: 10px; }
+  .error-box p { font-size: 14px; color: var(--gray); line-height: 1.7; }
+
+  /* BILL CARD */
+  .bill-card { background: var(--white); border-radius: 24px; width: 100%; max-width: 480px; overflow: hidden; box-shadow: 0 20px 60px rgba(0,0,0,0.08); }
+  .bill-card-header { background: var(--dark); padding: 28px 28px 24px; }
+  .bill-from { font-size: 12px; color: #666; margin-bottom: 4px; }
+  .bill-landlord { font-family: var(--font-h); font-weight: 700; font-size: 16px; color: var(--white); margin-bottom: 16px; }
+  .bill-company-row { display: flex; align-items: center; gap: 12px; }
+  .company-badge { width: 44px; height: 44px; background: var(--lime); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 22px; flex-shrink: 0; }
+  .company-name { font-family: var(--font-h); font-weight: 800; font-size: 20px; color: var(--white); }
+  .company-month { font-size: 13px; color: #888; margin-top: 2px; }
+
+  .bill-body { padding: 28px; }
+  .amount-section { text-align: center; padding: 24px 0; border-bottom: 1px solid #f5f5f5; margin-bottom: 24px; }
+  .amount-label { font-size: 12px; color: var(--gray); margin-bottom: 6px; font-family: var(--font-h); font-weight: 600; letter-spacing: 0.05em; text-transform: uppercase; }
+  .amount-value { font-family: var(--font-h); font-weight: 800; font-size: 40px; color: var(--dark); letter-spacing: -0.02em; }
+  .amount-sub { font-size: 14px; color: var(--gray); margin-top: 4px; }
+  .status-badge { display: inline-flex; align-items: center; gap: 6px; background: var(--green-bg); color: var(--green); font-family: var(--font-h); font-weight: 700; font-size: 13px; padding: 8px 18px; border-radius: 20px; margin-top: 12px; }
+
+  .detail-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 24px; }
+  .detail-item { background: #fafafa; border-radius: 12px; padding: 14px; }
+  .detail-label { font-size: 11px; font-weight: 600; color: var(--gray); font-family: var(--font-h); letter-spacing: 0.04em; text-transform: uppercase; margin-bottom: 4px; }
+  .detail-value { font-size: 14px; font-weight: 600; font-family: var(--font-h); color: var(--dark); }
+
+  .message-box { background: #f5f5f5; border-radius: 12px; padding: 16px; margin-bottom: 24px; }
+  .message-label { font-size: 11px; font-weight: 600; color: var(--gray); margin-bottom: 6px; font-family: var(--font-h); letter-spacing: 0.04em; text-transform: uppercase; }
+  .message-text { font-size: 14px; color: var(--dark); line-height: 1.6; }
+
+  .view-file-btn { display: flex; align-items: center; justify-content: center; gap: 10px; width: 100%; padding: 14px; background: var(--dark); color: var(--white); border: none; border-radius: 100px; font-family: var(--font-h); font-weight: 700; font-size: 15px; cursor: pointer; text-decoration: none; transition: all 0.2s; }
+  .view-file-btn:hover { background: #222; }
+  .view-file-btn.disabled { background: #f0f0f0; color: var(--gray); pointer-events: none; }
+
+  .verified-footer { display: flex; align-items: center; justify-content: center; gap: 8px; margin-top: 20px; font-size: 12px; color: var(--gray); }
+  .verified-dot { width: 8px; height: 8px; background: var(--green); border-radius: 50%; }
+
+  .powered { margin-top: 40px; font-size: 12px; color: #bbb; text-align: center; }
+  .powered span { color: var(--dark); font-weight: 700; }
+</style>
+</head>
+<body>
+
+<div class="top-brand">
+  <div class="brand-logo"><span>🛡</span></div>
+  <div>
+    <div class="brand-name">BillSafe</div>
+    <div class="brand-sub">Preuve de paiement vérifiée</div>
+  </div>
+</div>
+
+<!-- LOADING -->
+<div class="loading" id="loading">
+  <div class="loading-spinner"></div>
+  <p>Chargement de la facture...</p>
+</div>
+
+<!-- ERROR -->
+<div class="error-box" id="error-box" style="display:none">
+  <div class="error-icon">🔒</div>
+  <h2>Lien invalide</h2>
+  <p>Ce lien de partage n'existe pas ou a été révoqué par le propriétaire. Contactez votre propriétaire pour un nouveau lien.</p>
+</div>
+
+<!-- BILL CARD -->
+<div class="bill-card" id="bill-card" style="display:none">
+  <div class="bill-card-header">
+    <div class="bill-from">Partagé par votre propriétaire</div>
+    <div class="bill-landlord" id="v-landlord">—</div>
+    <div class="bill-company-row">
+      <div class="company-badge" id="v-icon">⚡</div>
+      <div>
+        <div class="company-name" id="v-company">—</div>
+        <div class="company-month" id="v-month">—</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="bill-body">
+    <div class="amount-section">
+      <div class="amount-label">Montant payé</div>
+      <div class="amount-value" id="v-amount">—</div>
+      <div class="amount-sub" id="v-date">—</div>
+      <div><span class="status-badge" id="v-status">✓ Payée</span></div>
+    </div>
+
+    <div class="detail-grid">
+      <div class="detail-item">
+        <div class="detail-label">Référence</div>
+        <div class="detail-value" id="v-ref">—</div>
+      </div>
+      <div class="detail-item">
+        <div class="detail-label">Lieu</div>
+        <div class="detail-value" id="v-location">—</div>
+      </div>
+      <div class="detail-item">
+        <div class="detail-label">Partagé le</div>
+        <div class="detail-value" id="v-shared-date">—</div>
+      </div>
+      <div class="detail-item">
+        <div class="detail-label">Locataire</div>
+        <div class="detail-value" id="v-tenant">—</div>
+      </div>
+    </div>
+
+    <div class="message-box" id="v-message-wrap" style="display:none">
+      <div class="message-label">Message du propriétaire</div>
+      <div class="message-text" id="v-message"></div>
+    </div>
+
+    <a class="view-file-btn" id="v-file-btn" href="#" target="_blank">
+      📄 Voir la facture originale
+    </a>
+
+    <div class="verified-footer">
+      <div class="verified-dot"></div>
+      Document vérifié par BillSafe · Authentique
+    </div>
+  </div>
+</div>
+
+<div class="powered">Propulsé par <span>BillSafe</span> — La sécurité des factures au Cameroun</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+const SUPABASE_URL  = 'https://rjnsnodvqwwhkxbznzqa.supabase.co';
+const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJqbnNub2R2cXd3aGt4YnpuenFhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzgxODg1OTksImV4cCI6MjA5Mzc2NDU5OX0.gkV9ynTFdY8B72s2fnRpTkUH71FUz59ICIpQLZQDsIc';
+const { createClient } = supabase;
+const db = createClient(SUPABASE_URL, SUPABASE_ANON);
+
+const companyIcon = { ENEO:'⚡', CamWater:'💧', Camtel:'📡' };
+
+function fmtAmount(n) { return n ? Number(n).toLocaleString('fr-FR') + ' FCFA' : '—'; }
+function fmtDate(d)   { return d ? new Date(d).toLocaleDateString('fr-FR') : '—'; }
+function fmtMonth(m)  { return m ? new Date(m+'-01').toLocaleDateString('fr-FR',{month:'long',year:'numeric'}) : '—'; }
+
+window.addEventListener('DOMContentLoaded', async () => {
+  const params = new URLSearchParams(window.location.search);
+  const token  = params.get('token');
+
+  if (!token) return showError();
+
+  const { data, error } = await db
+    .from('shared_bills')
+    .select('*, bills(*), tenants(*)')
+    .eq('share_token', token)
+    .single();
+
+  if (error || !data) return showError();
+
+  // Mark as viewed
+  if (!data.viewed_at) {
+    await db.from('shared_bills').update({ viewed_at: new Date().toISOString() }).eq('share_token', token);
+  }
+
+  // Fetch landlord profile
+  const { data: profile } = await db.from('profiles').select('full_name').eq('id', data.landlord_id).single();
+
+  const b = data.bills;
+  const t = data.tenants;
+
+  document.getElementById('v-landlord').textContent   = profile?.full_name || 'Votre propriétaire';
+  document.getElementById('v-icon').textContent       = companyIcon[b.company] || '📌';
+  document.getElementById('v-company').textContent    = b.company;
+  document.getElementById('v-month').textContent      = fmtMonth(b.billing_month);
+  document.getElementById('v-amount').textContent     = fmtAmount(b.amount);
+  document.getElementById('v-date').textContent       = b.payment_date ? 'Payé le ' + fmtDate(b.payment_date) : '';
+  document.getElementById('v-ref').textContent        = b.reference || '—';
+  document.getElementById('v-location').textContent   = b.location || '—';
+  document.getElementById('v-shared-date').textContent = fmtDate(data.created_at);
+  document.getElementById('v-tenant').textContent     = t?.full_name || '—';
+
+  const statusEl = document.getElementById('v-status');
+  if (b.status === 'pending') {
+    statusEl.textContent = '⏳ En attente';
+    statusEl.style.background = '#FAEEDA';
+    statusEl.style.color = '#854F0B';
+  }
+
+  if (data.message) {
+    document.getElementById('v-message').textContent = data.message;
+    document.getElementById('v-message-wrap').style.display = 'block';
+  }
+
+  const fileBtn = document.getElementById('v-file-btn');
+  if (b.file_url) {
+    fileBtn.href = b.file_url;
+  } else {
+    fileBtn.classList.add('disabled');
+    fileBtn.textContent = '📄 Aucun fichier joint';
+  }
+
+  document.getElementById('loading').style.display = 'none';
+  document.getElementById('bill-card').style.display = 'block';
+});
+
+function showError() {
+  document.getElementById('loading').style.display = 'none';
+  document.getElementById('error-box').style.display = 'block';
+}
+</script>
+</body>
+</html>

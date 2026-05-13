@@ -1,0 +1,703 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BillSafe — Tableau de bord</title>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=DM+Sans:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --lime: #CAFF40; --dark: #0D0D0D; --dark2: #161616; --dark3: #1E1E1E;
+    --gray: #888; --gray2: #aaa; --white: #fff; --bg: #F4F4F0;
+    --red: #ff5f5f; --green: #2a7a50; --green-bg: #f0fff5;
+    --font-h: 'Manrope', sans-serif; --font-b: 'DM Sans', sans-serif;
+    --radius: 20px; --radius-sm: 12px;
+    --eneo: #CAFF40; --camwater: #60C8FF; --camtel: #B39DFF;
+  }
+  html, body { height: 100%; }
+  body { font-family: var(--font-b); background: var(--bg); color: var(--dark); }
+
+  /* ── SIDEBAR ── */
+  .layout { display: flex; min-height: 100vh; }
+  .sidebar { width: 240px; flex-shrink: 0; background: var(--dark); display: flex; flex-direction: column; padding: 24px 16px; position: fixed; top: 0; left: 0; height: 100vh; z-index: 100; }
+  .sidebar-brand { display: flex; align-items: center; gap: 10px; padding: 4px 8px; margin-bottom: 36px; }
+  .sidebar-logo { width: 34px; height: 34px; background: var(--lime); border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 18px; flex-shrink: 0; }
+  .sidebar-name { font-family: var(--font-h); font-weight: 800; font-size: 16px; color: var(--white); }
+  .nav-group-label { font-size: 10px; font-weight: 700; letter-spacing: 0.08em; color: #444; text-transform: uppercase; padding: 0 8px; margin-bottom: 6px; margin-top: 8px; }
+  .nav-item { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 10px; color: #666; font-size: 14px; font-weight: 500; cursor: pointer; transition: all 0.15s; text-decoration: none; margin-bottom: 2px; }
+  .nav-item:hover { background: #1a1a1a; color: var(--gray2); }
+  .nav-item.active { background: #1a1a1a; color: var(--white); }
+  .nav-item .ni { font-size: 16px; width: 20px; text-align: center; }
+  .nav-item .badge { margin-left: auto; background: var(--lime); color: var(--dark); font-size: 10px; font-weight: 800; padding: 2px 7px; border-radius: 20px; }
+  .sidebar-bottom { margin-top: auto; border-top: 1px solid #1a1a1a; padding-top: 16px; }
+  .user-row { display: flex; align-items: center; gap: 10px; padding: 10px 8px; }
+  .user-avatar { width: 34px; height: 34px; background: var(--lime); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-family: var(--font-h); font-weight: 800; font-size: 13px; color: var(--dark); flex-shrink: 0; }
+  .user-info { flex: 1; overflow: hidden; }
+  .user-name { font-size: 13px; font-weight: 600; color: var(--white); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .user-email { font-size: 11px; color: #555; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .logout-btn { background: transparent; border: none; color: #555; font-size: 16px; cursor: pointer; padding: 4px; transition: color 0.15s; }
+  .logout-btn:hover { color: var(--red); }
+
+  /* ── MAIN ── */
+  .main { margin-left: 240px; flex: 1; padding: 32px; }
+  .topbar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 28px; }
+  .topbar-left h2 { font-family: var(--font-h); font-weight: 800; font-size: 24px; color: var(--dark); }
+  .topbar-left p { font-size: 13px; color: var(--gray); margin-top: 2px; }
+  .btn-upload { background: var(--dark); color: var(--white); border: none; padding: 12px 22px; border-radius: 100px; font-family: var(--font-h); font-weight: 700; font-size: 14px; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; gap: 8px; }
+  .btn-upload:hover { background: #222; transform: translateY(-1px); }
+  .btn-lime { background: var(--lime); color: var(--dark); }
+  .btn-lime:hover { background: #b8e836; }
+
+  /* ── STATS ── */
+  .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 24px; }
+  .stat-card { background: var(--white); border-radius: var(--radius); padding: 22px; position: relative; overflow: hidden; }
+  .stat-card.dark { background: var(--dark); }
+  .stat-card.lime { background: var(--lime); }
+  .stat-label { font-size: 12px; font-weight: 600; color: var(--gray); margin-bottom: 10px; font-family: var(--font-h); letter-spacing: 0.02em; }
+  .stat-card.dark .stat-label { color: #555; }
+  .stat-card.lime .stat-label { color: #2a2a2a; }
+  .stat-value { font-family: var(--font-h); font-weight: 800; font-size: 26px; color: var(--dark); line-height: 1; }
+  .stat-card.dark .stat-value { color: var(--white); }
+  .stat-card.lime .stat-value { color: var(--dark); }
+  .stat-sub { font-size: 12px; color: var(--gray); margin-top: 6px; }
+  .stat-card.dark .stat-sub { color: #555; }
+  .stat-badge { display: inline-flex; align-items: center; gap: 4px; font-size: 11px; font-weight: 700; padding: 4px 10px; border-radius: 20px; margin-top: 8px; }
+  .badge-green { background: var(--green-bg); color: var(--green); }
+  .badge-red { background: #fff0f0; color: var(--red); }
+  .badge-gray { background: #f0f0f0; color: var(--gray); }
+
+  /* ── GRID LAYOUT ── */
+  .content-grid { display: grid; grid-template-columns: 1fr 340px; gap: 20px; }
+  .chart-card, .bills-card, .summary-card { background: var(--white); border-radius: var(--radius); padding: 24px; }
+  .card-title { font-family: var(--font-h); font-weight: 700; font-size: 15px; color: var(--dark); margin-bottom: 4px; }
+  .card-sub { font-size: 12px; color: var(--gray); margin-bottom: 20px; }
+  .chart-wrap { position: relative; height: 220px; }
+  .bills-card { grid-column: 1 / -1; margin-top: 0; }
+
+  /* ── BILLS TABLE ── */
+  .table-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+  .filter-row { display: flex; gap: 8px; }
+  .filter-btn { padding: 6px 14px; border-radius: 100px; font-size: 12px; font-weight: 600; font-family: var(--font-h); border: 1.5px solid #e8e8e8; background: var(--white); color: var(--gray); cursor: pointer; transition: all 0.2s; }
+  .filter-btn.active { border-color: var(--dark); color: var(--dark); background: #f5f5f5; }
+  table { width: 100%; border-collapse: collapse; }
+  th { text-align: left; font-size: 11px; font-weight: 700; color: var(--gray); letter-spacing: 0.06em; text-transform: uppercase; padding: 0 16px 12px; border-bottom: 1px solid #f0f0f0; font-family: var(--font-h); }
+  td { padding: 14px 16px; border-bottom: 1px solid #f8f8f8; font-size: 13px; color: var(--dark); vertical-align: middle; }
+  tr:last-child td { border-bottom: none; }
+  tr:hover td { background: #fafafa; }
+  .company-cell { display: flex; align-items: center; gap: 10px; }
+  .company-icon { width: 32px; height: 32px; border-radius: 9px; display: flex; align-items: center; justify-content: center; font-size: 14px; flex-shrink: 0; }
+  .ci-eneo { background: rgba(202,255,64,0.15); }
+  .ci-camwater { background: rgba(96,200,255,0.15); }
+  .ci-camtel { background: rgba(179,157,255,0.15); }
+  .ci-other { background: #f0f0f0; }
+  .company-name { font-weight: 600; font-family: var(--font-h); font-size: 13px; }
+  .company-ref { font-size: 11px; color: var(--gray); margin-top: 1px; }
+  .amount-cell { font-family: var(--font-h); font-weight: 700; font-size: 14px; }
+  .pill { display: inline-flex; align-items: center; gap: 4px; font-size: 11px; font-weight: 700; padding: 5px 12px; border-radius: 20px; font-family: var(--font-h); }
+  .pill-paid { background: var(--green-bg); color: var(--green); }
+  .pill-pending { background: #fffbeb; color: #b45309; }
+  .pill-overdue { background: #fff0f0; color: var(--red); }
+  .action-row { display: flex; gap: 6px; }
+  .icon-btn { width: 30px; height: 30px; border-radius: 8px; border: 1px solid #ececec; background: var(--white); cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 13px; transition: all 0.15s; }
+  .icon-btn:hover { border-color: #ccc; background: #f5f5f5; }
+  .empty-state { text-align: center; padding: 48px; color: var(--gray); }
+  .empty-state .es-icon { font-size: 40px; margin-bottom: 12px; }
+  .empty-state h3 { font-family: var(--font-h); font-weight: 700; font-size: 16px; color: #555; margin-bottom: 6px; }
+  .empty-state p { font-size: 13px; line-height: 1.6; }
+
+  /* ── SUMMARY CARD ── */
+  .breakdown-item { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; }
+  .breakdown-item:last-child { margin-bottom: 0; }
+  .bd-icon { width: 38px; height: 38px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 18px; flex-shrink: 0; }
+  .bd-info { flex: 1; }
+  .bd-name { font-size: 13px; font-weight: 600; font-family: var(--font-h); color: var(--dark); }
+  .bd-count { font-size: 11px; color: var(--gray); margin-top: 1px; }
+  .bd-amount { font-family: var(--font-h); font-weight: 700; font-size: 14px; color: var(--dark); }
+  .progress-bar { height: 3px; background: #f0f0f0; border-radius: 10px; margin-top: 6px; }
+  .progress-fill { height: 100%; border-radius: 10px; transition: width 0.8s ease; }
+
+  /* ── UPLOAD MODAL ── */
+  .modal-overlay { position: fixed; inset: 0; background: rgba(13,13,13,0.6); backdrop-filter: blur(4px); z-index: 1000; display: flex; align-items: center; justify-content: center; padding: 20px; opacity: 0; pointer-events: none; transition: opacity 0.25s; }
+  .modal-overlay.open { opacity: 1; pointer-events: all; }
+  .modal { background: var(--white); border-radius: 24px; width: 100%; max-width: 520px; max-height: 90vh; overflow-y: auto; padding: 32px; transform: scale(0.95) translateY(16px); transition: transform 0.25s; }
+  .modal-overlay.open .modal { transform: scale(1) translateY(0); }
+  .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; }
+  .modal-title { font-family: var(--font-h); font-weight: 800; font-size: 20px; color: var(--dark); }
+  .modal-close { width: 32px; height: 32px; border-radius: 50%; border: 1px solid #ececec; background: var(--white); cursor: pointer; font-size: 16px; display: flex; align-items: center; justify-content: center; transition: all 0.15s; }
+  .modal-close:hover { background: #f5f5f5; }
+
+  /* UPLOAD DROP */
+  .drop-zone { border: 2px dashed #e0e0e0; border-radius: var(--radius); padding: 32px 20px; text-align: center; cursor: pointer; transition: all 0.2s; margin-bottom: 20px; }
+  .drop-zone:hover, .drop-zone.dragover { border-color: var(--dark); background: #fafafa; }
+  .drop-zone .dz-icon { font-size: 36px; margin-bottom: 10px; }
+  .drop-zone h3 { font-family: var(--font-h); font-weight: 700; font-size: 15px; color: var(--dark); margin-bottom: 4px; }
+  .drop-zone p { font-size: 12px; color: var(--gray); }
+  .drop-zone .file-name { font-size: 13px; color: var(--green); font-weight: 600; margin-top: 8px; }
+
+  /* FORM */
+  .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 20px; }
+  .span-2 { grid-column: span 2; }
+  .form-group { display: flex; flex-direction: column; gap: 6px; }
+  .form-label { font-size: 12px; font-weight: 700; font-family: var(--font-h); color: var(--dark); letter-spacing: 0.02em; }
+  .form-input { padding: 11px 14px; border: 1.5px solid #e8e8e8; border-radius: 10px; font-size: 14px; font-family: var(--font-b); background: #fafafa; color: var(--dark); outline: none; transition: all 0.2s; width: 100%; }
+  .form-input:focus { border-color: var(--dark); background: var(--white); }
+  select.form-input { cursor: pointer; }
+
+  .msg-modal { padding: 12px 16px; border-radius: 10px; font-size: 13px; margin-bottom: 16px; display: none; }
+  .msg-modal.error { background: #fff0f0; color: var(--red); border: 1px solid #ffd5d5; display: block; }
+  .msg-modal.success { background: var(--green-bg); color: var(--green); border: 1px solid #c3f0d5; display: block; }
+
+  .progress-upload { height: 4px; background: #f0f0f0; border-radius: 10px; margin-bottom: 16px; overflow: hidden; display: none; }
+  .progress-upload-fill { height: 100%; background: var(--lime); border-radius: 10px; transition: width 0.3s; width: 0%; }
+
+  /* ── LOADING ── */
+  .skeleton { background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%); background-size: 200% 100%; animation: shimmer 1.5s infinite; border-radius: 6px; }
+  @keyframes shimmer { 0%{background-position:200% 0} 100%{background-position:-200% 0} }
+
+  /* ── TOAST ── */
+  .toast { position: fixed; bottom: 24px; right: 24px; background: var(--dark); color: var(--white); padding: 14px 20px; border-radius: 14px; font-size: 13px; font-weight: 600; font-family: var(--font-h); display: flex; align-items: center; gap: 10px; box-shadow: 0 8px 32px rgba(0,0,0,0.15); transform: translateY(80px); opacity: 0; transition: all 0.3s; z-index: 9999; }
+  .toast.show { transform: translateY(0); opacity: 1; }
+  .toast.success { border-left: 4px solid var(--lime); }
+  .toast.error { border-left: 4px solid var(--red); }
+
+  /* ── RESPONSIVE ── */
+  @media (max-width: 900px) {
+    .stats-grid { grid-template-columns: repeat(2, 1fr); }
+    .content-grid { grid-template-columns: 1fr; }
+    .sidebar { transform: translateX(-100%); }
+    .main { margin-left: 0; padding: 20px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="layout">
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="sidebar-brand">
+      <div class="sidebar-logo">🛡</div>
+      <div class="sidebar-name">BillSafe</div>
+    </div>
+
+    <div class="nav-group-label">Menu principal</div>
+    <a class="nav-item active" href="dashboard.html"><span class="ni">📊</span> Tableau de bord</a>
+    <a class="nav-item" href="bills.html"><span class="ni">📄</span> Mes factures <span class="badge" id="nav-bill-count">-</span></a>
+    <a class="nav-item" href="upload.html"><span class="ni">📤</span> Ajouter facture</a>
+
+    <div class="nav-group-label" style="margin-top:16px">Portail Business</div>
+    <a class="nav-item" href="landlord.html"><span class="ni">🏢</span> Mes propriétés</a>
+    <a class="nav-item" href="tenants.html"><span class="ni">👥</span> Locataires</a>
+    <a class="nav-item" href="shared.html"><span class="ni">🔗</span> Factures partagées</a>
+
+    <div class="nav-group-label" style="margin-top:16px">Compte</div>
+    <a class="nav-item" href="settings.html"><span class="ni">⚙️</span> Paramètres</a>
+    <a class="nav-item" href="alerts.html"><span class="ni">🔔</span> Alertes <span class="badge" id="anomaly-badge" style="background:#ff5f5f;display:none">!</span></a>
+
+    <div class="sidebar-bottom">
+      <div class="user-row">
+        <div class="user-avatar" id="user-avatar">?</div>
+        <div class="user-info">
+          <div class="user-name" id="user-name">Chargement...</div>
+          <div class="user-email" id="user-email"></div>
+        </div>
+        <button class="logout-btn" onclick="logout()" title="Se déconnecter">⏻</button>
+      </div>
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <main class="main">
+    <div class="topbar">
+      <div class="topbar-left">
+        <h2>Tableau de bord</h2>
+        <p id="greeting-date">Bonjour — chargement...</p>
+      </div>
+      <button class="btn-upload" onclick="openModal()">
+        + Ajouter une facture
+      </button>
+    </div>
+
+    <!-- STATS -->
+    <div class="stats-grid">
+      <div class="stat-card dark">
+        <div class="stat-label">Total ce mois</div>
+        <div class="stat-value" id="stat-total">—</div>
+        <div class="stat-sub">FCFA dépensés</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Factures sauvegardées</div>
+        <div class="stat-value" id="stat-count">—</div>
+        <span class="stat-badge badge-green" id="stat-count-badge">↑ total</span>
+      </div>
+      <div class="stat-card lime">
+        <div class="stat-label">Factures payées</div>
+        <div class="stat-value" id="stat-paid">—</div>
+        <div class="stat-sub">confirmées</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">En attente</div>
+        <div class="stat-value" id="stat-pending">—</div>
+        <span class="stat-badge badge-red" id="stat-pending-badge">à régler</span>
+      </div>
+    </div>
+
+    <!-- CHARTS + SUMMARY -->
+    <div class="content-grid">
+      <div class="chart-card">
+        <div class="card-title">Dépenses mensuelles</div>
+        <div class="card-sub">6 derniers mois par société</div>
+        <div class="chart-wrap">
+          <canvas id="main-chart"></canvas>
+        </div>
+      </div>
+      <div class="summary-card">
+        <div class="card-title">Par société</div>
+        <div class="card-sub">Ce mois — répartition</div>
+        <div id="breakdown-list"></div>
+      </div>
+    </div>
+
+    <!-- BILLS TABLE -->
+    <!-- PORTAL SHORTCUT BANNER -->
+    <div style="background:var(--dark);border-radius:20px;padding:22px 28px;margin-top:20px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:16px">
+      <div style="display:flex;align-items:center;gap:16px">
+        <div style="width:48px;height:48px;background:var(--lime);border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:24px;flex-shrink:0">🏢</div>
+        <div>
+          <div style="font-family:var(--font-h);font-weight:700;font-size:16px;color:#fff;margin-bottom:3px">Portail Propriétaire Business</div>
+          <div style="font-size:13px;color:#666">Gérez vos propriétés, ajoutez des locataires et partagez des factures en un clic</div>
+        </div>
+      </div>
+      <a href="landlord.html" style="background:var(--lime);color:var(--dark);font-family:var(--font-h);font-weight:700;font-size:14px;padding:10px 22px;border-radius:100px;text-decoration:none;white-space:nowrap">Ouvrir le portail →</a>
+    </div>
+
+    <div class="bills-card" style="margin-top:20px">
+      <div class="table-header">
+        <div>
+          <div class="card-title">Factures récentes</div>
+          <div class="card-sub">Toutes vos quittances sauvegardées</div>
+        </div>
+        <div class="filter-row">
+          <button class="filter-btn active" onclick="filterBills('all', this)">Toutes</button>
+          <button class="filter-btn" onclick="filterBills('paid', this)">Payées</button>
+          <button class="filter-btn" onclick="filterBills('pending', this)">En attente</button>
+        </div>
+      </div>
+      <div id="bills-table-wrap">
+        <div class="empty-state">
+          <div class="es-icon">📂</div>
+          <h3>Chargement...</h3>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- UPLOAD MODAL -->
+<div class="modal-overlay" id="upload-modal">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">📤 Ajouter une facture</div>
+      <button class="modal-close" onclick="closeModal()">✕</button>
+    </div>
+
+    <div class="drop-zone" id="drop-zone" onclick="document.getElementById('file-input').click()">
+      <input type="file" id="file-input" accept="image/*,.pdf" style="display:none" onchange="handleFile(this.files[0])">
+      <div class="dz-icon">🖼</div>
+      <h3>Glissez la photo ou le PDF ici</h3>
+      <p>JPG, PNG ou PDF — max 10 MB</p>
+      <div class="file-name" id="file-name"></div>
+    </div>
+
+    <div class="msg-modal" id="modal-msg"></div>
+    <div class="progress-upload" id="upload-progress">
+      <div class="progress-upload-fill" id="upload-progress-fill"></div>
+    </div>
+
+    <div class="form-grid">
+      <div class="form-group">
+        <label class="form-label">Société</label>
+        <select class="form-input" id="f-company">
+          <option value="ENEO">⚡ ENEO / SONEL</option>
+          <option value="CamWater">💧 CamWater</option>
+          <option value="Camtel">📡 Camtel</option>
+          <option value="SONODE">🏗 SONODE</option>
+          <option value="Autre">📌 Autre</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Statut</label>
+        <select class="form-input" id="f-status">
+          <option value="paid">✅ Payée</option>
+          <option value="pending">⏳ En attente</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Mois de facturation</label>
+        <input class="form-input" type="month" id="f-month">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Montant (FCFA)</label>
+        <input class="form-input" type="number" id="f-amount" placeholder="ex: 24500">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Date de paiement</label>
+        <input class="form-input" type="date" id="f-date">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Numéro de référence</label>
+        <input class="form-input" type="text" id="f-ref" placeholder="ex: ENE-2026-044">
+      </div>
+      <div class="form-group span-2">
+        <label class="form-label">Quartier / Ville</label>
+        <input class="form-input" type="text" id="f-location" placeholder="ex: Akwa, Douala">
+      </div>
+      <div class="form-group span-2">
+        <label class="form-label">Note (optionnel)</label>
+        <input class="form-input" type="text" id="f-note" placeholder="ex: Payé au guichet Akwa">
+      </div>
+    </div>
+
+    <button class="btn-upload btn-lime" style="width:100%;justify-content:center;font-size:15px;padding:14px" onclick="saveBill()" id="save-btn">
+      💾 Sauvegarder la facture
+    </button>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<script>
+// ── CONFIG — REPLACE THESE ─────────────────────────────────
+const SUPABASE_URL  = 'https://rjnsnodvqwwhkxbznzqa.supabase.co';
+const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJqbnNub2R2cXd3aGt4YnpuenFhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzgxODg1OTksImV4cCI6MjA5Mzc2NDU5OX0.gkV9ynTFdY8B72s2fnRpTkUH71FUz59ICIpQLZQDsIc';
+// ──────────────────────────────────────────────────────────
+
+const { createClient } = supabase;
+const db = createClient(SUPABASE_URL, SUPABASE_ANON);
+
+let allBills = [];
+let currentUser = null;
+let selectedFile = null;
+let chart = null;
+
+// ── INIT ──────────────────────────────────────────────────
+window.addEventListener('DOMContentLoaded', async () => {
+  const { data: { session } } = await db.auth.getSession();
+  if (!session) return window.location.href = 'auth.html';
+  currentUser = session.user;
+  renderUser();
+  setGreeting();
+  setDefaultFormDates();
+  await loadBills();
+});
+
+function renderUser() {
+  const name = currentUser.user_metadata?.full_name || currentUser.phone || currentUser.email || 'Utilisateur';
+  const initials = name.split(' ').map(w => w[0]).join('').toUpperCase().slice(0,2);
+  document.getElementById('user-avatar').textContent = initials;
+  document.getElementById('user-name').textContent = name;
+  document.getElementById('user-email').textContent = currentUser.email || currentUser.phone || '';
+}
+
+function setGreeting() {
+  const hour = new Date().getHours();
+  const gr = hour < 12 ? 'Bonjour' : hour < 18 ? 'Bon après-midi' : 'Bonsoir';
+  const now = new Date();
+  document.getElementById('greeting-date').textContent =
+    `${gr} — ${now.toLocaleDateString('fr-FR', { weekday:'long', day:'numeric', month:'long', year:'numeric' })}`;
+}
+
+function setDefaultFormDates() {
+  const today = new Date().toISOString().split('T')[0];
+  const monthVal = today.slice(0, 7);
+  document.getElementById('f-date').value = today;
+  document.getElementById('f-month').value = monthVal;
+}
+
+// ── LOAD BILLS ────────────────────────────────────────────
+async function loadBills() {
+  const { data, error } = await db
+    .from('bills')
+    .select('*')
+    .eq('user_id', currentUser.id)
+    .order('created_at', { ascending: false });
+
+  if (error) { console.error(error); return; }
+  allBills = data || [];
+  renderStats();
+  renderChart();
+  renderBreakdown();
+  renderTable(allBills);
+  document.getElementById('nav-bill-count').textContent = allBills.length;
+  checkAnomalies();
+}
+
+// ── STATS ─────────────────────────────────────────────────
+function renderStats() {
+  const now = new Date();
+  const thisMonth = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}`;
+  const monthBills = allBills.filter(b => b.billing_month?.startsWith(thisMonth));
+  const total = monthBills.reduce((s, b) => s + (b.amount || 0), 0);
+  const paid = allBills.filter(b => b.status === 'paid').length;
+  const pending = allBills.filter(b => b.status === 'pending').length;
+
+  document.getElementById('stat-total').textContent = total.toLocaleString('fr-FR');
+  document.getElementById('stat-count').textContent = allBills.length;
+  document.getElementById('stat-paid').textContent = paid;
+  document.getElementById('stat-pending').textContent = pending;
+}
+
+// ── CHART ─────────────────────────────────────────────────
+function renderChart() {
+  const months = [];
+  const labels = [];
+  for (let i = 5; i >= 0; i--) {
+    const d = new Date(); d.setMonth(d.getMonth() - i);
+    months.push(`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`);
+    labels.push(d.toLocaleDateString('fr-FR', { month: 'short' }));
+  }
+  const companies = ['ENEO', 'CamWater', 'Camtel'];
+  const colors = ['rgba(202,255,64,0.85)', 'rgba(96,200,255,0.85)', 'rgba(179,157,255,0.85)'];
+
+  const datasets = companies.map((co, ci) => ({
+    label: co,
+    data: months.map(m => {
+      return allBills.filter(b => b.company === co && b.billing_month?.startsWith(m))
+                     .reduce((s, b) => s + (b.amount || 0), 0);
+    }),
+    backgroundColor: colors[ci],
+    borderRadius: 6,
+    borderSkipped: false,
+  }));
+
+  if (chart) chart.destroy();
+  const ctx = document.getElementById('main-chart').getContext('2d');
+  chart = new Chart(ctx, {
+    type: 'bar',
+    data: { labels, datasets },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { display: true, position: 'top', labels: { font: { family: 'Manrope', weight: '600', size: 11 }, boxWidth: 10, boxHeight: 10, borderRadius: 3, usePointStyle: true } } },
+      scales: {
+        x: { stacked: false, grid: { display: false }, ticks: { font: { family: 'DM Sans', size: 11 } } },
+        y: { grid: { color: '#f5f5f5' }, ticks: { font: { family: 'DM Sans', size: 11 }, callback: v => (v/1000).toFixed(0)+'k' } }
+      }
+    }
+  });
+}
+
+// ── BREAKDOWN ─────────────────────────────────────────────
+function renderBreakdown() {
+  const companies = [
+    { name: 'ENEO', icon: '⚡', cls: 'ci-eneo', color: '#CAFF40' },
+    { name: 'CamWater', icon: '💧', cls: 'ci-camwater', color: '#60C8FF' },
+    { name: 'Camtel', icon: '📡', cls: 'ci-camtel', color: '#B39DFF' },
+  ];
+  const now = new Date();
+  const thisMonth = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}`;
+  const totals = companies.map(c => ({
+    ...c,
+    total: allBills.filter(b => b.company === c.name && b.billing_month?.startsWith(thisMonth))
+                   .reduce((s,b) => s+(b.amount||0), 0),
+    count: allBills.filter(b => b.company === c.name).length
+  }));
+  const max = Math.max(...totals.map(t => t.total), 1);
+  const el = document.getElementById('breakdown-list');
+  el.innerHTML = totals.map(t => `
+    <div class="breakdown-item">
+      <div class="company-icon ${t.cls}">${t.icon}</div>
+      <div class="bd-info">
+        <div class="bd-name">${t.name}</div>
+        <div class="bd-count">${t.count} facture${t.count !== 1 ? 's' : ''}</div>
+        <div class="progress-bar"><div class="progress-fill" style="width:${Math.round(t.total/max*100)}%;background:${t.color}"></div></div>
+      </div>
+      <div class="bd-amount">${t.total.toLocaleString('fr-FR')}<span style="font-size:10px;color:#aaa;font-weight:500"> F</span></div>
+    </div>
+  `).join('');
+}
+
+// ── TABLE ─────────────────────────────────────────────────
+function renderTable(bills) {
+  const wrap = document.getElementById('bills-table-wrap');
+  if (!bills.length) {
+    wrap.innerHTML = `<div class="empty-state"><div class="es-icon">📂</div><h3>Aucune facture</h3><p>Cliquez sur « Ajouter une facture » pour commencer.</p></div>`;
+    return;
+  }
+  const iconMap = { ENEO: { icon:'⚡', cls:'ci-eneo' }, CamWater: { icon:'💧', cls:'ci-camwater' }, Camtel: { icon:'📡', cls:'ci-camtel' } };
+  const statusMap = { paid: '<span class="pill pill-paid">✓ Payée</span>', pending: '<span class="pill pill-pending">⏳ En attente</span>', overdue: '<span class="pill pill-overdue">⚠ En retard</span>' };
+
+  wrap.innerHTML = `<table>
+    <thead><tr>
+      <th>Société</th><th>Mois</th><th>Montant</th><th>Statut</th><th>Date paiement</th><th>Actions</th>
+    </tr></thead>
+    <tbody>
+    ${bills.map(b => {
+      const ic = iconMap[b.company] || { icon:'📌', cls:'ci-other' };
+      const month = b.billing_month ? new Date(b.billing_month+'-01').toLocaleDateString('fr-FR',{month:'long',year:'numeric'}) : '—';
+      const pdate = b.payment_date ? new Date(b.payment_date).toLocaleDateString('fr-FR') : '—';
+      return `<tr>
+        <td><div class="company-cell">
+          <div class="company-icon ${ic.cls}">${ic.icon}</div>
+          <div><div class="company-name">${b.company}</div><div class="company-ref">${b.reference || '—'}</div></div>
+        </div></td>
+        <td>${month}</td>
+        <td class="amount-cell">${b.amount ? b.amount.toLocaleString('fr-FR')+' F' : '—'}</td>
+        <td>${statusMap[b.status] || b.status}</td>
+        <td style="color:var(--gray);font-size:12px">${pdate}</td>
+        <td><div class="action-row">
+          ${b.file_url ? `<button class="icon-btn" onclick="window.open('${b.file_url}')" title="Voir fichier">👁</button>` : ''}
+          <button class="icon-btn" onclick="deleteBill('${b.id}')" title="Supprimer">🗑</button>
+        </div></td>
+      </tr>`;
+    }).join('')}
+    </tbody>
+  </table>`;
+}
+
+function filterBills(filter, btn) {
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  const filtered = filter === 'all' ? allBills : allBills.filter(b => b.status === filter);
+  renderTable(filtered);
+}
+
+// ── DELETE BILL ───────────────────────────────────────────
+async function deleteBill(id) {
+  if (!confirm('Supprimer cette facture?')) return;
+  const { error } = await db.from('bills').delete().eq('id', id).eq('user_id', currentUser.id);
+  if (error) return showToast('Erreur lors de la suppression', 'error');
+  showToast('Facture supprimée', 'success');
+  await loadBills();
+}
+
+// ── UPLOAD MODAL ──────────────────────────────────────────
+function openModal() {
+  document.getElementById('upload-modal').classList.add('open');
+  document.getElementById('modal-msg').className = 'msg-modal';
+  document.getElementById('file-name').textContent = '';
+  selectedFile = null;
+}
+function closeModal() { document.getElementById('upload-modal').classList.remove('open'); }
+
+// Drag & drop
+const dz = document.getElementById('drop-zone');
+dz.addEventListener('dragover', e => { e.preventDefault(); dz.classList.add('dragover'); });
+dz.addEventListener('dragleave', () => dz.classList.remove('dragover'));
+dz.addEventListener('drop', e => { e.preventDefault(); dz.classList.remove('dragover'); if (e.dataTransfer.files[0]) handleFile(e.dataTransfer.files[0]); });
+
+function handleFile(file) {
+  if (!file) return;
+  if (file.size > 10 * 1024 * 1024) {
+    document.getElementById('modal-msg').textContent = 'Fichier trop grand (max 10 MB)';
+    document.getElementById('modal-msg').className = 'msg-modal error';
+    return;
+  }
+  selectedFile = file;
+  document.getElementById('file-name').textContent = '✅ ' + file.name;
+  document.getElementById('modal-msg').className = 'msg-modal';
+}
+
+// ── SAVE BILL ─────────────────────────────────────────────
+async function saveBill() {
+  const company  = document.getElementById('f-company').value;
+  const status   = document.getElementById('f-status').value;
+  const month    = document.getElementById('f-month').value;
+  const amount   = parseFloat(document.getElementById('f-amount').value);
+  const date     = document.getElementById('f-date').value;
+  const ref      = document.getElementById('f-ref').value.trim();
+  const location = document.getElementById('f-location').value.trim();
+  const note     = document.getElementById('f-note').value.trim();
+  const msgEl    = document.getElementById('modal-msg');
+
+  if (!company || !month || !amount) {
+    msgEl.textContent = 'Société, mois et montant sont obligatoires.';
+    msgEl.className = 'msg-modal error';
+    return;
+  }
+
+  const saveBtn = document.getElementById('save-btn');
+  saveBtn.disabled = true;
+  saveBtn.textContent = 'Sauvegarde en cours...';
+
+  let file_url = null;
+  let file_path = null;
+
+  // Upload file if selected
+  if (selectedFile) {
+    const prog = document.getElementById('upload-progress');
+    const fill = document.getElementById('upload-progress-fill');
+    prog.style.display = 'block';
+    fill.style.width = '30%';
+
+    const ext = selectedFile.name.split('.').pop();
+    const path = `${currentUser.id}/${Date.now()}.${ext}`;
+    const { data: uploadData, error: uploadError } = await db.storage
+      .from('bills')
+      .upload(path, selectedFile, { cacheControl: '3600', upsert: false });
+
+    fill.style.width = '80%';
+
+    if (uploadError) {
+      msgEl.textContent = 'Erreur upload: ' + uploadError.message;
+      msgEl.className = 'msg-modal error';
+      saveBtn.disabled = false;
+      saveBtn.textContent = '💾 Sauvegarder la facture';
+      prog.style.display = 'none';
+      return;
+    }
+    file_path = uploadData.path;
+    const { data: urlData } = db.storage.from('bills').getPublicUrl(file_path);
+    file_url = urlData.publicUrl;
+    fill.style.width = '100%';
+  }
+
+  const { error } = await db.from('bills').insert([{
+    user_id: currentUser.id,
+    company, status, billing_month: month,
+    amount: isNaN(amount) ? null : amount,
+    payment_date: date || null,
+    reference: ref || null,
+    location: location || null,
+    notes: note || null,
+    file_url, file_path,
+  }]);
+
+  document.getElementById('upload-progress').style.display = 'none';
+
+  if (error) {
+    msgEl.textContent = 'Erreur: ' + error.message;
+    msgEl.className = 'msg-modal error';
+  } else {
+    closeModal();
+    showToast('✅ Facture sauvegardée!', 'success');
+    await loadBills();
+  }
+
+  saveBtn.disabled = false;
+  saveBtn.textContent = '💾 Sauvegarder la facture';
+}
+
+// ── LOGOUT ────────────────────────────────────────────────
+async function logout() {
+  await db.auth.signOut();
+  window.location.href = 'auth.html';
+}
+
+// ── TOAST ─────────────────────────────────────────────────
+function showToast(msg, type='success') {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'toast ' + type + ' show';
+  setTimeout(() => t.classList.remove('show'), 3000);
+}
+
+// Close modal on overlay click
+document.getElementById('upload-modal').addEventListener('click', function(e) {
+  if (e.target === this) closeModal();
+});
+</script>
+</body>
+</html>

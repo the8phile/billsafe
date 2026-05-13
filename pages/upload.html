@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BillSafe — Scan Intelligent</title>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=DM+Sans:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../css/portal.css">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+  .scan-wrap { max-width: 680px; }
+  .camera-zone { background: var(--dark); border-radius: var(--radius); overflow: hidden; margin-bottom: 20px; position: relative; min-height: 260px; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+  .camera-placeholder { text-align: center; padding: 40px 24px; }
+  .cam-icon { font-size: 52px; margin-bottom: 14px; }
+  .camera-placeholder h3 { font-family: var(--font-h); font-weight: 700; font-size: 18px; color: var(--white); margin-bottom: 8px; }
+  .camera-placeholder p { font-size: 13px; color: #666; line-height: 1.6; }
+  .camera-btns { display: flex; gap: 10px; margin-top: 20px; justify-content: center; flex-wrap: wrap; }
+  .preview-wrap { position: relative; width: 100%; }
+  .preview-img { width: 100%; max-height: 320px; object-fit: contain; display: block; background: #000; }
+  .preview-overlay { position: absolute; top: 12px; right: 12px; display: flex; gap: 8px; }
+  .scan-line { position: absolute; top: 0; left: 0; right: 0; height: 3px; background: var(--lime); box-shadow: 0 0 12px var(--lime); animation: scanDown 2s ease-in-out infinite; }
+  @keyframes scanDown { 0%{top:0} 100%{top:100%} }
+  .scanning-overlay { position: absolute; inset: 0; background: rgba(13,13,13,0.75); display: none; flex-direction: column; align-items: center; justify-content: center; }
+  .scan-spinner { width: 48px; height: 48px; border: 3px solid #333; border-top-color: var(--lime); border-radius: 50%; animation: spin 0.8s linear infinite; margin-bottom: 14px; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .scanning-overlay p { font-size: 14px; color: var(--lime); font-family: var(--font-h); font-weight: 600; }
+  .ocr-result { background: var(--green-bg); border: 1.5px solid #c3f0d5; border-radius: var(--radius-sm); padding: 16px 20px; margin-bottom: 20px; display: none; }
+  .ocr-badge { background: var(--green); color: var(--white); font-size: 11px; font-weight: 700; font-family: var(--font-h); padding: 3px 12px; border-radius: 20px; }
+  .ocr-fields { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-top: 14px; }
+  .ocr-field { background: var(--white); border-radius: 8px; padding: 10px 12px; }
+  .ocr-field-label { font-size: 10px; font-weight: 700; color: var(--gray); font-family: var(--font-h); letter-spacing: 0.04em; text-transform: uppercase; margin-bottom: 3px; }
+  .ocr-field-value { font-size: 14px; font-weight: 700; color: var(--dark); font-family: var(--font-h); }
+  .ocr-fail { background: #fff8e6; border: 1.5px solid #ffd97d; border-radius: var(--radius-sm); padding: 14px 18px; margin-bottom: 20px; display: none; font-size: 13px; color: #7a5000; }
+  .auto-filled { border-color: var(--green) !important; background: var(--green-bg) !important; }
+  .progress-bar { height: 6px; background: #f0f0f0; border-radius: 10px; margin-bottom: 20px; overflow: hidden; display: none; }
+  .progress-fill { height: 100%; background: var(--lime); border-radius: 10px; transition: width 0.4s; width: 0%; }
+  .tip-row { display: flex; gap: 8px; margin-bottom: 20px; flex-wrap: wrap; }
+  .tip { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--gray); background: #f5f5f5; padding: 6px 12px; border-radius: 20px; }
+  .form-section-label { font-size: 11px; font-weight: 700; font-family: var(--font-h); color: var(--gray); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 14px; display: flex; align-items: center; gap: 8px; }
+</style>
+</head>
+<body>
+<div class="layout">
+  <aside class="sidebar">
+    <div class="sidebar-brand"><div class="sidebar-logo">🛡</div><div class="sidebar-name">BillSafe</div></div>
+    <span class="sidebar-plan">Business</span>
+    <div class="nav-group-label">Principal</div>
+    <a class="nav-item" href="dashboard.html"><span class="ni">📊</span> Tableau de bord</a>
+    <a class="nav-item" href="bills.html"><span class="ni">📄</span> Mes factures</a>
+    <a class="nav-item active" href="upload.html"><span class="ni">📤</span> Ajouter facture</a>
+    <div class="nav-group-label">Portail Business</div>
+    <a class="nav-item" href="landlord.html"><span class="ni">🏢</span> Mes propriétés</a>
+    <a class="nav-item" href="tenants.html"><span class="ni">👥</span> Locataires</a>
+    <a class="nav-item" href="shared.html"><span class="ni">🔗</span> Factures partagées</a>
+    <div class="nav-group-label">Compte</div>
+    <a class="nav-item" href="settings.html"><span class="ni">⚙️</span> Paramètres</a>
+    <a class="nav-item" href="alerts.html"><span class="ni">🔔</span> Alertes</a>
+    <div class="sidebar-bottom">
+      <div class="user-row">
+        <div class="user-avatar" id="user-avatar">?</div>
+        <div class="user-info"><div class="user-name" id="user-name">Chargement...</div><div class="user-role">Mon compte</div></div>
+        <button class="logout-btn" onclick="logout()">⏻</button>
+      </div>
+    </div>
+  </aside>
+
+  <main class="main">
+    <div class="topbar">
+      <div class="topbar-left">
+        <h2>🤖 Scan Intelligent</h2>
+        <p>Prenez une photo — l'IA remplit les champs automatiquement</p>
+      </div>
+      <a href="dashboard.html" class="btn btn-ghost btn-sm">← Retour</a>
+    </div>
+
+    <div class="scan-wrap">
+      <div class="tip-row">
+        <div class="tip">💡 Bonne lumière</div>
+        <div class="tip">📄 Facture à plat</div>
+        <div class="tip">🔍 Texte lisible</div>
+        <div class="tip">📸 Photo nette</div>
+      </div>
+
+      <div class="camera-zone" id="camera-zone">
+        <div class="camera-placeholder" id="cam-placeholder">
+          <div class="cam-icon">📸</div>
+          <h3>Scannez votre facture</h3>
+          <p>Prenez une photo ou importez une image.<br>L'IA lira automatiquement le montant, la date et la référence.</p>
+          <div class="camera-btns">
+            <button class="btn btn-lime" onclick="document.getElementById('cam-input').click()">📷 Prendre une photo</button>
+            <button class="btn btn-ghost" style="color:#fff;border-color:#333" onclick="document.getElementById('file-input').click()">🖼 Importer</button>
+          </div>
+          <input type="file" id="cam-input" accept="image/*" capture="environment" style="display:none" onchange="handleImage(this.files[0])">
+          <input type="file" id="file-input" accept="image/*,.pdf" style="display:none" onchange="handleImage(this.files[0])">
+        </div>
+        <div class="preview-wrap" id="preview-wrap" style="display:none">
+          <img id="preview-img" class="preview-img" alt="Facture">
+          <div class="preview-overlay">
+            <button class="btn btn-ghost btn-sm" style="background:rgba(0,0,0,0.7);color:#fff;border-color:#555" onclick="retake()">🔄 Reprendre</button>
+            <button class="btn btn-lime btn-sm" id="scan-btn" onclick="runOCR()">🤖 Analyser</button>
+          </div>
+        </div>
+        <div class="scanning-overlay" id="scanning-overlay">
+          <div class="scan-line"></div>
+          <div class="scan-spinner"></div>
+          <p>L'IA analyse votre facture...</p>
+        </div>
+      </div>
+
+      <div class="ocr-result" id="ocr-result">
+        <div style="display:flex;align-items:center;gap:10px">
+          <span class="ocr-badge">✓ IA</span>
+          <span style="font-family:var(--font-h);font-weight:700;font-size:13px;color:var(--green)">Champs détectés — vérifiez et confirmez</span>
+        </div>
+        <div class="ocr-fields">
+          <div class="ocr-field"><div class="ocr-field-label">Société</div><div class="ocr-field-value" id="ocr-company">—</div></div>
+          <div class="ocr-field"><div class="ocr-field-label">Montant</div><div class="ocr-field-value" id="ocr-amount">—</div></div>
+          <div class="ocr-field"><div class="ocr-field-label">Référence</div><div class="ocr-field-value" id="ocr-ref">—</div></div>
+        </div>
+      </div>
+      <div class="ocr-fail" id="ocr-fail">⚠️ L'IA n'a pas pu lire tous les champs. Remplissez manuellement. Essayez avec une meilleure lumière.</div>
+
+      <div class="progress-bar" id="progress-bar"><div class="progress-fill" id="progress-fill"></div></div>
+      <div id="page-msg" class="msg" style="display:none"></div>
+
+      <div class="card">
+        <div class="form-section-label">
+          📋 Informations de la facture
+          <span id="ai-badge" style="display:none;background:var(--green-bg);color:var(--green);font-size:10px;padding:2px 10px;border-radius:20px;font-weight:700">✓ Auto-rempli par IA</span>
+        </div>
+        <div class="form-grid" style="margin-bottom:20px">
+          <div class="form-group">
+            <label class="form-label">Société *</label>
+            <select class="form-input" id="f-company">
+              <option value="ENEO">⚡ ENEO / SONEL</option>
+              <option value="CamWater">💧 CamWater</option>
+              <option value="Camtel">📡 Camtel</option>
+              <option value="SONODE">🏗 SONODE</option>
+              <option value="Autre">📌 Autre</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Statut *</label>
+            <select class="form-input" id="f-status">
+              <option value="paid">✅ Payée</option>
+              <option value="pending">⏳ En attente</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Mois de facturation *</label>
+            <input class="form-input" type="month" id="f-month">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Montant (FCFA) *</label>
+            <input class="form-input" type="number" id="f-amount" placeholder="ex: 24500">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Date de paiement</label>
+            <input class="form-input" type="date" id="f-date">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Numéro de référence</label>
+            <input class="form-input" type="text" id="f-ref" placeholder="ex: ENE-2026-044">
+          </div>
+          <div class="form-group span-2">
+            <label class="form-label">Quartier / Ville</label>
+            <input class="form-input" type="text" id="f-location" placeholder="ex: Akwa, Douala">
+          </div>
+          <div class="form-group span-2">
+            <label class="form-label">Note (optionnel)</label>
+            <input class="form-input" type="text" id="f-note">
+          </div>
+        </div>
+        <button class="btn btn-lime" style="width:100%;justify-content:center;font-size:15px;padding:14px" id="save-btn" onclick="saveBill()">💾 Sauvegarder la facture</button>
+      </div>
+    </div>
+  </main>
+</div>
+<div class="toast" id="toast"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="../js/portal.js"></script>
+<script>
+// ── IMPORTANT: Get your key at console.anthropic.com → API Keys ──
+const ANTHROPIC_KEY = 'YOUR_ANTHROPIC_API_KEY';
+// ─────────────────────────────────────────────────────────────────
+
+let currentUser = null, selectedFile = null, imageBase64 = null;
+
+window.addEventListener('DOMContentLoaded', async () => {
+  currentUser = await requireAuth();
+  if (!currentUser) return;
+  renderSidebarUser(currentUser);
+  const today = new Date().toISOString().split('T')[0];
+  document.getElementById('f-date').value  = today;
+  document.getElementById('f-month').value = today.slice(0,7);
+});
+
+function handleImage(file) {
+  if (!file || file.size > 10*1024*1024) return;
+  selectedFile = file;
+  const r = new FileReader();
+  r.onload = e => {
+    imageBase64 = e.target.result;
+    document.getElementById('preview-img').src = imageBase64;
+    document.getElementById('cam-placeholder').style.display = 'none';
+    document.getElementById('preview-wrap').style.display = 'block';
+  };
+  r.readAsDataURL(file);
+}
+
+function retake() {
+  selectedFile = null; imageBase64 = null;
+  document.getElementById('preview-wrap').style.display = 'none';
+  document.getElementById('cam-placeholder').style.display = 'block';
+  document.getElementById('ocr-result').style.display = 'none';
+  document.getElementById('ocr-fail').style.display   = 'none';
+  document.getElementById('ai-badge').style.display   = 'none';
+}
+
+async function runOCR() {
+  if (!imageBase64) return;
+  const overlay = document.getElementById('scanning-overlay');
+  overlay.style.display = 'flex';
+  document.getElementById('scan-btn').disabled = true;
+
+  try {
+    const base64Data = imageBase64.split(',')[1];
+    const mimeType   = imageBase64.split(';')[0].split(':')[1];
+
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': ANTHROPIC_KEY,
+        'anthropic-version': '2023-06-01',
+        'anthropic-dangerous-client-side-api-key-access': 'true'
+      },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-6',
+        max_tokens: 512,
+        messages: [{
+          role: 'user',
+          content: [
+            { type:'image', source:{ type:'base64', media_type: mimeType, data: base64Data } },
+            { type:'text', text:`You are a bill OCR specialist for Cameroonian utility bills (ENEO, CamWater, Camtel, SONEL).
+Analyze this bill image and extract fields. Respond ONLY with valid JSON, no markdown:
+{
+  "company": "ENEO"|"CamWater"|"Camtel"|"SONODE"|"Autre",
+  "amount": number,
+  "billing_month": "YYYY-MM",
+  "payment_date": "YYYY-MM-DD"|null,
+  "reference": string|null,
+  "status": "paid"|"pending",
+  "confidence": "high"|"medium"|"low"
+}` }
+          ]
+        }]
+      })
+    });
+
+    const data = await res.json();
+    if (data.error) throw new Error(data.error.message);
+    const json = JSON.parse(data.content[0].text.replace(/```json|```/g,'').trim());
+    applyOCR(json);
+  } catch(e) {
+    console.error(e);
+    document.getElementById('ocr-fail').style.display = 'block';
+    document.getElementById('ocr-result').style.display = 'none';
+  } finally {
+    overlay.style.display = 'none';
+    document.getElementById('scan-btn').disabled = false;
+  }
+}
+
+function applyOCR(j) {
+  let any = false;
+  if (j.company) { const s=document.getElementById('f-company'); if([...s.options].find(o=>o.value===j.company)){s.value=j.company;any=true;} document.getElementById('ocr-company').textContent=j.company; }
+  if (j.amount)  { document.getElementById('f-amount').value=j.amount; document.getElementById('f-amount').classList.add('auto-filled'); document.getElementById('ocr-amount').textContent=Number(j.amount).toLocaleString('fr-FR')+' FCFA'; any=true; }
+  if (j.billing_month) { document.getElementById('f-month').value=j.billing_month; any=true; }
+  if (j.payment_date)  { document.getElementById('f-date').value=j.payment_date; }
+  if (j.reference) { document.getElementById('f-ref').value=j.reference; document.getElementById('f-ref').classList.add('auto-filled'); document.getElementById('ocr-ref').textContent=j.reference; any=true; }
+  if (j.status) { document.getElementById('f-status').value=j.status; }
+
+  if (any && j.confidence !== 'low') {
+    document.getElementById('ocr-result').style.display = 'block';
+    document.getElementById('ocr-fail').style.display   = 'none';
+    document.getElementById('ai-badge').style.display   = 'inline-block';
+    showToast('🤖 Champs remplis automatiquement!','success');
+  } else {
+    document.getElementById('ocr-fail').style.display   = 'block';
+    document.getElementById('ocr-result').style.display = 'none';
+  }
+}
+
+async function saveBill() {
+  const month = document.getElementById('f-month').value;
+  const amount = parseFloat(document.getElementById('f-amount').value);
+  if (!month || !amount) return showToast('Mois et montant obligatoires','error');
+
+  const btn = document.getElementById('save-btn');
+  btn.disabled = true; btn.textContent = 'Sauvegarde...';
+
+  let file_url=null, file_path=null;
+  if (selectedFile) {
+    const prog=document.getElementById('progress-bar'), fill=document.getElementById('progress-fill');
+    prog.style.display='block'; fill.style.width='40%';
+    const ext=selectedFile.name.split('.').pop();
+    const path=`${currentUser.id}/${Date.now()}.${ext}`;
+    const {data:up,error:ue} = await db.storage.from('bills').upload(path, selectedFile);
+    if (ue) { showToast('Erreur upload: '+ue.message,'error'); btn.disabled=false; btn.textContent='💾 Sauvegarder'; prog.style.display='none'; return; }
+    fill.style.width='100%';
+    file_path=up.path;
+    file_url=db.storage.from('bills').getPublicUrl(file_path).data.publicUrl;
+    setTimeout(()=>prog.style.display='none',600);
+  }
+
+  const {error} = await db.from('bills').insert([{
+    user_id:currentUser.id, company:document.getElementById('f-company').value,
+    status:document.getElementById('f-status').value, billing_month:month,
+    amount:isNaN(amount)?null:amount,
+    payment_date:document.getElementById('f-date').value||null,
+    reference:document.getElementById('f-ref').value.trim()||null,
+    location:document.getElementById('f-location').value.trim()||null,
+    notes:document.getElementById('f-note').value.trim()||null,
+    file_url, file_path,
+  }]);
+
+  if (error) showToast('Erreur: '+error.message,'error');
+  else { showToast('✅ Facture sauvegardée!','success'); setTimeout(()=>window.location.href='dashboard.html',1200); }
+  btn.disabled=false; btn.textContent='💾 Sauvegarder la facture';
+}
+</script>
+</body>
+</html>

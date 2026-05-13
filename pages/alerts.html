@@ -1,0 +1,444 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BillSafe — Alertes Anomalies</title>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=DM+Sans:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../css/portal.css">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+/* ── HERO BANNER ── */
+.alert-hero { border-radius: var(--radius); padding: 28px 32px; margin-bottom: 24px; display: flex; align-items: center; justify-content: space-between; gap: 20px; flex-wrap: wrap; }
+.alert-hero.critical { background: #fff0f0; border: 1.5px solid #ffc5c5; }
+.alert-hero.warning  { background: #fffbeb; border: 1.5px solid #fde68a; }
+.alert-hero.ok       { background: var(--green-bg); border: 1.5px solid #c3f0d5; }
+.hero-left { display: flex; align-items: center; gap: 18px; }
+.hero-emoji { font-size: 44px; }
+.hero-title { font-family: var(--font-h); font-weight: 800; font-size: 20px; color: var(--dark); margin-bottom: 4px; }
+.hero-sub   { font-size: 13px; color: var(--gray); }
+
+/* ── ANOMALY CARD ── */
+.anomaly-card { background: var(--white); border-radius: var(--radius); margin-bottom: 14px; overflow: hidden; border: 1.5px solid #f0f0f0; transition: box-shadow 0.2s; }
+.anomaly-card:hover { box-shadow: 0 8px 30px rgba(0,0,0,0.07); }
+.anomaly-card.critical { border-left: 5px solid var(--red); }
+.anomaly-card.warning  { border-left: 5px solid #f59e0b; }
+.anomaly-header { display: flex; align-items: center; gap: 16px; padding: 18px 22px 14px; }
+.anomaly-icon { width: 46px; height: 46px; border-radius: 13px; display: flex; align-items: center; justify-content: center; font-size: 22px; flex-shrink: 0; }
+.ai-critical { background: #fff0f0; }
+.ai-warning  { background: #fffbeb; }
+.anomaly-meta { flex: 1; }
+.anomaly-title { font-family: var(--font-h); font-weight: 700; font-size: 15px; color: var(--dark); margin-bottom: 3px; }
+.anomaly-date  { font-size: 12px; color: var(--gray); }
+.severity-pill { font-size: 11px; font-weight: 700; font-family: var(--font-h); padding: 5px 13px; border-radius: 20px; flex-shrink: 0; }
+.sp-critical { background: #fff0f0; color: var(--red); }
+.sp-warning  { background: #fffbeb; color: #92400e; }
+
+/* ── ANOMALY BODY ── */
+.anomaly-body { padding: 0 22px 18px; }
+.compare-row { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; margin-bottom: 16px; }
+.compare-box { border-radius: 12px; padding: 14px 16px; }
+.cb-avg     { background: #f5f5f5; }
+.cb-current { background: #fff0f0; }
+.cb-pct     { background: var(--dark); }
+.cb-label { font-size: 10px; font-weight: 700; font-family: var(--font-h); letter-spacing: 0.05em; text-transform: uppercase; color: var(--gray); margin-bottom: 4px; }
+.cb-current .cb-label { color: #cc4444; }
+.cb-pct .cb-label     { color: #888; }
+.cb-value { font-family: var(--font-h); font-weight: 800; font-size: 20px; color: var(--dark); }
+.cb-current .cb-value { color: var(--red); }
+.cb-pct .cb-value     { color: var(--lime); }
+.cb-sub { font-size: 11px; color: var(--gray); margin-top: 3px; }
+.cb-pct .cb-sub { color: #666; }
+
+/* ── MINI CHART ── */
+.mini-chart { display: flex; align-items: flex-end; gap: 5px; height: 60px; margin-top: 12px; }
+.mini-bar { flex: 1; border-radius: 4px 4px 0 0; min-width: 12px; position: relative; transition: opacity 0.2s; cursor: pointer; }
+.mini-bar:hover { opacity: 0.8; }
+.mini-bar.current { outline: 2px solid var(--red); outline-offset: 1px; }
+.mini-bar-label { font-size: 9px; color: var(--gray); text-align: center; margin-top: 4px; }
+.chart-wrap { margin-bottom: 4px; }
+
+/* ── ACTIONS ── */
+.anomaly-actions { display: flex; gap: 8px; padding: 0 22px 18px; flex-wrap: wrap; }
+
+/* ── SCAN PROGRESS ── */
+.scan-card { background: var(--dark); border-radius: var(--radius); padding: 22px 28px; margin-bottom: 24px; display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+.scan-card h3 { font-family: var(--font-h); font-weight: 700; font-size: 16px; color: var(--white); margin-bottom: 4px; }
+.scan-card p  { font-size: 13px; color: #666; }
+.scan-progress { height: 4px; background: #222; border-radius: 10px; margin-top: 12px; overflow: hidden; display: none; }
+.scan-fill { height: 100%; background: var(--lime); border-radius: 10px; width: 0%; transition: width 0.4s; }
+
+/* ── HISTORY TABLE ── */
+.history-section { margin-top: 28px; }
+</style>
+</head>
+<body>
+<div class="layout">
+  <aside class="sidebar">
+    <div class="sidebar-brand"><div class="sidebar-logo">🛡</div><div class="sidebar-name">BillSafe</div></div>
+    <span class="sidebar-plan">Business</span>
+    <div class="nav-group-label">Principal</div>
+    <a class="nav-item" href="dashboard.html"><span class="ni">📊</span> Tableau de bord</a>
+    <a class="nav-item" href="bills.html"><span class="ni">📄</span> Mes factures</a>
+    <a class="nav-item" href="upload.html"><span class="ni">📤</span> Ajouter facture</a>
+    <div class="nav-group-label">Portail Business</div>
+    <a class="nav-item" href="landlord.html"><span class="ni">🏢</span> Mes propriétés</a>
+    <a class="nav-item" href="tenants.html"><span class="ni">👥</span> Locataires</a>
+    <a class="nav-item" href="shared.html"><span class="ni">🔗</span> Factures partagées</a>
+    <div class="nav-group-label">Compte</div>
+    <a class="nav-item" href="settings.html"><span class="ni">⚙️</span> Paramètres</a>
+    <a class="nav-item active" href="alerts.html"><span class="ni">🔔</span> Alertes</a>
+    <div class="sidebar-bottom">
+      <div class="user-row">
+        <div class="user-avatar" id="user-avatar">?</div>
+        <div class="user-info"><div class="user-name" id="user-name">Chargement...</div><div class="user-role">Mon compte</div></div>
+        <button class="logout-btn" onclick="logout()">⏻</button>
+      </div>
+    </div>
+  </aside>
+
+  <main class="main">
+    <div class="topbar">
+      <div class="topbar-left">
+        <h2>🔔 Alertes Anomalies</h2>
+        <p>Détection automatique de factures anormalement élevées</p>
+      </div>
+      <button class="btn btn-dark" id="scan-btn" onclick="runScan()">🔍 Analyser mes factures</button>
+    </div>
+
+    <!-- SCAN CARD -->
+    <div class="scan-card">
+      <div style="flex:1">
+        <h3>🤖 Détection d'anomalies IA</h3>
+        <p>Compare chaque facture avec votre moyenne des 6 derniers mois. Alerte si +30% ou plus.</p>
+        <div class="scan-progress" id="scan-progress"><div class="scan-fill" id="scan-fill"></div></div>
+      </div>
+      <div style="text-align:center;flex-shrink:0">
+        <div style="font-family:var(--font-h);font-weight:800;font-size:32px;color:var(--lime)" id="scan-count">—</div>
+        <div style="font-size:12px;color:#666">anomalies détectées</div>
+      </div>
+    </div>
+
+    <!-- HERO STATUS -->
+    <div id="hero-banner"></div>
+
+    <!-- STATS -->
+    <div class="stats-grid" style="margin-bottom:24px">
+      <div class="stat-card dark">
+        <div class="stat-label">Factures analysées</div>
+        <div class="stat-value" id="s-total">—</div>
+        <div class="stat-sub">dans votre vault</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Anomalies actives</div>
+        <div class="stat-value" id="s-active" style="color:var(--red)">—</div>
+        <div class="stat-sub">non traitées</div>
+      </div>
+      <div class="stat-card lime">
+        <div class="stat-label">Critiques (+60%)</div>
+        <div class="stat-value" id="s-critical">—</div>
+        <div class="stat-sub">à vérifier d'urgence</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Économies potentielles</div>
+        <div class="stat-value" id="s-savings">—</div>
+        <div class="stat-sub">FCFA à récupérer</div>
+      </div>
+    </div>
+
+    <!-- ANOMALY CARDS -->
+    <div id="anomalies-wrap">
+      <div class="empty" style="padding:60px">
+        <div class="empty-icon">🔍</div>
+        <h3>Aucune anomalie détectée</h3>
+        <p>Cliquez sur "Analyser mes factures" pour lancer la détection. Il faut au moins 2 factures par société.</p>
+      </div>
+    </div>
+
+    <!-- HISTORY -->
+    <div class="history-section" id="history-section" style="display:none">
+      <div class="card">
+        <div class="card-title" style="margin-bottom:4px">📋 Historique complet des alertes</div>
+        <div class="card-sub">Toutes les anomalies détectées, y compris traitées</div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr>
+              <th>Société</th><th>Mois</th><th>Montant facturé</th><th>Moyenne habituelle</th><th>Hausse</th><th>Gravité</th><th>Statut</th>
+            </tr></thead>
+            <tbody id="history-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+<div class="toast" id="toast"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="../js/portal.js"></script>
+<script>
+let currentUser = null;
+let allBills = [], anomalies = [];
+
+const companyIcon = { ENEO:'⚡', CamWater:'💧', Camtel:'📡', SONODE:'🏗' };
+
+window.addEventListener('DOMContentLoaded', async () => {
+  currentUser = await requireAuth();
+  if (!currentUser) return;
+  renderSidebarUser(currentUser);
+  await loadAll();
+});
+
+async function loadAll() {
+  const [billsRes, anomRes] = await Promise.all([
+    db.from('bills').select('*').eq('user_id', currentUser.id).order('billing_month', { ascending: true }),
+    db.from('anomalies').select('*').eq('user_id', currentUser.id).order('created_at', { ascending: false })
+  ]);
+  allBills  = billsRes.data  || [];
+  anomalies = anomRes.data   || [];
+  renderStats();
+  renderHeroBanner();
+  renderAnomalyCards();
+  renderHistory();
+}
+
+// ── SCAN ──────────────────────────────────────────────────
+async function runScan() {
+  const btn  = document.getElementById('scan-btn');
+  const prog = document.getElementById('scan-progress');
+  const fill = document.getElementById('scan-fill');
+
+  btn.disabled = true;
+  btn.textContent = '⏳ Analyse en cours...';
+  prog.style.display = 'block';
+  fill.style.width = '20%';
+
+  try {
+    fill.style.width = '60%';
+    const { data, error } = await db.rpc('detect_anomalies', { p_user_id: currentUser.id });
+    fill.style.width = '100%';
+
+    if (error) throw error;
+
+    const found = data ? data.length : 0;
+    document.getElementById('scan-count').textContent = found;
+    showToast(found > 0 ? `⚠️ ${found} anomalie${found>1?'s':''} détectée${found>1?'s':''}!` : '✅ Aucune anomalie — vos factures sont normales', found > 0 ? 'error' : 'success');
+
+    await loadAll();
+  } catch(e) {
+    showToast('Erreur analyse: ' + e.message, 'error');
+    console.error(e);
+  } finally {
+    setTimeout(() => prog.style.display = 'none', 800);
+    btn.disabled = false;
+    btn.textContent = '🔍 Analyser mes factures';
+  }
+}
+
+// ── STATS ─────────────────────────────────────────────────
+function renderStats() {
+  const active   = anomalies.filter(a => a.status === 'new').length;
+  const critical = anomalies.filter(a => a.severity === 'critical' && a.status === 'new').length;
+  const savings  = anomalies
+    .filter(a => a.status === 'new')
+    .reduce((s, a) => s + (a.bill_amount - a.avg_amount), 0);
+
+  document.getElementById('s-total').textContent    = allBills.length;
+  document.getElementById('s-active').textContent   = active;
+  document.getElementById('s-critical').textContent = critical;
+  document.getElementById('s-savings').textContent  = Math.round(savings).toLocaleString('fr-FR');
+  document.getElementById('scan-count').textContent = active;
+}
+
+// ── HERO BANNER ────────────────────────────────────────────
+function renderHeroBanner() {
+  const el = document.getElementById('hero-banner');
+  const active   = anomalies.filter(a => a.status === 'new');
+  const critical = active.filter(a => a.severity === 'critical');
+
+  if (critical.length > 0) {
+    el.innerHTML = `<div class="alert-hero critical">
+      <div class="hero-left">
+        <div class="hero-emoji">🚨</div>
+        <div>
+          <div class="hero-title">${critical.length} facture${critical.length>1?'s':''} critique${critical.length>1?'s':''} détectée${critical.length>1?'s':''}</div>
+          <div class="hero-sub">Une ou plusieurs factures sont +60% au-dessus de votre moyenne. Contactez votre fournisseur d'urgence.</div>
+        </div>
+      </div>
+      <button class="btn btn-dark btn-sm" onclick="contactCompany()">📞 Contacter le fournisseur</button>
+    </div>`;
+  } else if (active.length > 0) {
+    el.innerHTML = `<div class="alert-hero warning">
+      <div class="hero-left">
+        <div class="hero-emoji">⚠️</div>
+        <div>
+          <div class="hero-title">${active.length} anomalie${active.length>1?'s':''} à vérifier</div>
+          <div class="hero-sub">Certaines factures sont inhabituellement élevées. Vérifiez les détails ci-dessous.</div>
+        </div>
+      </div>
+    </div>`;
+  } else if (allBills.length > 0) {
+    el.innerHTML = `<div class="alert-hero ok">
+      <div class="hero-left">
+        <div class="hero-emoji">✅</div>
+        <div>
+          <div class="hero-title">Tout est normal</div>
+          <div class="hero-sub">Aucune anomalie détectée sur vos ${allBills.length} factures. Vos dépenses sont dans la normale.</div>
+        </div>
+      </div>
+    </div>`;
+  } else {
+    el.innerHTML = '';
+  }
+}
+
+// ── ANOMALY CARDS ──────────────────────────────────────────
+function renderAnomalyCards() {
+  const wrap   = document.getElementById('anomalies-wrap');
+  const active = anomalies.filter(a => a.status === 'new');
+
+  if (!active.length) {
+    wrap.innerHTML = `<div class="empty" style="padding:56px">
+      <div class="empty-icon">✅</div>
+      <h3>Aucune anomalie active</h3>
+      <p>Lancez l'analyse pour vérifier vos factures, ou ajoutez plus de factures pour enrichir l'historique.</p>
+    </div>`;
+    return;
+  }
+
+  wrap.innerHTML = active.map(a => {
+    const icon  = companyIcon[a.company] || '📌';
+    const cls   = a.severity === 'critical' ? 'critical' : 'warning';
+    const aiCls = a.severity === 'critical' ? 'ai-critical' : 'ai-warning';
+    const spCls = a.severity === 'critical' ? 'sp-critical' : 'sp-warning';
+    const spTxt = a.severity === 'critical' ? '🚨 Critique' : '⚠️ Attention';
+    const excess = Math.round(a.bill_amount - a.avg_amount);
+
+    // Build mini chart history for this company
+    const companyBills = allBills
+      .filter(b => b.company === a.company && b.amount)
+      .slice(-7);
+    const maxAmt = Math.max(...companyBills.map(b => b.amount), a.bill_amount);
+
+    const miniChart = companyBills.map(b => {
+      const h = Math.max(8, Math.round((b.amount / maxAmt) * 55));
+      const isCurrent = b.billing_month === a.billing_month;
+      const color = isCurrent ? '#ff5f5f' : '#e0e0e0';
+      const month = b.billing_month ? new Date(b.billing_month+'-01').toLocaleDateString('fr-FR',{month:'short'}) : '';
+      return `<div style="flex:1;display:flex;flex-direction:column;align-items:center">
+        <div class="mini-bar ${isCurrent?'current':''}" style="height:${h}px;background:${color};width:100%"></div>
+        <div class="mini-bar-label">${month}</div>
+      </div>`;
+    }).join('');
+
+    // Average line marker
+    const avgH = Math.round((a.avg_amount / maxAmt) * 55);
+
+    return `<div class="anomaly-card ${cls}" id="anomaly-${a.id}">
+      <div class="anomaly-header">
+        <div class="anomaly-icon ${aiCls}">${icon}</div>
+        <div class="anomaly-meta">
+          <div class="anomaly-title">${a.company} — ${fmtMonth(a.billing_month)}</div>
+          <div class="anomaly-date">Détecté le ${fmtDate(a.created_at)}</div>
+        </div>
+        <span class="severity-pill ${spCls}">${spTxt}</span>
+      </div>
+
+      <div class="anomaly-body">
+        <!-- COMPARE BOXES -->
+        <div class="compare-row">
+          <div class="compare-box cb-avg">
+            <div class="cb-label">Moyenne habituelle</div>
+            <div class="cb-value">${Math.round(a.avg_amount).toLocaleString('fr-FR')}</div>
+            <div class="cb-sub">FCFA / mois (6 mois)</div>
+          </div>
+          <div class="compare-box cb-current">
+            <div class="cb-label">Cette facture</div>
+            <div class="cb-value">${Math.round(a.bill_amount).toLocaleString('fr-FR')}</div>
+            <div class="cb-sub">FCFA — +${Math.round(excess).toLocaleString('fr-FR')} F de trop</div>
+          </div>
+          <div class="compare-box cb-pct">
+            <div class="cb-label">Hausse</div>
+            <div class="cb-value">+${a.pct_increase}%</div>
+            <div class="cb-sub">${a.severity === 'critical' ? '🚨 Très anormal' : '⚠️ Inhabituel'}</div>
+          </div>
+        </div>
+
+        <!-- MINI CHART -->
+        <div style="font-size:11px;font-weight:700;font-family:var(--font-h);color:var(--gray);margin-bottom:6px;text-transform:uppercase;letter-spacing:0.04em">Historique ${a.company}</div>
+        <div class="mini-chart">${miniChart}</div>
+
+        <!-- ADVICE -->
+        <div style="background:#fafafa;border-radius:10px;padding:12px 14px;margin-top:14px;font-size:12px;color:var(--gray);line-height:1.7">
+          💡 <strong style="color:var(--dark)">Que faire?</strong> ${advice(a)}
+        </div>
+      </div>
+
+      <div class="anomaly-actions">
+        <button class="btn btn-ghost btn-sm" onclick="dismiss('${a.id}')">✓ Marquer comme vérifié</button>
+        <button class="btn btn-ghost btn-sm" onclick="contact('${a.company}')">📞 Contacter ${a.company}</button>
+        <button class="btn btn-danger btn-sm" onclick="dismiss('${a.id}', true)">🗑 Ignorer</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function advice(a) {
+  const co = a.company;
+  if (a.severity === 'critical') {
+    return `Votre facture ${co} est +${a.pct_increase}% au-dessus de la normale. Contactez ${co} immédiatement pour demander une vérification du compteur ou signaler une erreur de facturation.`;
+  }
+  if (co === 'CamWater') return `Une hausse d'eau peut indiquer une fuite. Vérifiez vos robinets et canalisations avant de contacter CamWater.`;
+  if (co === 'ENEO')     return `Vérifiez si un appareil électrique est en panne (chauffe-eau, climatiseur) avant de contacter ENEO pour une vérification du compteur.`;
+  if (co === 'Camtel')   return `Vérifiez vos appels et votre consommation internet sur votre relevé Camtel avant de les contacter.`;
+  return `Comparez ce montant avec vos factures précédentes et contactez ${co} si vous ne trouvez pas d'explication.`;
+}
+
+function contact(company) {
+  const contacts = { ENEO:'8020', CamWater:'1550', Camtel:'1500' };
+  const num = contacts[company] || '—';
+  showToast(`📞 ${company}: appelez le ${num}`, 'success');
+}
+
+// ── DISMISS ────────────────────────────────────────────────
+async function dismiss(id, ignore = false) {
+  const status = ignore ? 'dismissed' : 'seen';
+  const { error } = await db.from('anomalies').update({ status }).eq('id', id).eq('user_id', currentUser.id);
+  if (error) return showToast('Erreur: ' + error.message, 'error');
+
+  const card = document.getElementById('anomaly-' + id);
+  if (card) {
+    card.style.opacity = '0';
+    card.style.transform = 'translateX(20px)';
+    card.style.transition = 'all 0.3s';
+    setTimeout(() => card.remove(), 300);
+  }
+  showToast(ignore ? 'Alerte ignorée' : '✅ Marquée comme vérifiée', 'success');
+  await loadAll();
+}
+
+// ── HISTORY TABLE ──────────────────────────────────────────
+function renderHistory() {
+  if (!anomalies.length) { document.getElementById('history-section').style.display = 'none'; return; }
+  document.getElementById('history-section').style.display = 'block';
+
+  const tbody = document.getElementById('history-tbody');
+  tbody.innerHTML = anomalies.map(a => {
+    const statusMap = { new:'🔴 Nouveau', seen:'✅ Vérifié', dismissed:'○ Ignoré' };
+    const sevMap    = { critical:'<span class="pill sp-critical">🚨 Critique</span>', warning:'<span class="pill sp-warning">⚠️ Attention</span>' };
+    return `<tr>
+      <td><strong style="font-family:var(--font-h)">${companyIcon[a.company]||'📌'} ${a.company}</strong></td>
+      <td style="color:var(--gray);font-size:12px">${fmtMonth(a.billing_month)}</td>
+      <td style="font-family:var(--font-h);font-weight:700;color:var(--red)">${fmtAmount(a.bill_amount)}</td>
+      <td style="color:var(--gray)">${fmtAmount(a.avg_amount)}</td>
+      <td style="font-family:var(--font-h);font-weight:700;color:${a.severity==='critical'?'var(--red)':'#92400e'}">+${a.pct_increase}%</td>
+      <td>${sevMap[a.severity]||a.severity}</td>
+      <td style="font-size:12px;color:var(--gray)">${statusMap[a.status]||a.status}</td>
+    </tr>`;
+  }).join('');
+}
+
+function contactCompany() { showToast('📞 ENEO: 8020 · CamWater: 1550 · Camtel: 1500', 'success'); }
+</script>
+</body>
+</html>

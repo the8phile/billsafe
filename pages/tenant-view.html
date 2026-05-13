@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BillSafe — Preuve de paiement</title>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=DM+Sans:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{--lime:#CAFF40;--dark:#0D0D0D;--white:#fff;--bg:#F4F4F0;--gray:#888;--green:#2a7a50;--green-bg:#f0fff5;--red:#e53935;--red-bg:#fff0f0;--font-h:'Manrope',sans-serif;--font-b:'DM Sans',sans-serif}
+body{font-family:var(--font-b);background:var(--bg);color:var(--dark);min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:20px}
+.wrap{width:100%;max-width:480px}
+.header{text-align:center;margin-bottom:32px}
+.brand{display:inline-flex;align-items:center;gap:10px;margin-bottom:20px}
+.brand-logo{width:40px;height:40px;background:var(--lime);border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:20px}
+.brand-name{font-family:var(--font-h);font-weight:800;font-size:20px;color:var(--dark)}
+.card{background:var(--white);border-radius:24px;overflow:hidden;box-shadow:0 8px 40px rgba(0,0,0,.08)}
+.card-top{background:var(--dark);padding:28px 28px 24px}
+.verified-badge{display:inline-flex;align-items:center;gap:6px;background:rgba(202,255,64,.15);border:1px solid rgba(202,255,64,.3);color:var(--lime);font-size:12px;font-weight:700;padding:5px 12px;border-radius:20px;margin-bottom:14px;font-family:var(--font-h)}
+.bill-company{font-family:var(--font-h);font-weight:800;font-size:26px;color:var(--white);margin-bottom:4px}
+.bill-period{font-size:14px;color:#888}
+.card-body{padding:28px}
+.detail-row{display:flex;justify-content:space-between;align-items:center;padding:12px 0;border-bottom:1px solid #f5f5f5}
+.detail-row:last-child{border-bottom:none}
+.dr-label{font-size:12px;color:var(--gray);font-weight:600;font-family:var(--font-h)}
+.dr-val{font-size:14px;font-weight:600;color:var(--dark);font-family:var(--font-h);text-align:right}
+.amount-big{font-size:28px;font-weight:800;color:var(--dark)}
+.status-block{display:flex;align-items:center;gap:8px;background:var(--green-bg);border-radius:12px;padding:14px 16px;margin-top:20px}
+.sb-icon{width:36px;height:36px;background:var(--green);border-radius:50%;display:flex;align-items:center;justify-content:center;color:var(--white);font-size:18px;flex-shrink:0}
+.sb-text{font-size:13px;color:var(--green);font-weight:600;font-family:var(--font-h)}
+.sb-sub{font-size:11px;color:#6aab85;margin-top:2px}
+.view-file-btn{display:block;width:100%;text-align:center;background:var(--dark);color:var(--white);padding:14px;border-radius:14px;font-family:var(--font-h);font-weight:700;font-size:15px;text-decoration:none;margin-top:20px;transition:all .2s}
+.view-file-btn:hover{background:#222}
+.message-box{background:#f8f8f8;border-radius:12px;padding:14px 16px;margin-top:16px}
+.msg-label{font-size:11px;font-weight:700;color:var(--gray);text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px;font-family:var(--font-h)}
+.msg-text{font-size:13px;color:var(--dark);line-height:1.6}
+.footer{text-align:center;margin-top:24px;font-size:12px;color:var(--gray)}
+.footer a{color:var(--dark);font-weight:700;text-decoration:none}
+.loading{text-align:center;padding:60px 20px}
+.loading-icon{font-size:40px;margin-bottom:12px;animation:spin 1.5s linear infinite}
+@keyframes spin{from{transform:rotate(0)}to{transform:rotate(360deg)}}
+.loading h3{font-family:var(--font-h);font-size:16px;margin-bottom:4px}
+.loading p{font-size:13px;color:var(--gray)}
+.error-card{background:var(--white);border-radius:24px;padding:40px;text-align:center;box-shadow:0 8px 40px rgba(0,0,0,.08)}
+.error-icon{font-size:48px;margin-bottom:16px}
+.error-card h2{font-family:var(--font-h);font-weight:800;font-size:20px;margin-bottom:8px}
+.error-card p{font-size:14px;color:var(--gray);line-height:1.6}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="header">
+    <div class="brand">
+      <div class="brand-logo">🛡</div>
+      <div class="brand-name">BillSafe</div>
+    </div>
+  </div>
+
+  <!-- LOADING -->
+  <div id="loading-state">
+    <div class="loading">
+      <div class="loading-icon">⏳</div>
+      <h3>Vérification en cours...</h3>
+      <p>Chargement de la preuve de paiement</p>
+    </div>
+  </div>
+
+  <!-- BILL CARD (hidden until loaded) -->
+  <div id="bill-card" style="display:none">
+    <div class="card">
+      <div class="card-top">
+        <div class="verified-badge">✓ Vérifié par BillSafe</div>
+        <div class="bill-company" id="bc-company">ENEO</div>
+        <div class="bill-period" id="bc-period">—</div>
+      </div>
+      <div class="card-body">
+        <div class="detail-row">
+          <div class="dr-label">Montant payé</div>
+          <div class="dr-val amount-big" id="bc-amount">—</div>
+        </div>
+        <div class="detail-row">
+          <div class="dr-label">Date de paiement</div>
+          <div class="dr-val" id="bc-date">—</div>
+        </div>
+        <div class="detail-row">
+          <div class="dr-label">Référence</div>
+          <div class="dr-val" id="bc-ref">—</div>
+        </div>
+        <div class="detail-row">
+          <div class="dr-label">Localisation</div>
+          <div class="dr-val" id="bc-location">—</div>
+        </div>
+        <div class="detail-row">
+          <div class="dr-label">Partagé par</div>
+          <div class="dr-val" id="bc-landlord">—</div>
+        </div>
+
+        <div class="status-block">
+          <div class="sb-icon">✓</div>
+          <div>
+            <div class="sb-text">Facture payée et vérifiée</div>
+            <div class="sb-sub" id="bc-verified-date">Enregistrée sur BillSafe</div>
+          </div>
+        </div>
+
+        <div id="bc-message" style="display:none" class="message-box">
+          <div class="msg-label">Message du bailleur</div>
+          <div class="msg-text" id="bc-message-text"></div>
+        </div>
+
+        <a id="bc-file-link" href="#" target="_blank" class="view-file-btn" style="display:none">
+          📄 Voir la quittance originale
+        </a>
+      </div>
+    </div>
+    <div class="footer">
+      Preuve vérifiée et sécurisée par <a href="/">BillSafe</a><br>
+      <span style="font-size:11px">Partagé le <span id="bc-shared-date"></span></span>
+    </div>
+  </div>
+
+  <!-- ERROR STATE -->
+  <div id="error-state" style="display:none">
+    <div class="error-card">
+      <div class="error-icon">🔒</div>
+      <h2>Lien invalide ou expiré</h2>
+      <p>Ce lien de partage n'existe pas ou a été supprimé par le bailleur.<br>Demandez un nouveau lien.</p>
+    </div>
+  </div>
+</div>
+
+<script>
+const SUPABASE_URL='https://rjnsnodvqwwhkxbznzqa.supabase.co';
+const SUPABASE_ANON='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJqbnNub2R2cXd3aGt4YnpuenFhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzgxODg1OTksImV4cCI6MjA5Mzc2NDU5OX0.gkV9ynTFdY8B72s2fnRpTkUH71FUz59ICIpQLZQDsIc';
+const{createClient}=supabase;
+const db=createClient(SUPABASE_URL,SUPABASE_ANON);
+
+window.addEventListener('DOMContentLoaded',async()=>{
+  const token=new URLSearchParams(window.location.search).get('token');
+  if(!token)return showError();
+
+  // Fetch shared_bill by token
+  const{data:shared,error:sErr}=await db.from('shared_bills').select('*').eq('share_token',token).single();
+  if(sErr||!shared)return showError();
+
+  // Mark as viewed
+  if(!shared.viewed_at){
+    await db.from('shared_bills').update({viewed_at:new Date().toISOString()}).eq('share_token',token);
+  }
+
+  // Fetch the bill
+  const{data:bill,error:bErr}=await db.from('bills').select('*').eq('id',shared.bill_id).single();
+  if(bErr||!bill)return showError();
+
+  // Fetch landlord profile
+  const{data:profile}=await db.from('profiles').select('full_name').eq('id',shared.landlord_id).single();
+
+  // Render
+  const iconMap={ENEO:'⚡',CamWater:'💧',Camtel:'📡'};
+  document.getElementById('bc-company').textContent=(iconMap[bill.company]||'📌')+' '+bill.company;
+  const period=bill.billing_month?new Date(bill.billing_month+'-01').toLocaleDateString('fr-FR',{month:'long',year:'numeric'}):'—';
+  document.getElementById('bc-period').textContent='Facturation '+period;
+  document.getElementById('bc-amount').textContent=bill.amount?bill.amount.toLocaleString('fr-FR')+' FCFA':'—';
+  document.getElementById('bc-date').textContent=bill.payment_date?new Date(bill.payment_date).toLocaleDateString('fr-FR',{day:'numeric',month:'long',year:'numeric'}):'—';
+  document.getElementById('bc-ref').textContent=bill.reference||'—';
+  document.getElementById('bc-location').textContent=bill.location||'—';
+  document.getElementById('bc-landlord').textContent=profile?.full_name||'Votre bailleur';
+  document.getElementById('bc-verified-date').textContent='Enregistrée le '+new Date(bill.created_at).toLocaleDateString('fr-FR');
+  document.getElementById('bc-shared-date').textContent=new Date(shared.created_at).toLocaleDateString('fr-FR',{day:'numeric',month:'long',year:'numeric'});
+
+  if(shared.message){
+    document.getElementById('bc-message').style.display='block';
+    document.getElementById('bc-message-text').textContent=shared.message;
+  }
+  if(bill.file_url){
+    const fl=document.getElementById('bc-file-link');
+    fl.href=bill.file_url; fl.style.display='block';
+  }
+
+  document.getElementById('loading-state').style.display='none';
+  document.getElementById('bill-card').style.display='block';
+});
+
+function showError(){
+  document.getElementById('loading-state').style.display='none';
+  document.getElementById('error-state').style.display='block';
+}
+</script>
+</body>
+</html>
