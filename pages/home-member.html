@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BillSafe — Famille au Pays</title>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=DM+Sans:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --lime:#CAFF40; --dark:#0D0D0D; --white:#fff; --gray:#888;
+    --green:#2a7a50; --green-bg:#f0fff5; --red:#ff5f5f; --blue:#185FA5;
+    --font-h:'Manrope',sans-serif; --font-b:'DM Sans',sans-serif;
+    --radius:20px; --radius-sm:12px;
+  }
+  body { font-family:var(--font-b); background:#F4F4F0; min-height:100vh; padding:24px 16px; }
+
+  .top { display:flex; align-items:center; gap:10px; margin-bottom:28px; justify-content:center; }
+  .logo { width:40px; height:40px; background:var(--dark); border-radius:12px; display:flex; align-items:center; justify-content:center; font-size:22px; }
+  .brand { font-family:var(--font-h); font-weight:800; font-size:20px; color:var(--dark); }
+
+  .hero-card { background:var(--dark); border-radius:var(--radius); padding:28px 24px; margin-bottom:20px; text-align:center; }
+  .hero-icon { font-size:48px; margin-bottom:14px; }
+  .hero-card h2 { font-family:var(--font-h); font-weight:800; font-size:22px; color:var(--white); margin-bottom:8px; }
+  .hero-card p  { font-size:14px; color:#666; line-height:1.7; max-width:380px; margin:0 auto; }
+  .family-name { background:var(--lime); color:var(--dark); font-family:var(--font-h); font-weight:800; font-size:14px; padding:6px 18px; border-radius:20px; display:inline-block; margin-top:14px; }
+
+  .card { background:var(--white); border-radius:var(--radius); padding:22px; margin-bottom:16px; }
+  .card-title { font-family:var(--font-h); font-weight:700; font-size:16px; color:var(--dark); margin-bottom:4px; }
+  .card-sub   { font-size:13px; color:var(--gray); margin-bottom:20px; }
+
+  .form-group { margin-bottom:14px; }
+  .form-label { display:block; font-size:12px; font-weight:700; font-family:var(--font-h); color:var(--dark); margin-bottom:6px; letter-spacing:0.02em; }
+  .form-input { width:100%; padding:12px 14px; border:1.5px solid #e8e8e8; border-radius:10px; font-size:14px; font-family:var(--font-b); background:#fafafa; color:var(--dark); outline:none; transition:all 0.2s; }
+  .form-input:focus { border-color:var(--dark); background:var(--white); }
+  select.form-input { cursor:pointer; }
+
+  .btn { display:flex; align-items:center; justify-content:center; gap:8px; padding:13px 20px; border-radius:100px; font-family:var(--font-h); font-weight:700; font-size:15px; cursor:pointer; border:none; transition:all 0.2s; width:100%; margin-bottom:10px; }
+  .btn-lime { background:var(--lime); color:var(--dark); }
+  .btn-lime:hover { background:#b8e836; }
+  .btn-dark { background:var(--dark); color:var(--white); }
+  .btn-ghost { background:transparent; border:1.5px solid #e0e0e0; color:var(--gray); }
+
+  .drop-zone { border:2px dashed #e0e0e0; border-radius:var(--radius-sm); padding:28px 20px; text-align:center; cursor:pointer; transition:all 0.2s; margin-bottom:16px; }
+  .drop-zone:hover { border-color:var(--dark); background:#fafafa; }
+  .drop-zone h3 { font-family:var(--font-h); font-weight:700; font-size:15px; color:var(--dark); margin-bottom:4px; }
+  .drop-zone p  { font-size:12px; color:var(--gray); }
+  .file-preview-box { background:var(--green-bg); border-radius:10px; padding:12px 14px; display:flex; align-items:center; gap:10px; margin-bottom:14px; }
+  .file-preview-name { font-size:13px; font-weight:600; color:var(--green); font-family:var(--font-h); }
+
+  /* PAYMENT REQUESTS from diaspora */
+  .pay-request-item { background:#fffbeb; border:1.5px solid #fde68a; border-radius:var(--radius-sm); padding:16px; margin-bottom:10px; }
+  .pay-req-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; }
+  .pay-req-co { font-family:var(--font-h); font-weight:700; font-size:14px; color:var(--dark); }
+  .pay-req-amount { font-family:var(--font-h); font-weight:800; font-size:16px; color:var(--dark); }
+  .pay-req-message { font-size:12px; color:#92400e; line-height:1.6; margin-bottom:10px; }
+
+  .pill { display:inline-flex; align-items:center; gap:4px; font-size:11px; font-weight:700; padding:4px 11px; border-radius:20px; font-family:var(--font-h); }
+  .pill-paid { background:var(--green-bg); color:var(--green); }
+  .pill-pending { background:#fffbeb; color:#92400e; }
+
+  .msg { padding:12px 16px; border-radius:10px; font-size:13px; margin-bottom:14px; }
+  .msg.error   { background:#fff0f0; color:var(--red); border:1px solid #ffd5d5; }
+  .msg.success { background:var(--green-bg); color:var(--green); border:1px solid #c3f0d5; }
+
+  .progress-bar { height:5px; background:#f0f0f0; border-radius:10px; overflow:hidden; display:none; margin-bottom:14px; }
+  .progress-fill { height:100%; background:var(--lime); border-radius:10px; transition:width 0.4s; width:0%; }
+
+  .toast { position:fixed; bottom:20px; left:50%; transform:translateX(-50%) translateY(80px); background:var(--dark); color:var(--white); padding:12px 22px; border-radius:100px; font-size:13px; font-weight:600; font-family:var(--font-h); opacity:0; transition:all 0.3s; z-index:9999; white-space:nowrap; }
+  .toast.show { transform:translateX(-50%) translateY(0); opacity:1; }
+  .toast.success { border-left:4px solid var(--lime); }
+  .toast.error   { border-left:4px solid var(--red); }
+
+  .section-divider { display:flex; align-items:center; gap:12px; margin:20px 0; }
+  .section-divider::before,.section-divider::after { content:''; flex:1; height:1px; background:#ececec; }
+  .section-divider span { font-size:12px; color:var(--gray); font-family:var(--font-h); font-weight:600; white-space:nowrap; }
+
+  .success-screen { text-align:center; padding:40px 20px; display:none; }
+  .success-screen .big-check { font-size:64px; margin-bottom:16px; }
+  .success-screen h2 { font-family:var(--font-h); font-weight:800; font-size:22px; color:var(--dark); margin-bottom:8px; }
+  .success-screen p  { font-size:14px; color:var(--gray); line-height:1.7; }
+</style>
+</head>
+<body>
+
+<div class="top">
+  <div class="logo">🛡</div>
+  <div class="brand">BillSafe</div>
+</div>
+
+<!-- LOADING STATE -->
+<div id="loading" style="text-align:center;padding:60px">
+  <div style="font-size:36px;margin-bottom:12px">⏳</div>
+  <div style="font-family:var(--font-h);font-weight:700;color:#555">Chargement...</div>
+</div>
+
+<!-- ERROR STATE -->
+<div id="error-state" style="display:none;text-align:center;padding:60px">
+  <div style="font-size:48px;margin-bottom:14px">🔒</div>
+  <div style="font-family:var(--font-h);font-weight:700;font-size:18px;color:var(--dark);margin-bottom:8px">Lien invalide</div>
+  <div style="font-size:14px;color:var(--gray)">Ce lien d'invitation n'est pas valide. Demandez un nouveau lien à votre famille à l'étranger.</div>
+</div>
+
+<!-- MAIN CONTENT -->
+<div id="main-content" style="display:none;max-width:480px;margin:0 auto">
+
+  <!-- HERO -->
+  <div class="hero-card">
+    <div class="hero-icon">🏠</div>
+    <h2>Votre famille vous surveille avec amour 💚</h2>
+    <p>Votre proche à l'étranger veut s'assurer que vos factures sont payées. Ajoutez vos reçus ici — ils les verront immédiatement.</p>
+    <div class="family-name" id="family-name">Chargement...</div>
+  </div>
+
+  <!-- PAYMENT REQUESTS from diaspora -->
+  <div id="pay-requests-section" style="display:none">
+    <div class="card">
+      <div class="card-title">📨 Demandes de votre famille à l'étranger</div>
+      <div class="card-sub">Ils ont demandé que ces factures soient payées</div>
+      <div id="pay-requests-list"></div>
+    </div>
+    <div class="section-divider"><span>Ajouter un reçu ci-dessous</span></div>
+  </div>
+
+  <!-- ADD BILL FORM -->
+  <div class="card">
+    <div class="card-title">📤 Ajouter un reçu payé</div>
+    <div class="card-sub">Prenez une photo de votre quittance ENEO, CamWater ou Camtel</div>
+
+    <!-- FILE UPLOAD -->
+    <div class="drop-zone" id="drop-zone" onclick="document.getElementById('photo-input').click()">
+      <input type="file" id="photo-input" accept="image/*" capture="environment" style="display:none" onchange="handlePhoto(this.files[0])">
+      <div style="font-size:36px;margin-bottom:10px">📸</div>
+      <h3>Photo du reçu</h3>
+      <p>Appuyez pour prendre une photo ou choisir une image</p>
+    </div>
+    <div class="file-preview-box" id="photo-preview" style="display:none">
+      <span style="font-size:24px">🖼</span>
+      <div>
+        <div class="file-preview-name" id="photo-name">photo.jpg</div>
+        <div style="font-size:11px;color:var(--gray)">Photo prête à envoyer</div>
+      </div>
+      <button onclick="clearPhoto()" style="background:none;border:none;color:var(--gray);cursor:pointer;margin-left:auto;font-size:18px">✕</button>
+    </div>
+
+    <div id="form-msg" style="display:none" class="msg"></div>
+    <div class="progress-bar" id="progress-bar"><div class="progress-fill" id="progress-fill"></div></div>
+
+    <div class="form-group">
+      <label class="form-label">Société *</label>
+      <select class="form-input" id="b-company">
+        <option value="ENEO">⚡ ENEO / SONEL</option>
+        <option value="CamWater">💧 CamWater</option>
+        <option value="Camtel">📡 Camtel</option>
+        <option value="Autre">📌 Autre</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Mois de la facture *</label>
+      <input class="form-input" type="month" id="b-month">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Montant payé (FCFA) *</label>
+      <input class="form-input" type="number" id="b-amount" placeholder="ex: 24500">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Date de paiement</label>
+      <input class="form-input" type="date" id="b-date">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Votre prénom</label>
+      <input class="form-input" id="b-sender" placeholder="ex: Maman Marie">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Note (optionnel)</label>
+      <input class="form-input" id="b-note" placeholder="ex: Payé au guichet Akwa">
+    </div>
+
+    <button class="btn btn-lime" onclick="submitBill()" id="submit-btn">
+      📤 Envoyer à la famille
+    </button>
+  </div>
+
+  <!-- SUCCESS SCREEN -->
+  <div class="success-screen" id="success-screen">
+    <div class="big-check">✅</div>
+    <h2>Reçu envoyé avec succès!</h2>
+    <p>Votre famille à l'étranger a été notifiée immédiatement. Ils peuvent maintenant voir votre reçu sur leur tableau de bord BillSafe.</p>
+    <button class="btn btn-dark" style="margin-top:20px" onclick="resetForm()">+ Ajouter un autre reçu</button>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+const SUPABASE_URL  = 'https://rjnsnodvqwwhkxbznzqa.supabase.co';
+const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJqbnNub2R2cXd3aGt4YnpuenFhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzgxODg1OTksImV4cCI6MjA5Mzc2NDU5OX0.gkV9ynTFdY8B72s2fnRpTkUH71FUz59ICIpQLZQDsIc';
+const { createClient } = supabase;
+const db = createClient(SUPABASE_URL, SUPABASE_ANON);
+
+let household  = null;
+let photoFile  = null;
+
+function fmtMonth(m) { return m ? new Date(m+'-01').toLocaleDateString('fr-FR',{month:'long',year:'numeric'}) : '—'; }
+function fmtAmount(n) { return n ? Number(n).toLocaleString('fr-FR')+' FCFA' : '—'; }
+
+function showToast(msg, type='success') {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.className = 'toast '+type+' show';
+  setTimeout(()=>t.classList.remove('show'), 3000);
+}
+
+window.addEventListener('DOMContentLoaded', async () => {
+  const token = new URLSearchParams(window.location.search).get('token');
+  if (!token) return showError();
+
+  const { data, error } = await db.from('households').select('*').eq('invite_token', token).single();
+  if (error || !data) return showError();
+  household = data;
+
+  document.getElementById('loading').style.display = 'none';
+  document.getElementById('main-content').style.display = 'block';
+  document.getElementById('family-name').textContent = '🏠 ' + data.name;
+
+  const today = new Date().toISOString().split('T')[0];
+  document.getElementById('b-date').value  = today;
+  document.getElementById('b-month').value = today.slice(0,7);
+
+  await loadPayRequests();
+});
+
+function showError() {
+  document.getElementById('loading').style.display = 'none';
+  document.getElementById('error-state').style.display = 'block';
+}
+
+async function loadPayRequests() {
+  const { data } = await db.from('payment_requests').select('*')
+    .eq('household_id', household.id).eq('status','pending').order('created_at',{ascending:false});
+  if (!data?.length) return;
+  document.getElementById('pay-requests-section').style.display = 'block';
+  const companyIcon = { ENEO:'⚡', CamWater:'💧', Camtel:'📡' };
+  document.getElementById('pay-requests-list').innerHTML = data.map(pr => `
+    <div class="pay-request-item">
+      <div class="pay-req-header">
+        <div class="pay-req-co">${companyIcon[pr.company]||'📌'} ${pr.company}</div>
+        ${pr.estimated_amount ? `<div class="pay-req-amount">~${fmtAmount(pr.estimated_amount)}</div>` : ''}
+      </div>
+      ${pr.message ? `<div class="pay-req-message">💬 "${pr.message}"</div>` : ''}
+      <div style="font-size:12px;color:#92400e">📅 ${fmtMonth(pr.billing_month)}</div>
+      <button class="btn btn-lime" style="margin-top:10px;padding:8px 16px;font-size:13px"
+        onclick="prefillCompany('${pr.company}','${pr.billing_month||''}','${pr.id}')">
+        ✅ Marquer comme payée + ajouter reçu
+      </button>
+    </div>`).join('');
+}
+
+function prefillCompany(company, month, reqId) {
+  document.getElementById('b-company').value = company;
+  if (month) document.getElementById('b-month').value = month;
+  document.getElementById('b-amount').focus();
+  window._prefillReqId = reqId;
+  document.getElementById('b-amount').scrollIntoView({behavior:'smooth'});
+}
+
+function handlePhoto(file) {
+  if (!file) return;
+  photoFile = file;
+  document.getElementById('photo-name').textContent = file.name;
+  document.getElementById('photo-preview').style.display = 'flex';
+  document.getElementById('drop-zone').style.display = 'none';
+}
+
+function clearPhoto() {
+  photoFile = null;
+  document.getElementById('photo-input').value = '';
+  document.getElementById('photo-preview').style.display = 'none';
+  document.getElementById('drop-zone').style.display = 'block';
+}
+
+async function submitBill() {
+  const company = document.getElementById('b-company').value;
+  const month   = document.getElementById('b-month').value;
+  const amount  = parseFloat(document.getElementById('b-amount').value);
+  const msgEl   = document.getElementById('form-msg');
+
+  if (!month || !amount) {
+    msgEl.textContent='Mois et montant sont obligatoires.'; msgEl.className='msg error'; msgEl.style.display='block';
+    return;
+  }
+
+  const btn = document.getElementById('submit-btn');
+  btn.disabled = true; btn.textContent = '⏳ Envoi en cours...';
+
+  let file_url = null;
+  if (photoFile) {
+    const prog = document.getElementById('progress-bar'), fill = document.getElementById('progress-fill');
+    prog.style.display = 'block'; fill.style.width = '40%';
+    const ext  = photoFile.name.split('.').pop();
+    const path = `diaspora/${household.id}/${Date.now()}.${ext}`;
+    const { data: up, error: ue } = await db.storage.from('bills').upload(path, photoFile);
+    if (!ue) {
+      fill.style.width = '90%';
+      file_url = db.storage.from('bills').getPublicUrl(up.path).data.publicUrl;
+    }
+    fill.style.width = '100%';
+    setTimeout(()=>prog.style.display='none', 600);
+  }
+
+  const sender = document.getElementById('b-sender').value.trim() || 'Famille';
+  const { error } = await db.from('diaspora_bills').insert([{
+    household_id:     household.id,
+    diaspora_id:      household.diaspora_id,
+    company,
+    billing_month:    month,
+    amount:           isNaN(amount)?null:amount,
+    payment_date:     document.getElementById('b-date').value||null,
+    notes:            document.getElementById('b-note').value.trim()||null,
+    status:           'paid',
+    added_by:         sender,
+    seen_by_diaspora: false,
+    file_url,
+  }]);
+
+  if (error) {
+    msgEl.textContent='Erreur: '+error.message; msgEl.className='msg error'; msgEl.style.display='block';
+    btn.disabled=false; btn.textContent='📤 Envoyer à la famille';
+    return;
+  }
+
+  // Mark payment request as paid if prefilled
+  if (window._prefillReqId) {
+    await db.from('payment_requests').update({status:'paid'}).eq('id', window._prefillReqId);
+    window._prefillReqId = null;
+  }
+
+  document.getElementById('main-content').querySelector('.card:last-of-type').style.display = 'none';
+  document.getElementById('success-screen').style.display = 'block';
+  btn.disabled=false; btn.textContent='📤 Envoyer à la famille';
+  msgEl.style.display='none';
+}
+
+function resetForm() {
+  document.getElementById('success-screen').style.display = 'none';
+  document.getElementById('main-content').querySelector('.card:last-of-type').style.display = 'block';
+  ['b-amount','b-note','b-sender'].forEach(id=>document.getElementById(id).value='');
+  clearPhoto();
+}
+</script>
+</body>
+</html>
