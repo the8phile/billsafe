@@ -1,0 +1,671 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BillSafe — Partage Compteur</title>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=DM+Sans:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../css/portal.css">
+<style>
+/* ── HERO ── */
+.split-hero{background:var(--dark);border-radius:var(--radius);padding:28px 32px;margin-bottom:24px;display:flex;align-items:center;justify-content:space-between;gap:20px;flex-wrap:wrap;position:relative;overflow:hidden}
+.split-hero::after{content:'⚡';position:absolute;right:28px;top:50%;transform:translateY(-50%);font-size:90px;opacity:0.05;pointer-events:none}
+.split-hero h2{font-family:var(--font-h);font-weight:800;font-size:22px;color:var(--white);margin-bottom:6px}
+.split-hero p{font-size:13px;color:#666;line-height:1.7;max-width:500px}
+
+/* ── GROUP CARDS ── */
+.groups-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:14px;margin-bottom:24px}
+.group-card{background:var(--white);border-radius:var(--radius);padding:22px;border:1.5px solid #f0f0f0;cursor:pointer;transition:all 0.2s;position:relative}
+.group-card:hover{border-color:#ddd;transform:translateY(-2px);box-shadow:0 8px 24px rgba(0,0,0,0.06)}
+.group-card.selected{border-color:var(--dark);border-width:2px}
+.gc-icon{width:44px;height:44px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:22px;margin-bottom:14px}
+.gc-eneo{background:rgba(202,255,64,0.15)}
+.gc-camwater{background:rgba(96,200,255,0.12)}
+.gc-camtel{background:rgba(179,157,255,0.12)}
+.gc-other{background:#f0f0f0}
+.gc-name{font-family:var(--font-h);font-weight:700;font-size:15px;color:var(--dark);margin-bottom:3px}
+.gc-addr{font-size:12px;color:var(--gray);margin-bottom:14px}
+.gc-stats{display:flex;gap:14px;padding-top:12px;border-top:1px solid #f5f5f5}
+.gc-stat-val{font-family:var(--font-h);font-weight:700;font-size:17px;color:var(--dark)}
+.gc-stat-lbl{font-size:10px;color:var(--gray)}
+.add-group-card{background:transparent;border:2px dashed #e0e0e0;border-radius:var(--radius);padding:22px;display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:170px;cursor:pointer;transition:all 0.2s;color:var(--gray);gap:10px}
+.add-group-card:hover{border-color:var(--dark);color:var(--dark);background:#fafafa}
+.add-group-card span{font-family:var(--font-h);font-weight:600;font-size:14px}
+
+/* ── SPLIT BUILDER ── */
+.split-builder{display:grid;grid-template-columns:1fr 360px;gap:20px}
+.method-tabs{display:flex;gap:6px;margin-bottom:20px}
+.method-tab{flex:1;padding:10px;border:1.5px solid #e8e8e8;border-radius:10px;font-size:13px;font-weight:600;font-family:var(--font-h);cursor:pointer;background:var(--white);color:var(--gray);transition:all 0.2s;text-align:center}
+.method-tab.active{border-color:var(--dark);color:var(--dark);background:#f8f8f8}
+
+/* ── PARTICIPANT ROW ── */
+.p-row{display:flex;align-items:center;gap:10px;padding:12px 0;border-bottom:1px solid #f5f5f5}
+.p-row:last-child{border-bottom:none}
+.p-av{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:var(--font-h);font-weight:800;font-size:13px;flex-shrink:0}
+.p-info{flex:1}
+.p-name{font-family:var(--font-h);font-weight:600;font-size:13px;color:var(--dark)}
+.p-phone{font-size:11px;color:var(--gray)}
+.p-input{width:80px;padding:6px 10px;border:1.5px solid #e8e8e8;border-radius:8px;font-size:13px;font-family:var(--font-h);font-weight:700;text-align:right;outline:none;transition:border-color 0.15s}
+.p-input:focus{border-color:var(--dark)}
+.p-amount{font-family:var(--font-h);font-weight:800;font-size:15px;color:var(--dark);min-width:100px;text-align:right}
+.p-paid-btn{width:28px;height:28px;border-radius:50%;border:none;cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center;transition:all 0.15s;flex-shrink:0}
+.p-paid-btn.unpaid{background:#f0f0f0;color:#aaa}
+.p-paid-btn.paid{background:var(--green-bg);color:var(--green)}
+
+/* ── TOTAL BAR ── */
+.total-bar{background:#f8f8f8;border-radius:12px;padding:14px 18px;display:flex;align-items:center;justify-content:space-between;margin-top:16px}
+.total-bar-label{font-size:13px;color:var(--gray)}
+.total-bar-val{font-family:var(--font-h);font-weight:800;font-size:18px;color:var(--dark)}
+.pct-warning{background:#fff0f0;color:var(--red);font-size:12px;font-weight:600;padding:8px 14px;border-radius:8px;margin-top:10px;display:none}
+
+/* ── VISUAL PIE ── */
+.pie-wrap{position:relative;margin:0 auto 16px;width:140px;height:140px}
+.pie-label{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.pie-total{font-family:var(--font-h);font-weight:800;font-size:16px;color:var(--dark)}
+.pie-sub{font-size:10px;color:var(--gray);margin-top:2px}
+
+/* ── LEGEND ── */
+.legend-item{display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid #f5f5f5}
+.legend-item:last-child{border-bottom:none}
+.legend-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
+.legend-name{flex:1;font-size:13px;color:var(--dark);font-family:var(--font-h);font-weight:600}
+.legend-pct{font-size:12px;color:var(--gray)}
+.legend-amount{font-family:var(--font-h);font-weight:700;font-size:14px;color:var(--dark)}
+.legend-status{font-size:18px}
+
+/* ── HISTORY TABLE ── */
+.split-row{display:flex;align-items:center;gap:14px;padding:14px 0;border-bottom:1px solid #f5f5f5}
+.split-row:last-child{border-bottom:none}
+.split-month{font-family:var(--font-h);font-weight:700;font-size:14px;color:var(--dark)}
+.split-total{font-family:var(--font-h);font-weight:800;font-size:16px;color:var(--dark)}
+
+/* SHARE MESSAGE BOX */
+.share-msg-box{background:#f0f8ff;border:1.5px solid #c5d9f5;border-radius:12px;padding:14px 16px;font-size:13px;color:#185FA5;line-height:1.7;margin-top:12px;font-family:var(--font-b)}
+
+.spinner{width:36px;height:36px;border:3px solid #f0f0f0;border-top-color:var(--dark);border-radius:50%;animation:spin 0.8s linear infinite;margin:60px auto}
+@keyframes spin{to{transform:rotate(360deg)}}
+</style>
+</head>
+<body>
+<div class="layout">
+  <aside class="sidebar">
+    <div class="sidebar-brand"><div class="sidebar-logo">🛡</div><div class="sidebar-name">BillSafe</div></div>
+    <span class="sidebar-plan">Business</span>
+    <div class="nav-group-label">Principal</div>
+    <a class="nav-item" href="dashboard.html"><span class="ni">📊</span> Tableau de bord</a>
+    <a class="nav-item" href="bills.html"><span class="ni">📄</span> Mes factures</a>
+    <a class="nav-item" href="upload.html"><span class="ni">📤</span> Ajouter facture</a>
+    <div class="nav-group-label">Outils</div>
+    <a class="nav-item active" href="meter-split.html"><span class="ni">⚡</span> Partage compteur</a>
+    <a class="nav-item" href="diaspora.html"><span class="ni">🌍</span> Ma famille au pays</a>
+    <a class="nav-item" href="fiscal.html"><span class="ni">🏛</span> E-Facturation DGI</a>
+    <div class="nav-group-label">Portail Business</div>
+    <a class="nav-item" href="landlord.html"><span class="ni">🏢</span> Mes propriétés</a>
+    <a class="nav-item" href="tenants.html"><span class="ni">👥</span> Locataires</a>
+    <div class="nav-group-label">Compte</div>
+    <a class="nav-item" href="settings.html"><span class="ni">⚙️</span> Paramètres</a>
+    <a class="nav-item" href="alerts.html"><span class="ni">🔔</span> Alertes</a>
+    <div class="sidebar-bottom">
+      <div class="user-row">
+        <div class="user-avatar" id="user-avatar">?</div>
+        <div class="user-info"><div class="user-name" id="user-name">Chargement...</div><div class="user-role">Mon compte</div></div>
+        <button class="logout-btn" id="logout-btn">⏻</button>
+      </div>
+    </div>
+  </aside>
+
+  <main class="main">
+    <div class="topbar">
+      <div class="topbar-left">
+        <h2>⚡ Partage de Compteur</h2>
+        <p>Divisez automatiquement une facture ENEO, CamWater ou Camtel entre plusieurs personnes</p>
+      </div>
+      <button class="btn btn-dark" id="new-group-btn">+ Nouveau groupe</button>
+    </div>
+
+    <!-- HERO -->
+    <div class="split-hero">
+      <div>
+        <h2>Un compteur. Plusieurs voisins. Zéro dispute.</h2>
+        <p>Entrez le montant total de la facture — BillSafe calcule automatiquement la part de chacun et génère un message WhatsApp à envoyer pour collecter.</p>
+      </div>
+    </div>
+
+    <!-- STATS -->
+    <div class="stats-grid" style="margin-bottom:24px">
+      <div class="stat-card dark"><div class="stat-label">Groupes actifs</div><div class="stat-value" id="s-groups">—</div><div class="stat-sub">compteurs partagés</div></div>
+      <div class="stat-card lime"><div class="stat-label">Participants</div><div class="stat-value" id="s-parts">—</div><div class="stat-sub">au total</div></div>
+      <div class="stat-card"><div class="stat-label">Splits ce mois</div><div class="stat-value" id="s-splits">—</div><div class="stat-sub">calculs effectués</div></div>
+      <div class="stat-card"><div class="stat-label">Montant collecté</div><div class="stat-value" id="s-collected">—</div><div class="stat-sub">FCFA ce mois</div></div>
+    </div>
+
+    <!-- LOADING -->
+    <div id="view-loading"><div class="spinner"></div></div>
+
+    <!-- MAIN CONTENT -->
+    <div id="view-main" style="display:none">
+
+      <!-- GROUPS -->
+      <p style="font-size:11px;font-weight:700;font-family:var(--font-h);color:var(--gray);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:12px">Mes groupes de compteurs</p>
+      <div class="groups-grid" id="groups-grid">
+        <div class="add-group-card" id="add-group-card">
+          <span style="font-size:32px">⚡</span>
+          <span>Créer un groupe</span>
+        </div>
+      </div>
+
+      <!-- SPLIT BUILDER (shown when group selected) -->
+      <div id="split-section" style="display:none">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:10px">
+          <div>
+            <div style="font-family:var(--font-h);font-weight:800;font-size:18px;color:var(--dark)" id="active-group-name">—</div>
+            <div style="font-size:13px;color:var(--gray)" id="active-group-sub">—</div>
+          </div>
+          <div style="display:flex;gap:8px">
+            <button class="btn btn-ghost btn-sm" id="add-participant-btn">+ Ajouter participant</button>
+            <button class="btn btn-ghost btn-sm" id="delete-group-btn" style="color:var(--red)">🗑 Supprimer</button>
+          </div>
+        </div>
+
+        <div class="split-builder">
+          <!-- LEFT: CALCULATOR -->
+          <div class="card">
+            <div class="card-title" style="margin-bottom:4px">🧮 Calculer le partage</div>
+            <div class="card-sub">Entrez le montant total de la facture</div>
+
+            <!-- Total amount input -->
+            <div style="display:flex;gap:10px;align-items:flex-end;margin-bottom:16px">
+              <div class="form-group" style="flex:1;margin-bottom:0">
+                <label class="form-label">Montant total facture (FCFA) *</label>
+                <input class="form-input" type="number" id="total-input" placeholder="ex: 45000" style="font-size:20px;font-family:var(--font-h);font-weight:700" oninput="recalc()">
+              </div>
+              <div class="form-group" style="width:150px;margin-bottom:0">
+                <label class="form-label">Mois</label>
+                <input class="form-input" type="month" id="split-month">
+              </div>
+            </div>
+
+            <!-- Split method -->
+            <div style="font-size:11px;font-weight:700;font-family:var(--font-h);color:var(--gray);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:8px">Méthode de partage</div>
+            <div class="method-tabs">
+              <div class="method-tab active" id="tab-equal" onclick="setMethod('equal')">⚖️ Égal</div>
+              <div class="method-tab" id="tab-percentage" onclick="setMethod('percentage')">% Pourcentage</div>
+              <div class="method-tab" id="tab-rooms" onclick="setMethod('rooms')">🚪 Par pièces</div>
+            </div>
+
+            <!-- Method hints -->
+            <div id="hint-equal" style="font-size:12px;color:var(--gray);background:#f8f8f8;border-radius:8px;padding:10px 12px;margin-bottom:16px">
+              ⚖️ <strong>Partage égal</strong> — La facture est divisée en parts identiques entre tous les participants.
+            </div>
+            <div id="hint-percentage" style="font-size:12px;color:var(--gray);background:#f8f8f8;border-radius:8px;padding:10px 12px;margin-bottom:16px;display:none">
+              📊 <strong>Par pourcentage</strong> — Définissez le % de chaque personne. Total doit faire 100%.
+            </div>
+            <div id="hint-rooms" style="font-size:12px;color:var(--gray);background:#f8f8f8;border-radius:8px;padding:10px 12px;margin-bottom:16px;display:none">
+              🚪 <strong>Par nombre de pièces</strong> — Plus vous avez de pièces, plus vous payez. Idéal pour les immeubles.
+            </div>
+
+            <!-- Participants -->
+            <div id="participants-list"></div>
+
+            <!-- PCT warning -->
+            <div class="pct-warning" id="pct-warning">⚠️ Le total des pourcentages doit être exactement 100%</div>
+
+            <!-- Total bar -->
+            <div class="total-bar">
+              <span class="total-bar-label">Montant à partager</span>
+              <span class="total-bar-val" id="total-bar-val">0 FCFA</span>
+            </div>
+
+            <!-- Action buttons -->
+            <div style="display:flex;gap:10px;margin-top:16px;flex-wrap:wrap">
+              <button class="btn btn-lime" style="flex:1;justify-content:center" id="save-split-btn">💾 Enregistrer ce partage</button>
+              <button class="btn btn-dark btn-sm" id="whatsapp-split-btn">💬 Envoyer WhatsApp</button>
+            </div>
+
+            <!-- WhatsApp preview -->
+            <div class="share-msg-box" id="share-msg-box" style="display:none"></div>
+          </div>
+
+          <!-- RIGHT: PIE + LEGEND -->
+          <div>
+            <div class="card" style="margin-bottom:16px">
+              <div class="card-title" style="margin-bottom:16px">📊 Répartition visuelle</div>
+              <div class="pie-wrap">
+                <svg id="pie-svg" viewBox="0 0 100 100" width="140" height="140"></svg>
+                <div class="pie-label">
+                  <div class="pie-total" id="pie-total">0</div>
+                  <div class="pie-sub">FCFA total</div>
+                </div>
+              </div>
+              <div id="pie-legend"></div>
+            </div>
+
+            <!-- HISTORY -->
+            <div class="card">
+              <div class="card-title" style="margin-bottom:14px">📋 Historique des partages</div>
+              <div id="split-history"><div style="font-size:13px;color:var(--gray);text-align:center;padding:20px">Aucun partage enregistré</div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- MODAL: New Group -->
+<div class="modal-overlay" id="modal-group">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">⚡ Nouveau groupe compteur</div>
+      <button class="modal-close" id="close-group-modal">✕</button>
+    </div>
+    <p style="font-size:13px;color:var(--gray);margin-bottom:20px">Un groupe représente un compteur partagé entre plusieurs personnes (voisins, locataires, collègues).</p>
+    <div class="form-grid" style="margin-bottom:20px">
+      <div class="form-group span-2">
+        <label class="form-label">Nom du groupe *</label>
+        <input class="form-input" id="g-name" placeholder="ex: Immeuble Akwa — ENEO">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Société *</label>
+        <select class="form-input" id="g-company">
+          <option value="ENEO">⚡ ENEO / SONEL</option>
+          <option value="CamWater">💧 CamWater</option>
+          <option value="Camtel">📡 Camtel</option>
+          <option value="Autre">📌 Autre</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Méthode par défaut</label>
+        <select class="form-input" id="g-method">
+          <option value="equal">⚖️ Partage égal</option>
+          <option value="percentage">% Pourcentage</option>
+          <option value="rooms">🚪 Par pièces</option>
+        </select>
+      </div>
+      <div class="form-group span-2">
+        <label class="form-label">Adresse / Localisation</label>
+        <input class="form-input" id="g-address" placeholder="ex: Rue Joss, Akwa, Douala">
+      </div>
+    </div>
+    <button class="btn btn-lime" id="save-group-btn" style="width:100%;justify-content:center">💾 Créer le groupe</button>
+  </div>
+</div>
+
+<!-- MODAL: Add Participant -->
+<div class="modal-overlay" id="modal-participant">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">👤 Ajouter un participant</div>
+      <button class="modal-close" id="close-part-modal">✕</button>
+    </div>
+    <div class="form-grid" style="margin-bottom:20px">
+      <div class="form-group span-2">
+        <label class="form-label">Nom *</label>
+        <input class="form-input" id="p-name" placeholder="ex: Jean Nkemdirim">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Téléphone WhatsApp</label>
+        <input class="form-input" id="p-phone" placeholder="+237 6XX XX XX XX">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Pièces occupées</label>
+        <input class="form-input" type="number" id="p-rooms" value="1" min="1">
+      </div>
+    </div>
+    <button class="btn btn-lime" id="save-part-btn" style="width:100%;justify-content:center">➕ Ajouter</button>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+const SUPA_URL  = 'https://rjnsnodvqwwhkxbznzqa.supabase.co';
+const SUPA_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJqbnNub2R2cXd3aGt4YnpuenFhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzgxODg1OTksImV4cCI6MjA5Mzc2NDU5OX0.gkV9ynTFdY8B72s2fnRpTkUH71FUz59ICIpQLZQDsIc';
+const db = supabase.createClient(SUPA_URL, SUPA_ANON);
+
+let ME=null, GROUPS=[], PARTS=[], SPLITS=[], ACTIVE_GROUP=null;
+let METHOD='equal';
+const COLORS=['#CAFF40','#60C8FF','#B39DFF','#FF8C69','#7BDA8A','#FFD97D','#FF6B9D','#4ECDC4'];
+const CO_ICON={ENEO:'⚡',CamWater:'💧',Camtel:'📡',Autre:'📌'};
+const CO_CLS ={ENEO:'gc-eneo',CamWater:'gc-camwater',Camtel:'gc-camtel',Autre:'gc-other'};
+const AV_COLS=['av-green','av-blue','av-purple','av-amber'];
+
+const $=id=>document.getElementById(id);
+const fmt=n=>Math.round(n||0).toLocaleString('fr-FR');
+const fmtA=n=>fmt(n)+' FCFA';
+const ini=n=>(n||'?').split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2);
+const fmtM=m=>m?new Date(m+'-01').toLocaleDateString('fr-FR',{month:'long',year:'numeric'}):'—';
+
+function toast(msg,type='success'){const t=$('toast');t.textContent=msg;t.className='toast '+type+' show';setTimeout(()=>t.classList.remove('show'),3200)}
+function openM(id){$(id).classList.add('open')}
+function closeM(id){$(id).classList.remove('open')}
+document.addEventListener('click',e=>{if(e.target.classList.contains('modal-overlay'))e.target.classList.remove('open')});
+
+// ── INIT ──────────────────────────────────────────────
+window.addEventListener('DOMContentLoaded', async()=>{
+  const {data:{session}} = await db.auth.getSession();
+  if(!session){window.location.href='auth.html';return}
+  ME=session.user;
+  const name=ME.user_metadata?.full_name||ME.email||'Utilisateur';
+  $('user-avatar').textContent=name.split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2);
+  $('user-name').textContent=name;
+  $('logout-btn').onclick=async()=>{await db.auth.signOut();window.location.href='auth.html'};
+
+  $('new-group-btn').onclick=()=>openM('modal-group');
+  $('add-group-card').onclick=()=>openM('modal-group');
+  $('close-group-modal').onclick=()=>closeM('modal-group');
+  $('save-group-btn').onclick=saveGroup;
+  $('close-part-modal').onclick=()=>closeM('modal-participant');
+  $('save-part-btn').onclick=saveParticipant;
+  $('save-split-btn').onclick=saveSplit;
+  $('whatsapp-split-btn').onclick=sendWhatsApp;
+  $('split-month').value=new Date().toISOString().slice(0,7);
+
+  await loadAll();
+});
+
+async function loadAll(){
+  const [g,s]=await Promise.all([
+    db.from('meter_groups').select('*').eq('owner_id',ME.id).order('created_at',{ascending:false}),
+    db.from('meter_splits').select('*').eq('owner_id',ME.id).order('created_at',{ascending:false})
+  ]);
+  GROUPS=g.data||[];
+  SPLITS=s.data||[];
+  renderStats();
+  renderGroups();
+  $('view-loading').style.display='none';
+  $('view-main').style.display='block';
+}
+
+function renderStats(){
+  const now=new Date();
+  const mo=`${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}`;
+  const moSplits=SPLITS.filter(s=>s.billing_month?.startsWith(mo));
+  const collected=moSplits.reduce((sum,s)=>{
+    const paid=(s.participant_splits||[]).filter(p=>p.paid).reduce((a,p)=>a+p.amount,0);
+    return sum+paid;
+  },0);
+  const totalParts=GROUPS.reduce((s,g)=>s+(g._parts_count||0),0);
+  $('s-groups').textContent=GROUPS.length;
+  $('s-parts').textContent=totalParts;
+  $('s-splits').textContent=moSplits.length;
+  $('s-collected').textContent=fmt(collected);
+}
+
+// ── GROUPS ────────────────────────────────────────────
+function renderGroups(){
+  const grid=$('groups-grid');
+  const cards=GROUPS.map(g=>`
+    <div class="group-card${ACTIVE_GROUP?.id===g.id?' selected':''}" data-id="${g.id}">
+      <div class="gc-icon ${CO_CLS[g.company]||'gc-other'}">${CO_ICON[g.company]||'📌'}</div>
+      <div class="gc-name">${g.name}</div>
+      <div class="gc-addr">${g.address||g.company}</div>
+      <div class="gc-stats">
+        <div><div class="gc-stat-val">${g._parts_count||'—'}</div><div class="gc-stat-lbl">Participants</div></div>
+        <div><div class="gc-stat-val">${SPLITS.filter(s=>s.group_id===g.id).length}</div><div class="gc-stat-lbl">Partages</div></div>
+      </div>
+    </div>`).join('');
+  grid.innerHTML=cards+`<div class="add-group-card" id="add-group-card"><span style="font-size:32px">⚡</span><span>Créer un groupe</span></div>`;
+  grid.querySelectorAll('.group-card').forEach(card=>{
+    card.onclick=()=>selectGroup(card.dataset.id);
+  });
+  $('add-group-card').onclick=()=>openM('modal-group');
+}
+
+async function selectGroup(id){
+  ACTIVE_GROUP=GROUPS.find(g=>g.id===id);
+  if(!ACTIVE_GROUP)return;
+  // Load participants
+  const {data}=await db.from('meter_participants').select('*').eq('group_id',id).eq('status','active').order('created_at',{ascending:true});
+  PARTS=data||[];
+  // Load splits for this group
+  const {data:sp}=await db.from('meter_splits').select('*').eq('group_id',id).order('created_at',{ascending:false});
+  SPLITS=sp||[];
+  METHOD=ACTIVE_GROUP.split_method||'equal';
+  renderGroups();
+  $('split-section').style.display='block';
+  $('active-group-name').textContent=ACTIVE_GROUP.name;
+  $('active-group-sub').textContent=`${CO_ICON[ACTIVE_GROUP.company]||'📌'} ${ACTIVE_GROUP.company} · ${PARTS.length} participant(s)`;
+  $('add-participant-btn').onclick=()=>openM('modal-participant');
+  $('delete-group-btn').onclick=()=>deleteGroup(id);
+  setMethod(METHOD);
+  renderSplitHistory();
+  $('split-section').scrollIntoView({behavior:'smooth'});
+}
+
+async function saveGroup(){
+  const name=$('g-name').value.trim();
+  if(!name)return toast('Le nom est obligatoire','error');
+  $('save-group-btn').disabled=true;
+  const {error}=await db.from('meter_groups').insert([{
+    owner_id:ME.id,name,
+    company:$('g-company').value,
+    split_method:$('g-method').value,
+    address:$('g-address').value.trim()||null
+  }]);
+  $('save-group-btn').disabled=false;
+  if(error)return toast('Erreur: '+error.message,'error');
+  closeM('modal-group');
+  toast('✅ Groupe créé!');
+  $('g-name').value='';$('g-address').value='';
+  await loadAll();
+}
+
+async function deleteGroup(id){
+  if(!confirm('Supprimer ce groupe et tous ses partages?'))return;
+  await db.from('meter_groups').delete().eq('id',id);
+  ACTIVE_GROUP=null;
+  $('split-section').style.display='none';
+  toast('Groupe supprimé');
+  await loadAll();
+}
+
+// ── PARTICIPANTS ──────────────────────────────────────
+async function saveParticipant(){
+  const name=$('p-name').value.trim();
+  if(!name)return toast('Le nom est obligatoire','error');
+  if(!ACTIVE_GROUP)return toast('Sélectionnez d\'abord un groupe','error');
+  $('save-part-btn').disabled=true;
+  const {error}=await db.from('meter_participants').insert([{
+    group_id:ACTIVE_GROUP.id,owner_id:ME.id,
+    name,
+    phone:$('p-phone').value.trim()||null,
+    rooms:parseInt($('p-rooms').value)||1,
+    share_pct:0,status:'active'
+  }]);
+  $('save-part-btn').disabled=false;
+  if(error)return toast('Erreur: '+error.message,'error');
+  closeM('modal-participant');
+  toast('👤 Participant ajouté!');
+  $('p-name').value='';$('p-phone').value='';
+  await selectGroup(ACTIVE_GROUP.id);
+}
+
+// ── SPLIT METHOD ──────────────────────────────────────
+function setMethod(m){
+  METHOD=m;
+  ['equal','percentage','rooms'].forEach(t=>{
+    $('tab-'+t).classList.toggle('active',t===m);
+    $('hint-'+t).style.display=t===m?'block':'none';
+  });
+  recalc();
+}
+
+function recalc(){
+  if(!PARTS.length)return;
+  const total=parseFloat($('total-input').value)||0;
+  $('total-bar-val').textContent=fmtA(total);
+  $('pie-total').textContent=fmt(total);
+
+  let shares=[];
+  if(METHOD==='equal'){
+    const each=total/PARTS.length;
+    shares=PARTS.map(p=>({...p,amount:each,pct:100/PARTS.length}));
+  } else if(METHOD==='percentage'){
+    const inputs=document.querySelectorAll('.p-input.pct-in');
+    let totalPct=0;
+    shares=PARTS.map((p,i)=>{
+      const pct=parseFloat(inputs[i]?.value)||0;
+      totalPct+=pct;
+      return{...p,pct,amount:total*pct/100};
+    });
+    const warn=$('pct-warning');
+    warn.style.display=Math.abs(totalPct-100)>0.1?'block':'none';
+  } else if(METHOD==='rooms'){
+    const inputs=document.querySelectorAll('.p-input.rooms-in');
+    const totalRooms=Array.from(inputs).reduce((s,el)=>s+(parseFloat(el.value)||1),0)||1;
+    shares=PARTS.map((p,i)=>{
+      const rooms=parseFloat(inputs[i]?.value)||1;
+      return{...p,rooms,pct:rooms/totalRooms*100,amount:total*rooms/totalRooms};
+    });
+  }
+
+  renderParticipantRows(shares);
+  renderPie(shares);
+  updateShareMsg(shares,total);
+}
+
+function renderParticipantRows(shares){
+  const el=$('participants-list');
+  if(!shares.length){
+    el.innerHTML=`<div style="text-align:center;padding:28px;color:var(--gray)"><div style="font-size:28px;margin-bottom:8px">👥</div><div style="font-family:var(--font-h);font-weight:600;color:#555">Aucun participant</div><p style="font-size:13px;margin-top:4px">Cliquez "+ Ajouter participant" pour commencer.</p></div>`;
+    return;
+  }
+  el.innerHTML=shares.map((p,i)=>{
+    let inputHTML='';
+    if(METHOD==='percentage'){
+      inputHTML=`<input class="p-input pct-in" type="number" value="${p.share_pct||Math.round(100/PARTS.length)}" min="0" max="100" oninput="recalc()" title="% pour ${p.name}"> <span style="font-size:12px;color:var(--gray)">%</span>`;
+    } else if(METHOD==='rooms'){
+      inputHTML=`<input class="p-input rooms-in" type="number" value="${p.rooms||1}" min="1" oninput="recalc()" title="Pièces de ${p.name}"> <span style="font-size:12px;color:var(--gray)">pièces</span>`;
+    } else {
+      inputHTML=`<span style="font-size:12px;color:var(--gray)">${Math.round(p.pct)}%</span>`;
+    }
+    const color=COLORS[i%COLORS.length];
+    return `<div class="p-row" data-id="${p.id}">
+      <div class="p-av ${AV_COLS[i%4]}" style="background:${color}20;color:${color==='#CAFF40'?'#2a2a2a':color}">${ini(p.name)}</div>
+      <div class="p-info">
+        <div class="p-name">${p.name}</div>
+        ${p.phone?`<div class="p-phone">${p.phone}</div>`:''}
+      </div>
+      <div style="display:flex;align-items:center;gap:6px">${inputHTML}</div>
+      <div class="p-amount">${fmtA(p.amount)}</div>
+      <button class="p-paid-btn unpaid" title="Marquer payé" onclick="togglePaid(this,'${p.id}')">○</button>
+      <button class="icon-btn" onclick="removeParticipant('${p.id}')" title="Retirer" style="flex-shrink:0">✕</button>
+    </div>`;
+  }).join('');
+}
+
+function togglePaid(btn,id){
+  const isPaid=btn.classList.contains('paid');
+  btn.classList.toggle('paid',!isPaid);
+  btn.classList.toggle('unpaid',isPaid);
+  btn.textContent=isPaid?'○':'✓';
+  toast(isPaid?'Marqué non payé':'✅ Marqué comme payé');
+}
+
+async function removeParticipant(id){
+  if(!confirm('Retirer ce participant?'))return;
+  await db.from('meter_participants').update({status:'inactive'}).eq('id',id);
+  toast('Participant retiré');
+  await selectGroup(ACTIVE_GROUP.id);
+}
+
+// ── PIE CHART ─────────────────────────────────────────
+function renderPie(shares){
+  if(!shares.length){$('pie-svg').innerHTML='<circle cx="50" cy="50" r="40" fill="#f0f0f0"/>'; $('pie-legend').innerHTML=''; return;}
+  const total=shares.reduce((s,p)=>s+p.amount,0)||1;
+  let startAngle=-Math.PI/2;
+  let paths='';
+  shares.forEach((p,i)=>{
+    const slice=(p.amount/total)*Math.PI*2;
+    const endAngle=startAngle+slice;
+    const x1=50+40*Math.cos(startAngle), y1=50+40*Math.sin(startAngle);
+    const x2=50+40*Math.cos(endAngle),   y2=50+40*Math.sin(endAngle);
+    const large=slice>Math.PI?1:0;
+    const color=COLORS[i%COLORS.length];
+    paths+=`<path d="M50,50 L${x1},${y1} A40,40 0 ${large},1 ${x2},${y2} Z" fill="${color}" opacity="0.9"/>`;
+    startAngle=endAngle;
+  });
+  // Center white circle
+  paths+=`<circle cx="50" cy="50" r="25" fill="white"/>`;
+  $('pie-svg').innerHTML=paths;
+
+  $('pie-legend').innerHTML=shares.map((p,i)=>`
+    <div class="legend-item">
+      <div class="legend-dot" style="background:${COLORS[i%COLORS.length]}"></div>
+      <div class="legend-name">${p.name}</div>
+      <div class="legend-pct">${Math.round(p.pct)}%</div>
+      <div class="legend-amount">${fmtA(p.amount)}</div>
+    </div>`).join('');
+}
+
+// ── WHATSAPP MESSAGE ──────────────────────────────────
+function updateShareMsg(shares,total){
+  if(!shares.length||!total){$('share-msg-box').style.display='none';return;}
+  const month=$('split-month').value;
+  const monthLabel=month?new Date(month+'-01').toLocaleDateString('fr-FR',{month:'long',year:'numeric'}):'ce mois';
+  const lines=shares.map(p=>`• ${p.name}: *${fmtA(p.amount)}*`).join('\n');
+  const msg=`🛡 *BillSafe — Partage facture ${ACTIVE_GROUP?.company||''}*\n\nBonjour! Voici votre part de la facture ${ACTIVE_GROUP?.company||''} de ${monthLabel}:\n\n${lines}\n\n💰 Total: *${fmtA(total)}*\n\nMerci de régler votre part dès que possible. 🙏`;
+  $('share-msg-box').textContent=msg;
+  $('share-msg-box').style.display='block';
+}
+
+function sendWhatsApp(){
+  const msg=$('share-msg-box').textContent;
+  if(!msg)return toast('Calculez d\'abord un partage','error');
+  window.open('https://wa.me/?text='+encodeURIComponent(msg),'_blank');
+}
+
+// ── SAVE SPLIT ────────────────────────────────────────
+async function saveSplit(){
+  if(!ACTIVE_GROUP)return toast('Sélectionnez un groupe','error');
+  const total=parseFloat($('total-input').value);
+  if(!total)return toast('Entrez le montant total','error');
+  if(!PARTS.length)return toast('Ajoutez au moins un participant','error');
+
+  // Collect current split data
+  const paidBtns=document.querySelectorAll('.p-paid-btn');
+  const rows=document.querySelectorAll('.p-row');
+  const participant_splits=PARTS.map((p,i)=>({
+    id:p.id, name:p.name, phone:p.phone||null,
+    amount:parseFloat(rows[i]?.querySelector('.p-amount')?.textContent)||0,
+    pct:Math.round(100/PARTS.length),
+    paid:paidBtns[i]?.classList.contains('paid')||false
+  }));
+
+  $('save-split-btn').disabled=true;
+  const {error}=await db.from('meter_splits').insert([{
+    group_id:ACTIVE_GROUP.id, owner_id:ME.id,
+    billing_month:$('split-month').value,
+    total_amount:total,
+    split_method:METHOD,
+    participant_splits,
+    status:'active'
+  }]);
+  $('save-split-btn').disabled=false;
+  if(error)return toast('Erreur: '+error.message,'error');
+  toast('✅ Partage sauvegardé!');
+  await selectGroup(ACTIVE_GROUP.id);
+}
+
+// ── SPLIT HISTORY ─────────────────────────────────────
+function renderSplitHistory(){
+  const el=$('split-history');
+  if(!SPLITS.length){el.innerHTML=`<div style="font-size:13px;color:var(--gray);text-align:center;padding:20px">Aucun partage enregistré</div>`;return;}
+  el.innerHTML=SPLITS.slice(0,6).map(s=>{
+    const paid=(s.participant_splits||[]).filter(p=>p.paid).length;
+    const total=(s.participant_splits||[]).length;
+    return`<div class="split-row">
+      <div style="flex:1">
+        <div class="split-month">${fmtM(s.billing_month)}</div>
+        <div style="font-size:11px;color:var(--gray);margin-top:2px">${paid}/${total} payés · ${s.split_method==='equal'?'Partage égal':s.split_method==='percentage'?'% Personnalisé':'Par pièces'}</div>
+      </div>
+      <div class="split-total">${fmtA(s.total_amount)}</div>
+      <span class="pill ${paid===total?'pill-paid':'pill-pending'}">${paid===total?'✓ Soldé':'⏳ En cours'}</span>
+    </div>`;
+  }).join('');
+}
+</script>
+</body>
+</html>
