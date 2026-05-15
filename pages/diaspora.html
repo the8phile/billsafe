@@ -6,100 +6,81 @@
 <title>BillSafe — Diaspora Dashboard</title>
 <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=DM+Sans:wght@400;500&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="../css/portal.css">
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
-/* ── HERO ── */
-.diaspora-hero { background: var(--dark); border-radius: var(--radius); padding: 28px 32px; margin-bottom: 24px; display: flex; align-items: center; justify-content: space-between; gap: 20px; flex-wrap: wrap; position: relative; overflow: hidden; }
-.diaspora-hero::after { content:'🌍'; position:absolute; right:32px; top:50%; transform:translateY(-50%); font-size:80px; opacity:0.06; pointer-events:none; }
-.hero-left h2 { font-family:var(--font-h); font-weight:800; font-size:22px; color:var(--white); margin-bottom:6px; }
-.hero-left p  { font-size:13px; color:#666; line-height:1.7; max-width:500px; }
-.hero-flag-row { display:flex; align-items:center; gap:10px; margin-top:14px; }
-.flag-chip { display:flex; align-items:center; gap:6px; background:#1a1a1a; border-radius:20px; padding:5px 12px; font-size:12px; color:#aaa; font-family:var(--font-h); font-weight:600; }
-.flag-arrow { font-size:18px; color:#444; }
-
-/* ── HOUSEHOLD CARD ── */
-.household-card { background:var(--white); border-radius:var(--radius); overflow:hidden; border:1.5px solid #f0f0f0; margin-bottom:20px; }
-.hh-header { background:var(--dark); padding:20px 24px; display:flex; align-items:center; justify-content:space-between; }
-.hh-name { font-family:var(--font-h); font-weight:800; font-size:18px; color:var(--white); margin-bottom:3px; }
-.hh-location { font-size:12px; color:#666; display:flex; align-items:center; gap:6px; }
-.hh-status-dot { width:8px; height:8px; background:var(--lime); border-radius:50%; display:inline-block; animation:pulse 2s infinite; }
-@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
-.hh-stats { display:flex; gap:20px; }
-.hh-stat { text-align:center; }
-.hh-stat-val { font-family:var(--font-h); font-weight:800; font-size:20px; color:var(--white); }
-.hh-stat-lbl { font-size:10px; color:#555; margin-top:2px; }
-
-/* ── MEMBERS ── */
-.members-row { display:flex; gap:10px; padding:16px 24px; border-bottom:1px solid #f5f5f5; flex-wrap:wrap; align-items:center; }
-.member-chip { display:flex; align-items:center; gap:8px; background:#f5f5f5; border-radius:100px; padding:6px 14px 6px 6px; }
-.member-av { width:28px; height:28px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-family:var(--font-h); font-weight:800; font-size:11px; flex-shrink:0; }
-.member-name { font-size:13px; font-weight:600; font-family:var(--font-h); color:var(--dark); }
-.member-role { font-size:10px; color:var(--gray); }
-.add-member-chip { display:flex; align-items:center; gap:6px; background:transparent; border:1.5px dashed #e0e0e0; border-radius:100px; padding:6px 14px; font-size:12px; font-weight:600; font-family:var(--font-h); color:var(--gray); cursor:pointer; transition:all 0.15s; }
-.add-member-chip:hover { border-color:var(--dark); color:var(--dark); }
-
-/* ── FEED TABS ── */
-.feed-grid { display:grid; grid-template-columns:1fr 320px; gap:20px; }
-
-/* ── BILL FEED ── */
-.feed-item { display:flex; align-items:flex-start; gap:14px; padding:16px 0; border-bottom:1px solid #f5f5f5; }
-.feed-item:last-child { border-bottom:none; }
-.feed-icon { width:42px; height:42px; border-radius:12px; display:flex; align-items:center; justify-content:center; font-size:20px; flex-shrink:0; }
-.fi-eneo     { background:rgba(202,255,64,0.15); }
-.fi-camwater { background:rgba(96,200,255,0.12); }
-.fi-camtel   { background:rgba(179,157,255,0.12); }
-.fi-other    { background:#f0f0f0; }
-.feed-body { flex:1; }
-.feed-title { font-family:var(--font-h); font-weight:700; font-size:14px; color:var(--dark); margin-bottom:3px; }
-.feed-meta  { font-size:12px; color:var(--gray); margin-bottom:6px; }
-.feed-amount { font-family:var(--font-h); font-weight:800; font-size:18px; color:var(--dark); }
-.feed-time { font-size:11px; color:var(--gray); flex-shrink:0; margin-top:2px; }
-.feed-unseen { background:#f8f8ff; border-left:3px solid var(--blue); padding-left:13px; border-radius:0 8px 8px 0; }
-
-/* ── PAYMENT REQUEST ── */
-.pay-req-card { background:var(--white); border-radius:var(--radius-sm); border:1.5px solid #e8e8e8; padding:16px; margin-bottom:10px; }
-.pay-req-card.pending { border-color:#fde68a; background:#fffbeb; }
-.pay-req-card.paid    { border-color:#c3f0d5; background:var(--green-bg); }
-.pay-req-company { font-family:var(--font-h); font-weight:700; font-size:14px; color:var(--dark); margin-bottom:4px; }
-.pay-req-amount  { font-family:var(--font-h); font-weight:800; font-size:20px; color:var(--dark); margin-bottom:6px; }
-.pay-req-msg     { font-size:12px; color:var(--gray); margin-bottom:12px; line-height:1.6; }
-
-/* ── INVITE LINK BOX ── */
-.invite-box { background:#f5f5f5; border-radius:10px; padding:12px 14px; display:flex; align-items:center; gap:8px; }
-.invite-link { flex:1; font-size:12px; color:var(--gray); font-family:monospace; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
-
-/* ── ALERT PREFS ── */
-.alert-toggle { display:flex; align-items:center; justify-content:space-between; padding:12px 0; border-bottom:1px solid #f5f5f5; }
-.alert-toggle:last-child { border-bottom:none; }
-.toggle-info h4 { font-family:var(--font-h); font-weight:600; font-size:13px; color:var(--dark); margin-bottom:2px; }
-.toggle-info p  { font-size:12px; color:var(--gray); }
-.toggle-switch { position:relative; width:44px; height:24px; flex-shrink:0; }
-.toggle-switch input { opacity:0; width:0; height:0; }
-.toggle-slider { position:absolute; inset:0; background:#e0e0e0; border-radius:24px; cursor:pointer; transition:0.3s; }
-.toggle-slider::before { content:''; position:absolute; width:18px; height:18px; left:3px; top:3px; background:var(--white); border-radius:50%; transition:0.3s; }
-.toggle-switch input:checked + .toggle-slider { background:var(--dark); }
-.toggle-switch input:checked + .toggle-slider::before { transform:translateX(20px); }
-
-/* ── CURRENCY ROW ── */
-.currency-row { display:flex; align-items:center; gap:8px; background:#f5f5f5; border-radius:10px; padding:12px 14px; margin-bottom:12px; }
-.currency-flag { font-size:22px; }
-.currency-info { flex:1; }
-.currency-val  { font-family:var(--font-h); font-weight:800; font-size:16px; color:var(--dark); }
-.currency-lbl  { font-size:11px; color:var(--gray); }
-.currency-eq   { font-size:12px; color:var(--gray); text-align:right; }
-
-/* ── EMPTY SETUP ── */
-.setup-steps { display:flex; flex-direction:column; gap:12px; margin-top:20px; }
-.setup-step { display:flex; align-items:center; gap:14px; background:var(--white); border-radius:var(--radius-sm); padding:16px 18px; border:1.5px solid #f0f0f0; }
-.setup-num { width:36px; height:36px; background:var(--dark); border-radius:50%; display:flex; align-items:center; justify-content:center; font-family:var(--font-h); font-weight:800; font-size:14px; color:var(--lime); flex-shrink:0; }
-.setup-step h4 { font-family:var(--font-h); font-weight:700; font-size:13px; color:var(--dark); margin-bottom:3px; }
-.setup-step p  { font-size:12px; color:var(--gray); }
-.setup-step.done { border-color:#c3f0d5; background:var(--green-bg); }
-.setup-step.done .setup-num { background:var(--green); }
+.diaspora-hero{background:var(--dark);border-radius:var(--radius);padding:28px 32px;margin-bottom:24px;display:flex;align-items:center;justify-content:space-between;gap:20px;flex-wrap:wrap;position:relative;overflow:hidden}
+.diaspora-hero::after{content:'🌍';position:absolute;right:28px;top:50%;transform:translateY(-50%);font-size:80px;opacity:0.06;pointer-events:none}
+.hero-left h2{font-family:var(--font-h);font-weight:800;font-size:22px;color:var(--white);margin-bottom:6px}
+.hero-left p{font-size:13px;color:#666;line-height:1.7;max-width:500px}
+.flag-row{display:flex;align-items:center;gap:8px;margin-top:12px}
+.flag-chip{display:flex;align-items:center;gap:6px;background:#1a1a1a;border-radius:20px;padding:5px 12px;font-size:12px;color:#aaa;font-family:var(--font-h);font-weight:600}
+.hh-card{background:var(--white);border-radius:var(--radius);overflow:hidden;border:1.5px solid #f0f0f0;margin-bottom:20px}
+.hh-head{background:var(--dark);padding:20px 24px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px}
+.hh-name{font-family:var(--font-h);font-weight:800;font-size:18px;color:var(--white);margin-bottom:3px}
+.hh-loc{font-size:12px;color:#666;display:flex;align-items:center;gap:6px}
+.live-dot{width:8px;height:8px;background:var(--lime);border-radius:50%;display:inline-block;animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.3}}
+.hh-stats{display:flex;gap:20px}
+.hh-sv{font-family:var(--font-h);font-weight:800;font-size:22px;color:var(--white)}
+.hh-sl{font-size:10px;color:#555;margin-top:2px}
+.members-row{display:flex;gap:8px;padding:14px 22px;border-bottom:1px solid #f5f5f5;flex-wrap:wrap;align-items:center}
+.m-chip{display:flex;align-items:center;gap:8px;background:#f5f5f5;border-radius:100px;padding:5px 14px 5px 5px}
+.m-av{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:var(--font-h);font-weight:800;font-size:11px;flex-shrink:0}
+.m-name{font-size:13px;font-weight:600;font-family:var(--font-h);color:var(--dark)}
+.m-role{font-size:10px;color:var(--gray)}
+.add-m{display:flex;align-items:center;gap:6px;background:transparent;border:1.5px dashed #e0e0e0;border-radius:100px;padding:6px 14px;font-size:12px;font-weight:600;font-family:var(--font-h);color:var(--gray);cursor:pointer;transition:all 0.15s}
+.add-m:hover{border-color:var(--dark);color:var(--dark)}
+.invite-section{padding:14px 22px}
+.invite-label{font-size:11px;font-weight:700;font-family:var(--font-h);color:var(--gray);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:8px}
+.invite-box{display:flex;align-items:center;gap:8px;background:#f5f5f5;border-radius:10px;padding:10px 14px}
+.invite-link{flex:1;font-size:12px;color:var(--gray);font-family:monospace;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.feed-grid{display:grid;grid-template-columns:1fr 300px;gap:20px}
+.feed-item{display:flex;align-items:flex-start;gap:14px;padding:14px 0;border-bottom:1px solid #f5f5f5}
+.feed-item:last-child{border-bottom:none}
+.fi-icon{width:42px;height:42px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0}
+.fi-eneo{background:rgba(202,255,64,0.15)}
+.fi-camwater{background:rgba(96,200,255,0.12)}
+.fi-camtel{background:rgba(179,157,255,0.12)}
+.fi-other{background:#f0f0f0}
+.feed-body{flex:1}
+.feed-title{font-family:var(--font-h);font-weight:700;font-size:14px;color:var(--dark);margin-bottom:3px}
+.feed-meta{font-size:12px;color:var(--gray);margin-bottom:5px}
+.feed-amount{font-family:var(--font-h);font-weight:800;font-size:18px;color:var(--dark)}
+.feed-time{font-size:11px;color:var(--gray);flex-shrink:0;padding-top:2px}
+.feed-new{background:#f0f8ff;border-left:3px solid #185FA5;padding-left:11px;border-radius:0 8px 8px 0}
+.pr-card{background:var(--white);border-radius:var(--radius-sm);border:1.5px solid #e8e8e8;padding:14px;margin-bottom:10px}
+.pr-card.pending{border-color:#fde68a;background:#fffbeb}
+.pr-co{font-family:var(--font-h);font-weight:700;font-size:13px;color:var(--dark);margin-bottom:3px}
+.pr-amt{font-family:var(--font-h);font-weight:800;font-size:18px;color:var(--dark);margin-bottom:5px}
+.pr-msg{font-size:12px;color:#92400e;line-height:1.5;margin-bottom:8px}
+.curr-row{display:flex;align-items:center;gap:10px;background:#f5f5f5;border-radius:10px;padding:12px 14px;margin-bottom:8px}
+.curr-val{font-family:var(--font-h);font-weight:800;font-size:16px;color:var(--dark)}
+.curr-lbl{font-size:11px;color:var(--gray)}
+.toggle-row{display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid #f5f5f5}
+.toggle-row:last-child{border-bottom:none}
+.toggle-info h4{font-family:var(--font-h);font-weight:600;font-size:13px;color:var(--dark);margin-bottom:2px}
+.toggle-info p{font-size:12px;color:var(--gray)}
+.sw{position:relative;width:44px;height:24px;flex-shrink:0}
+.sw input{opacity:0;width:0;height:0}
+.sl{position:absolute;inset:0;background:#e0e0e0;border-radius:24px;cursor:pointer;transition:.3s}
+.sl::before{content:'';position:absolute;width:18px;height:18px;left:3px;top:3px;background:var(--white);border-radius:50%;transition:.3s}
+.sw input:checked+.sl{background:var(--dark)}
+.sw input:checked+.sl::before{transform:translateX(20px)}
+.setup-card{background:var(--white);border-radius:var(--radius);padding:32px;text-align:center;max-width:520px;margin:0 auto}
+.setup-card h2{font-family:var(--font-h);font-weight:800;font-size:22px;color:var(--dark);margin-bottom:8px}
+.setup-card p{font-size:14px;color:var(--gray);line-height:1.7;margin-bottom:24px}
+.steps{display:flex;flex-direction:column;gap:12px;text-align:left;margin-bottom:28px}
+.step{display:flex;align-items:center;gap:14px;background:#f8f8f8;border-radius:12px;padding:14px 16px}
+.step-num{width:34px;height:34px;background:var(--dark);border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:var(--font-h);font-weight:800;font-size:13px;color:var(--lime);flex-shrink:0}
+.step h4{font-family:var(--font-h);font-weight:700;font-size:13px;color:var(--dark);margin-bottom:3px}
+.step p{font-size:12px;color:var(--gray)}
+/* Loading spinner */
+.spinner{width:40px;height:40px;border:3px solid #f0f0f0;border-top-color:var(--dark);border-radius:50%;animation:spin 0.8s linear infinite;margin:60px auto}
+@keyframes spin{to{transform:rotate(360deg)}}
 </style>
 </head>
 <body>
 <div class="layout">
+  <!-- SIDEBAR -->
   <aside class="sidebar">
     <div class="sidebar-brand"><div class="sidebar-logo">🛡</div><div class="sidebar-name">BillSafe</div></div>
     <span class="sidebar-plan">Business</span>
@@ -122,217 +103,164 @@
         <div class="user-avatar" id="user-avatar">?</div>
         <div class="user-info">
           <div class="user-name" id="user-name">Chargement...</div>
-          <div class="user-role" id="user-location">🌍 Diaspora</div>
+          <div class="user-role">🌍 Diaspora</div>
         </div>
-        <button class="logout-btn" onclick="logout()">⏻</button>
+        <button class="logout-btn" id="logout-btn" title="Déconnexion">⏻</button>
       </div>
     </div>
   </aside>
 
+  <!-- MAIN -->
   <main class="main">
-
     <!-- HERO -->
     <div class="diaspora-hero">
       <div class="hero-left">
         <h2>🌍 Tableau de bord Diaspora</h2>
-        <p>Surveillez les factures de votre famille au Cameroun depuis n'importe où dans le monde. Recevez des alertes, demandez des paiements, restez connecté.</p>
-        <div class="hero-flag-row">
-          <span class="flag-chip">🇫🇷 Paris</span>
-          <span class="flag-arrow">→</span>
+        <p>Surveillez les factures de votre famille au Cameroun depuis n'importe où. Recevez les reçus en temps réel, demandez des paiements, restez connecté.</p>
+        <div class="flag-row">
+          <span class="flag-chip">🇫🇷 Étranger</span>
+          <span style="font-size:18px;color:#333">→</span>
           <span class="flag-chip">🇨🇲 Douala</span>
-          <span style="font-size:12px;color:#555;margin-left:4px">Connexion en temps réel</span>
+          <span style="font-size:12px;color:#555;margin-left:4px">En temps réel</span>
         </div>
       </div>
-      <button class="btn btn-lime" onclick="openModal('modal-household')" id="setup-btn">+ Configurer ma famille</button>
+      <button class="btn btn-lime" id="hero-btn" style="flex-shrink:0">+ Configurer ma famille</button>
     </div>
 
-    <!-- SETUP GUIDE (shown if no household) -->
-    <div id="setup-guide" style="display:none">
-      <div class="card">
-        <div class="card-title">🚀 Commencer en 3 étapes</div>
-        <div class="card-sub">Configurez votre tableau de bord diaspora en 2 minutes</div>
-        <div class="setup-steps">
-          <div class="setup-step" id="step1">
-            <div class="setup-num">1</div>
-            <div>
-              <h4>Créez le profil de votre foyer</h4>
-              <p>Donnez un nom et une adresse à la maison que vous surveillez au Cameroun.</p>
-            </div>
-            <button class="btn btn-dark btn-sm" onclick="openModal('modal-household')">Commencer →</button>
+    <!-- LOADING -->
+    <div id="view-loading"><div class="spinner"></div></div>
+
+    <!-- SETUP VIEW -->
+    <div id="view-setup" style="display:none">
+      <div class="setup-card">
+        <div style="font-size:48px;margin-bottom:16px">🏠</div>
+        <h2>Connectez votre famille au Cameroun</h2>
+        <p>En 2 minutes, votre famille peut vous envoyer leurs reçus directement depuis leur téléphone.</p>
+        <div class="steps">
+          <div class="step">
+            <div class="step-num">1</div>
+            <div><h4>Créez le profil du foyer</h4><p>Donnez un nom à la maison de vos parents à Douala.</p></div>
           </div>
-          <div class="setup-step" id="step2">
-            <div class="setup-num">2</div>
-            <div>
-              <h4>Invitez un membre de la famille</h4>
-              <p>Envoyez un lien WhatsApp à vos parents. Ils rejoignent en un clic.</p>
-            </div>
+          <div class="step">
+            <div class="step-num">2</div>
+            <div><h4>Envoyez le lien WhatsApp</h4><p>Vos parents reçoivent un lien et peuvent ajouter des reçus sans créer de compte.</p></div>
           </div>
-          <div class="setup-step" id="step3">
-            <div class="setup-num">3</div>
-            <div>
-              <h4>Recevez les alertes automatiquement</h4>
-              <p>Dès qu'une facture est payée au pays, vous voyez le reçu ici.</p>
-            </div>
+          <div class="step">
+            <div class="step-num">3</div>
+            <div><h4>Recevez les reçus en temps réel</h4><p>Chaque facture payée apparaît ici immédiatement avec la photo du reçu.</p></div>
           </div>
         </div>
+        <button class="btn btn-dark" id="start-btn" style="max-width:280px;margin:0 auto">🏠 Commencer maintenant</button>
       </div>
     </div>
 
-    <!-- MAIN DASHBOARD (shown when household exists) -->
-    <div id="main-dashboard" style="display:none">
-
+    <!-- DASHBOARD VIEW -->
+    <div id="view-dashboard" style="display:none">
       <!-- STATS -->
       <div class="stats-grid" style="margin-bottom:20px">
         <div class="stat-card dark">
           <div class="stat-label">Factures reçues</div>
-          <div class="stat-value" id="s-bills">—</div>
+          <div class="stat-value" id="s-bills">0</div>
           <div class="stat-sub">ce mois</div>
         </div>
         <div class="stat-card lime">
           <div class="stat-label">Total payé</div>
-          <div class="stat-value" id="s-total">—</div>
+          <div class="stat-value" id="s-total">0</div>
           <div class="stat-sub">FCFA ce mois</div>
         </div>
         <div class="stat-card">
           <div class="stat-label">Non vues</div>
-          <div class="stat-value" id="s-unseen" style="color:var(--blue)">—</div>
-          <div class="stat-sub">nouvelles factures</div>
+          <div class="stat-value" id="s-unseen" style="color:#185FA5">0</div>
+          <div class="stat-sub">nouvelles</div>
         </div>
         <div class="stat-card">
-          <div class="stat-label">Demandes envoyées</div>
-          <div class="stat-value" id="s-requests">—</div>
+          <div class="stat-label">Demandes</div>
+          <div class="stat-value" id="s-reqs">0</div>
           <div class="stat-sub">en attente</div>
         </div>
       </div>
 
       <!-- HOUSEHOLD CARD -->
-      <div class="household-card" id="household-card">
-        <div class="hh-header">
+      <div class="hh-card">
+        <div class="hh-head">
           <div>
             <div class="hh-name" id="hh-name">—</div>
-            <div class="hh-location">
-              <span class="hh-status-dot"></span>
-              <span id="hh-location">—</span>
-            </div>
+            <div class="hh-loc"><span class="live-dot"></span><span id="hh-loc">—</span></div>
           </div>
           <div class="hh-stats">
-            <div class="hh-stat"><div class="hh-stat-val" id="hh-members">—</div><div class="hh-stat-lbl">Membres</div></div>
-            <div class="hh-stat"><div class="hh-stat-val" id="hh-total-bills">—</div><div class="hh-stat-lbl">Factures</div></div>
+            <div><div class="hh-sv" id="hh-m-count">0</div><div class="hh-sl">Membres</div></div>
+            <div><div class="hh-sv" id="hh-b-count">0</div><div class="hh-sl">Factures</div></div>
           </div>
         </div>
-        <!-- Members row -->
         <div class="members-row" id="members-row">
-          <button class="add-member-chip" onclick="openModal('modal-member')">+ Inviter un membre</button>
+          <button class="add-m" id="add-member-btn">+ Inviter un membre</button>
         </div>
-        <!-- Invite link -->
-        <div style="padding:14px 24px;border-bottom:1px solid #f5f5f5">
-          <div style="font-size:11px;font-weight:700;font-family:var(--font-h);color:var(--gray);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:8px">🔗 Lien d'invitation WhatsApp</div>
+        <div class="invite-section">
+          <div class="invite-label">🔗 Lien WhatsApp pour la famille au pays</div>
           <div class="invite-box">
-            <span class="invite-link" id="invite-link">—</span>
-            <button class="btn btn-dark btn-sm" onclick="copyInvite()">📋 Copier</button>
-            <button class="btn btn-ghost btn-sm" onclick="shareWhatsApp()">💬 WhatsApp</button>
+            <span class="invite-link" id="invite-link-text">—</span>
+            <button class="btn btn-dark btn-sm" id="copy-btn">📋 Copier</button>
+            <button class="btn btn-ghost btn-sm" id="whatsapp-btn">💬 WhatsApp</button>
           </div>
-          <p style="font-size:11px;color:var(--gray);margin-top:6px">Envoyez ce lien à votre famille au Cameroun. Ils créent un compte et peuvent ajouter des factures.</p>
+          <p style="font-size:11px;color:var(--gray);margin-top:6px">La famille clique sur ce lien, prend une photo du reçu et vous le voyez ici immédiatement. Sans créer de compte.</p>
         </div>
       </div>
 
-      <!-- FEED + SIDEBAR -->
+      <!-- FEED + RIGHT PANEL -->
       <div class="feed-grid">
-
-        <!-- LEFT: BILL FEED -->
-        <div>
-          <div class="card">
-            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px">
-              <div>
-                <div class="card-title">📡 Factures reçues du pays</div>
-                <div class="card-sub" style="margin-bottom:0">En temps réel depuis Douala</div>
-              </div>
-              <button class="btn btn-ghost btn-sm" onclick="loadFeed()">🔄 Actualiser</button>
+        <!-- BILL FEED -->
+        <div class="card">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px">
+            <div>
+              <div class="card-title">📡 Factures reçues du pays</div>
+              <div class="card-sub" style="margin-bottom:0">En temps réel depuis le Cameroun</div>
             </div>
-            <div id="bill-feed">
-              <div style="text-align:center;padding:40px;color:var(--gray)">Chargement...</div>
-            </div>
+            <button class="btn btn-ghost btn-sm" id="refresh-btn">🔄</button>
           </div>
+          <div id="feed-list"></div>
         </div>
 
-        <!-- RIGHT SIDEBAR -->
+        <!-- RIGHT PANEL -->
         <div>
-
-          <!-- CURRENCY CONVERTER -->
-          <div class="card" style="margin-bottom:16px">
-            <div class="card-title" style="margin-bottom:14px">💱 Convertisseur de devises</div>
-            <div class="currency-row">
-              <span class="currency-flag">🇨🇲</span>
-              <div class="currency-info">
-                <div class="currency-val" id="fcfa-amount">10 000 FCFA</div>
-                <div class="currency-lbl">Franc CFA (XAF)</div>
-              </div>
-            </div>
-            <div style="text-align:center;font-size:18px;color:var(--gray);margin:4px 0">⇅</div>
-            <div class="currency-row" style="background:var(--green-bg)">
-              <span class="currency-flag" id="eur-flag">🇪🇺</span>
-              <div class="currency-info">
-                <div class="currency-val" id="converted-amount">≈ 15.24 EUR</div>
-                <div class="currency-lbl" id="currency-label">Euro</div>
-              </div>
-            </div>
-            <div style="margin-top:12px">
-              <label style="font-size:11px;font-weight:700;font-family:var(--font-h);color:var(--gray);text-transform:uppercase;letter-spacing:0.04em;display:block;margin-bottom:6px">Montant FCFA</label>
-              <div style="display:flex;gap:8px">
-                <input class="form-input" type="number" id="conv-input" value="10000" oninput="convertCurrency()" style="flex:1">
-                <select class="form-input" id="currency-select" onchange="convertCurrency()" style="width:100px">
-                  <option value="EUR" data-rate="0.001524" data-flag="🇪🇺" data-label="Euro">EUR</option>
-                  <option value="USD" data-rate="0.001648" data-flag="🇺🇸" data-label="Dollar US">USD</option>
-                  <option value="GBP" data-rate="0.001312" data-flag="🇬🇧" data-label="Livre Sterling">GBP</option>
-                  <option value="CNY" data-rate="0.01188" data-flag="🇨🇳" data-label="Yuan">CNY</option>
-                  <option value="CAD" data-rate="0.002278" data-flag="🇨🇦" data-label="Dollar CAD">CAD</option>
-                </select>
-              </div>
-            </div>
-          </div>
-
           <!-- PAYMENT REQUESTS -->
           <div class="card" style="margin-bottom:16px">
             <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
-              <div class="card-title">📨 Demandes de paiement</div>
-              <button class="btn btn-dark btn-sm" onclick="openModal('modal-payreq')">+ Demander</button>
+              <div class="card-title" style="margin-bottom:0">📨 Demandes</div>
+              <button class="btn btn-dark btn-sm" id="new-req-btn">+ Demander</button>
             </div>
-            <div id="pay-requests-list">
-              <div style="font-size:13px;color:var(--gray);text-align:center;padding:20px">Aucune demande</div>
+            <div id="req-list"><div style="font-size:13px;color:var(--gray);text-align:center;padding:16px">Aucune demande</div></div>
+          </div>
+
+          <!-- CURRENCY -->
+          <div class="card" style="margin-bottom:16px">
+            <div class="card-title" style="margin-bottom:14px">💱 Convertisseur</div>
+            <div class="curr-row">
+              <span style="font-size:22px">🇨🇲</span>
+              <div><div class="curr-val" id="fcfa-display">10 000 FCFA</div><div class="curr-lbl">Franc CFA</div></div>
+            </div>
+            <div style="text-align:center;font-size:16px;color:var(--gray);margin:4px 0">⇅</div>
+            <div class="curr-row" style="background:var(--green-bg)">
+              <span style="font-size:22px" id="curr-flag">🇪🇺</span>
+              <div><div class="curr-val" id="conv-display">≈ 15.24 EUR</div><div class="curr-lbl" id="curr-label">Euro</div></div>
+            </div>
+            <div style="display:flex;gap:8px;margin-top:10px">
+              <input class="form-input" type="number" id="conv-input" value="10000" style="flex:1">
+              <select class="form-input" id="curr-select" style="width:90px">
+                <option value="EUR" data-rate="0.001524" data-flag="🇪🇺" data-label="Euro">EUR</option>
+                <option value="USD" data-rate="0.001648" data-flag="🇺🇸" data-label="Dollar US">USD</option>
+                <option value="GBP" data-rate="0.001312" data-flag="🇬🇧" data-label="Livre">GBP</option>
+                <option value="CNY" data-rate="0.01188" data-flag="🇨🇳" data-label="Yuan">CNY</option>
+                <option value="CAD" data-rate="0.002278" data-flag="🇨🇦" data-label="CAD">CAD</option>
+              </select>
             </div>
           </div>
 
-          <!-- ALERT PREFERENCES -->
+          <!-- ALERTS -->
           <div class="card">
             <div class="card-title" style="margin-bottom:14px">🔔 Mes alertes</div>
-            <div class="alert-toggle">
-              <div class="toggle-info">
-                <h4>Facture payée</h4>
-                <p>Quand la famille paie une facture</p>
-              </div>
-              <label class="toggle-switch"><input type="checkbox" checked><span class="toggle-slider"></span></label>
-            </div>
-            <div class="alert-toggle">
-              <div class="toggle-info">
-                <h4>Facture en retard</h4>
-                <p>Si une facture n'est pas payée après 5 jours</p>
-              </div>
-              <label class="toggle-switch"><input type="checkbox" checked><span class="toggle-slider"></span></label>
-            </div>
-            <div class="alert-toggle">
-              <div class="toggle-info">
-                <h4>Anomalie détectée</h4>
-                <p>Si un montant est +30% au-dessus de la normale</p>
-              </div>
-              <label class="toggle-switch"><input type="checkbox" checked><span class="toggle-slider"></span></label>
-            </div>
-            <div class="alert-toggle">
-              <div class="toggle-info">
-                <h4>Rapport mensuel</h4>
-                <p>Résumé email le 1er de chaque mois</p>
-              </div>
-              <label class="toggle-switch"><input type="checkbox"><span class="toggle-slider"></span></label>
-            </div>
+            <div class="toggle-row"><div class="toggle-info"><h4>Facture payée</h4><p>Dès qu'un reçu est envoyé</p></div><label class="sw"><input type="checkbox" checked><span class="sl"></span></label></div>
+            <div class="toggle-row"><div class="toggle-info"><h4>Facture en retard</h4><p>Si rien n'est payé après 5 jours</p></div><label class="sw"><input type="checkbox" checked><span class="sl"></span></label></div>
+            <div class="toggle-row"><div class="toggle-info"><h4>Anomalie détectée</h4><p>Montant +30% au-dessus de la normale</p></div><label class="sw"><input type="checkbox" checked><span class="sl"></span></label></div>
           </div>
         </div>
       </div>
@@ -340,90 +268,85 @@
   </main>
 </div>
 
-<!-- MODAL: Create Household -->
-<div class="modal-overlay" id="modal-household">
+<!-- MODAL: Household -->
+<div class="modal-overlay" id="modal-hh">
   <div class="modal">
     <div class="modal-header">
-      <div class="modal-title">🏠 Configurer le foyer</div>
-      <button class="modal-close" onclick="closeModal('modal-household')">✕</button>
+      <div class="modal-title">🏠 Créer le foyer</div>
+      <button class="modal-close" id="close-hh">✕</button>
     </div>
-    <p style="font-size:13px;color:var(--gray);margin-bottom:20px">Décrivez la maison de votre famille au Cameroun que vous voulez surveiller.</p>
+    <p style="font-size:13px;color:var(--gray);margin-bottom:20px">Décrivez la maison de votre famille au Cameroun.</p>
     <div class="form-grid" style="margin-bottom:20px">
       <div class="form-group span-2">
         <label class="form-label">Nom du foyer *</label>
-        <input class="form-input" id="hh-name-input" placeholder="ex: Famille Ndoumbe — Douala">
+        <input class="form-input" id="hh-name-in" placeholder="ex: Famille Ndoumbe — Douala">
       </div>
       <div class="form-group span-2">
-        <label class="form-label">Adresse au Cameroun</label>
-        <input class="form-input" id="hh-address" placeholder="ex: Quartier Makepe, Douala">
+        <label class="form-label">Adresse</label>
+        <input class="form-input" id="hh-addr-in" placeholder="ex: Quartier Makepe, Douala">
       </div>
       <div class="form-group">
         <label class="form-label">Ville</label>
-        <input class="form-input" id="hh-city" placeholder="Douala" value="Douala">
+        <input class="form-input" id="hh-city-in" value="Douala">
       </div>
       <div class="form-group">
-        <label class="form-label">Votre pays actuel</label>
-        <select class="form-input" id="hh-diaspora-country">
-          <option>🇫🇷 France</option>
-          <option>🇩🇪 Allemagne</option>
-          <option>🇬🇧 Royaume-Uni</option>
-          <option>🇺🇸 États-Unis</option>
-          <option>🇨🇦 Canada</option>
-          <option>🇨🇳 Chine</option>
-          <option>🇧🇪 Belgique</option>
-          <option>🇨🇭 Suisse</option>
-          <option>Autre</option>
+        <label class="form-label">Votre pays</label>
+        <select class="form-input" id="hh-country-in">
+          <option>🇫🇷 France</option><option>🇩🇪 Allemagne</option>
+          <option>🇬🇧 Royaume-Uni</option><option>🇺🇸 États-Unis</option>
+          <option>🇨🇳 Chine</option><option>🇧🇪 Belgique</option>
+          <option>🇨🇦 Canada</option><option>Autre</option>
         </select>
       </div>
     </div>
-    <button class="btn btn-lime" style="width:100%;justify-content:center" onclick="saveHousehold()">🏠 Créer le foyer</button>
+    <div id="hh-err" style="display:none;color:var(--red);font-size:13px;margin-bottom:12px"></div>
+    <button class="btn btn-lime" id="save-hh-btn" style="width:100%;justify-content:center">🏠 Créer le foyer</button>
   </div>
 </div>
 
-<!-- MODAL: Add Member -->
+<!-- MODAL: Member -->
 <div class="modal-overlay" id="modal-member">
   <div class="modal">
     <div class="modal-header">
       <div class="modal-title">👤 Inviter un membre</div>
-      <button class="modal-close" onclick="closeModal('modal-member')">✕</button>
+      <button class="modal-close" id="close-member">✕</button>
     </div>
-    <p style="font-size:13px;color:var(--gray);margin-bottom:20px">La personne au Cameroun qui ajoutera les factures pour vous.</p>
+    <p style="font-size:13px;color:var(--gray);margin-bottom:20px">La personne au Cameroun qui ajoutera les factures.</p>
     <div class="form-grid" style="margin-bottom:20px">
       <div class="form-group span-2">
         <label class="form-label">Nom complet *</label>
-        <input class="form-input" id="m-name" placeholder="ex: Maman Marie Ndoumbe">
+        <input class="form-input" id="m-name-in" placeholder="ex: Maman Marie">
       </div>
       <div class="form-group">
-        <label class="form-label">Téléphone (WhatsApp)</label>
-        <input class="form-input" id="m-phone" placeholder="+237 6XX XX XX XX">
+        <label class="form-label">Téléphone WhatsApp</label>
+        <input class="form-input" id="m-phone-in" placeholder="+237 6XX XX XX XX">
       </div>
       <div class="form-group">
         <label class="form-label">Lien de parenté</label>
-        <select class="form-input" id="m-relation">
+        <select class="form-input" id="m-rel-in">
           <option value="parent">👨‍👩‍👧 Parent</option>
-          <option value="sibling">👫 Frère / Sœur</option>
+          <option value="sibling">👫 Frère/Sœur</option>
           <option value="spouse">💑 Conjoint(e)</option>
-          <option value="child">👶 Enfant</option>
           <option value="other">👤 Autre</option>
         </select>
       </div>
     </div>
-    <button class="btn btn-lime" style="width:100%;justify-content:center" onclick="saveMember()">📨 Envoyer l'invitation</button>
+    <button class="btn btn-lime" id="save-member-btn" style="width:100%;justify-content:center">💾 Ajouter</button>
   </div>
 </div>
 
 <!-- MODAL: Payment Request -->
-<div class="modal-overlay" id="modal-payreq">
+<div class="modal-overlay" id="modal-req">
   <div class="modal">
     <div class="modal-header">
       <div class="modal-title">📨 Demander un paiement</div>
-      <button class="modal-close" onclick="closeModal('modal-payreq')">✕</button>
+      <button class="modal-close" id="close-req">✕</button>
     </div>
-    <p style="font-size:13px;color:var(--gray);margin-bottom:20px">Demandez à votre famille de payer une facture spécifique et de vous envoyer le reçu.</p>
+    <p style="font-size:13px;color:var(--gray);margin-bottom:20px">Demandez à votre famille de payer et d'envoyer le reçu.</p>
     <div class="form-grid" style="margin-bottom:20px">
       <div class="form-group">
         <label class="form-label">Société *</label>
-        <select class="form-input" id="pr-company">
+        <select class="form-input" id="req-co">
           <option value="ENEO">⚡ ENEO</option>
           <option value="CamWater">💧 CamWater</option>
           <option value="Camtel">📡 Camtel</option>
@@ -431,255 +354,306 @@
         </select>
       </div>
       <div class="form-group">
-        <label class="form-label">Mois concerné</label>
-        <input class="form-input" type="month" id="pr-month">
+        <label class="form-label">Mois</label>
+        <input class="form-input" type="month" id="req-month">
       </div>
       <div class="form-group span-2">
         <label class="form-label">Montant estimé (FCFA)</label>
-        <input class="form-input" type="number" id="pr-amount" placeholder="ex: 24500">
+        <input class="form-input" type="number" id="req-amount" placeholder="ex: 24500">
       </div>
       <div class="form-group span-2">
-        <label class="form-label">Message pour la famille</label>
-        <input class="form-input" id="pr-message" placeholder="ex: Maman, merci de payer ENEO avant le 15 et d'envoyer le reçu ici">
+        <label class="form-label">Message</label>
+        <input class="form-input" id="req-msg" placeholder="ex: Maman, merci de payer ENEO avant le 15">
       </div>
     </div>
-    <button class="btn btn-lime" style="width:100%;justify-content:center" onclick="sendPaymentRequest()">📨 Envoyer la demande</button>
+    <button class="btn btn-lime" id="save-req-btn" style="width:100%;justify-content:center">📨 Envoyer la demande</button>
   </div>
 </div>
 
 <div class="toast" id="toast"></div>
 
+<!-- Load Supabase FIRST then init everything -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="../js/portal.js"></script>
 <script>
-let currentUser = null;
-let household   = null;
-let members     = [];
-let diasporaBills = [];
-let payRequests = [];
+// ── SUPABASE SETUP ────────────────────────────────────
+const SUPA_URL  = 'https://rjnsnodvqwwhkxbznzqa.supabase.co';
+const SUPA_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJqbnNub2R2cXd3aGt4YnpuenFhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzgxODg1OTksImV4cCI6MjA5Mzc2NDU5OX0.gkV9ynTFdY8B72s2fnRpTkUH71FUz59ICIpQLZQDsIc';
+const db = supabase.createClient(SUPA_URL, SUPA_ANON);
 
+// ── STATE ─────────────────────────────────────────────
+let ME = null, HH = null, MEMBERS = [], FEED = [], REQS = [];
+
+const $ = id => document.getElementById(id);
 const companyIcon  = { ENEO:'⚡', CamWater:'💧', Camtel:'📡' };
 const companyClass = { ENEO:'fi-eneo', CamWater:'fi-camwater', Camtel:'fi-camtel' };
-const relLabel     = { parent:'👨‍👩‍👧 Parent', sibling:'👫 Frère/Sœur', spouse:'💑 Conjoint(e)', child:'👶 Enfant', other:'👤 Autre' };
+const relLabel     = { parent:'Parent', sibling:'Frère/Sœur', spouse:'Conjoint(e)', other:'Autre' };
+const avColors     = ['av-green','av-blue','av-purple','av-amber'];
+
+// ── HELPERS ───────────────────────────────────────────
+function fmt(n)  { return n ? Math.round(n).toLocaleString('fr-FR') : '0'; }
+function fmtA(n) { return fmt(n) + ' FCFA'; }
+function fmtM(m) { return m ? new Date(m+'-01').toLocaleDateString('fr-FR',{month:'long',year:'numeric'}) : '—'; }
+function fmtD(d) { return d ? new Date(d).toLocaleDateString('fr-FR') : '—'; }
+function ini(n)  { return (n||'?').split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2); }
+
+function toast(msg, type='success') {
+  const t = $('toast');
+  t.textContent = msg;
+  t.className = 'toast '+type+' show';
+  setTimeout(()=>t.classList.remove('show'), 3200);
+}
+
+function showView(name) {
+  ['loading','setup','dashboard'].forEach(v => $('view-'+v).style.display = v===name ? (name==='loading'?'block':'block') : 'none');
+}
+
+// ── MODAL HELPERS — self-contained, no portal.js dependency ──
+function openM(id)  { $(id).classList.add('open'); }
+function closeM(id) { $(id).classList.remove('open'); }
+document.addEventListener('click', e => {
+  if (e.target.classList.contains('modal-overlay')) e.target.classList.remove('open');
+});
 
 // ── INIT ──────────────────────────────────────────────
 window.addEventListener('DOMContentLoaded', async () => {
-  currentUser = await requireAuth();
-  if (!currentUser) return;
-  renderSidebarUser(currentUser);
-  document.getElementById('pr-month').value = new Date().toISOString().slice(0,7);
-  await loadAll();
-  convertCurrency();
+  showView('loading');
+
+  // Wire ALL buttons here — no inline onclick except modal close
+  $('logout-btn').onclick   = doLogout;
+  $('hero-btn').onclick     = () => openM('modal-hh');
+  $('start-btn').onclick    = () => openM('modal-hh');
+  $('close-hh').onclick     = () => closeM('modal-hh');
+  $('save-hh-btn').onclick  = saveHousehold;
+  $('close-member').onclick = () => closeM('modal-member');
+  $('save-member-btn').onclick = saveMember;
+  $('close-req').onclick    = () => closeM('modal-req');
+  $('save-req-btn').onclick = saveRequest;
+  $('conv-input').oninput   = convertCurrency;
+  $('curr-select').onchange = convertCurrency;
+
+  $('req-month').value = new Date().toISOString().slice(0,7);
+
+  // Check auth
+  const { data: { session } } = await db.auth.getSession();
+  if (!session) { window.location.href = 'auth.html'; return; }
+  ME = session.user;
+
+  // Render user in sidebar
+  const name = ME.user_metadata?.full_name || ME.email || 'Utilisateur';
+  const inits = name.split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2);
+  $('user-avatar').textContent = inits;
+  $('user-name').textContent   = name;
+
+  await loadHousehold();
 });
 
-async function loadAll() {
-  await loadHousehold();
-  if (household) {
-    await Promise.all([loadMembers(), loadFeed(), loadPayRequests()]);
-    renderDashboard();
-  } else {
-    document.getElementById('setup-guide').style.display = 'block';
-    document.getElementById('main-dashboard').style.display = 'none';
-  }
+// ── AUTH ──────────────────────────────────────────────
+async function doLogout() {
+  await db.auth.signOut();
+  window.location.href = 'auth.html';
 }
 
 // ── HOUSEHOLD ─────────────────────────────────────────
 async function loadHousehold() {
-  const { data } = await db.from('households').select('*').eq('diaspora_id', currentUser.id).single().catch(()=>({data:null}));
-  household = data;
+  const { data, error } = await db.from('households').select('*').eq('diaspora_id', ME.id).maybeSingle();
+  HH = data || null;
+  if (!HH) { showView('setup'); return; }
+  await Promise.all([loadMembers(), loadFeed(), loadReqs()]);
+  renderDashboard();
+  showView('dashboard');
+  convertCurrency();
 }
 
 async function saveHousehold() {
-  const name = document.getElementById('hh-name-input').value.trim();
-  if (!name) return showToast('Le nom est obligatoire','error');
-  const payload = { diaspora_id:currentUser.id, name, address:document.getElementById('hh-address').value.trim()||null, city:document.getElementById('hh-city').value.trim()||'Douala' };
-  const { error } = household
-    ? await db.from('households').update(payload).eq('id', household.id)
+  const name = $('hh-name-in').value.trim();
+  if (!name) { $('hh-err').textContent='Le nom est obligatoire'; $('hh-err').style.display='block'; return; }
+  $('hh-err').style.display = 'none';
+  $('save-hh-btn').textContent = 'Sauvegarde...';
+  $('save-hh-btn').disabled = true;
+
+  const payload = {
+    diaspora_id: ME.id,
+    name,
+    address: $('hh-addr-in').value.trim() || null,
+    city:    $('hh-city-in').value.trim() || 'Douala',
+  };
+  const { error } = HH
+    ? await db.from('households').update(payload).eq('id', HH.id)
     : await db.from('households').insert([payload]);
-  if (error) return showToast('Erreur: '+error.message,'error');
-  closeModal('modal-household');
-  showToast('🏠 Foyer créé!','success');
-  await loadAll();
+
+  $('save-hh-btn').textContent = '🏠 Créer le foyer';
+  $('save-hh-btn').disabled = false;
+
+  if (error) { $('hh-err').textContent='Erreur: '+error.message; $('hh-err').style.display='block'; return; }
+  closeM('modal-hh');
+  toast('🏠 Foyer créé!');
+  await loadHousehold();
 }
 
 // ── MEMBERS ───────────────────────────────────────────
 async function loadMembers() {
-  const { data } = await db.from('home_members').select('*').eq('household_id', household.id);
-  members = data || [];
+  const { data } = await db.from('home_members').select('*').eq('household_id', HH.id);
+  MEMBERS = data || [];
 }
 
 async function saveMember() {
-  const name = document.getElementById('m-name').value.trim();
-  if (!name) return showToast('Le nom est obligatoire','error');
+  const name = $('m-name-in').value.trim();
+  if (!name) return toast('Le nom est obligatoire','error');
+  $('save-member-btn').disabled = true;
   const { error } = await db.from('home_members').insert([{
-    household_id: household.id,
-    diaspora_id:  currentUser.id,
-    full_name:    name,
-    phone:        document.getElementById('m-phone').value.trim()||null,
-    relationship: document.getElementById('m-relation').value,
-    status:       'invited',
+    household_id: HH.id, diaspora_id: ME.id,
+    full_name: name,
+    phone:     $('m-phone-in').value.trim() || null,
+    relationship: $('m-rel-in').value,
+    status: 'invited',
   }]);
-  if (error) return showToast('Erreur: '+error.message,'error');
-  closeModal('modal-member');
-  showToast('📨 Membre invité!','success');
+  $('save-member-btn').disabled = false;
+  if (error) return toast('Erreur: '+error.message,'error');
+  closeM('modal-member');
+  toast('👤 Membre ajouté!');
+  $('m-name-in').value = ''; $('m-phone-in').value = '';
   await loadMembers();
   renderDashboard();
 }
 
-// ── BILL FEED ─────────────────────────────────────────
+// ── FEED ──────────────────────────────────────────────
 async function loadFeed() {
-  const { data } = await db.from('diaspora_bills').select('*').eq('diaspora_id', currentUser.id).order('created_at',{ascending:false});
-  diasporaBills = data || [];
-  // Mark all as seen
-  const unseen = diasporaBills.filter(b=>!b.seen_by_diaspora).map(b=>b.id);
-  if (unseen.length) await db.from('diaspora_bills').update({seen_by_diaspora:true}).in('id',unseen);
-  renderFeed();
+  const { data } = await db.from('diaspora_bills').select('*')
+    .eq('diaspora_id', ME.id).order('created_at',{ascending:false});
+  FEED = data || [];
+  // Mark unseen as seen
+  const ids = FEED.filter(b=>!b.seen_by_diaspora).map(b=>b.id);
+  if (ids.length) await db.from('diaspora_bills').update({seen_by_diaspora:true}).in('id',ids);
 }
 
-function renderFeed() {
-  const el = document.getElementById('bill-feed');
-  if (!diasporaBills.length) {
-    el.innerHTML = `<div style="text-align:center;padding:48px;color:var(--gray)">
-      <div style="font-size:40px;margin-bottom:12px">📡</div>
-      <div style="font-family:var(--font-h);font-weight:700;font-size:15px;color:#555;margin-bottom:6px">En attente de factures</div>
-      <div style="font-size:13px">Invitez un membre de la famille et partagez le lien WhatsApp.<br>Dès qu'ils ajoutent une facture, vous la voyez ici.</div>
-    </div>`;
-    return;
-  }
-  el.innerHTML = diasporaBills.map(b => {
-    const unseen = !b.seen_by_diaspora;
-    const icon = companyIcon[b.company]||'📌';
-    const cls  = companyClass[b.company]||'fi-other';
-    const now  = new Date();
-    const created = new Date(b.created_at);
-    const diffH = Math.round((now-created)/3600000);
-    const timeStr = diffH < 1 ? 'À l\'instant' : diffH < 24 ? `Il y a ${diffH}h` : fmtDate(b.created_at);
-    return `<div class="feed-item ${unseen?'feed-unseen':''}">
-      <div class="feed-icon ${cls}">${icon}</div>
-      <div class="feed-body">
-        <div class="feed-title">${b.company} — ${fmtMonth(b.billing_month)}</div>
-        <div class="feed-meta">Ajouté par ${b.added_by||'Famille'} · ${b.status==='paid'?'✅ Payée':'⏳ En attente'}</div>
-        <div class="feed-amount">${fmtAmount(b.amount)}</div>
-        ${b.notes ? `<div style="font-size:12px;color:var(--gray);margin-top:4px">💬 ${b.notes}</div>` : ''}
-        ${b.file_url ? `<a href="${b.file_url}" target="_blank" style="font-size:12px;color:var(--blue);margin-top:6px;display:inline-block">👁 Voir le reçu</a>` : ''}
-      </div>
-      <div class="feed-time">${timeStr}</div>
-    </div>`;
-  }).join('');
+// ── REQUESTS ──────────────────────────────────────────
+async function loadReqs() {
+  const { data } = await db.from('payment_requests').select('*')
+    .eq('diaspora_id', ME.id).order('created_at',{ascending:false});
+  REQS = data || [];
 }
 
-// ── PAYMENT REQUESTS ──────────────────────────────────
-async function loadPayRequests() {
-  const { data } = await db.from('payment_requests').select('*').eq('diaspora_id', currentUser.id).order('created_at',{ascending:false});
-  payRequests = data || [];
-  renderPayRequests();
-}
-
-function renderPayRequests() {
-  const el = document.getElementById('pay-requests-list');
-  if (!payRequests.length) {
-    el.innerHTML = `<div style="font-size:13px;color:var(--gray);text-align:center;padding:16px">Aucune demande envoyée</div>`;
-    return;
-  }
-  el.innerHTML = payRequests.slice(0,4).map(pr => {
-    const isPaid = pr.status === 'paid';
-    return `<div class="pay-req-card ${pr.status}">
-      <div class="pay-req-company">${companyIcon[pr.company]||'📌'} ${pr.company} — ${fmtMonth(pr.billing_month)}</div>
-      ${pr.estimated_amount ? `<div class="pay-req-amount">~${fmtAmount(pr.estimated_amount)}</div>` : ''}
-      ${pr.message ? `<div class="pay-req-msg">💬 ${pr.message}</div>` : ''}
-      <span class="pill ${isPaid?'pill-paid':'pill-pending'}">${isPaid?'✅ Payée':'⏳ En attente'}</span>
-    </div>`;
-  }).join('');
-}
-
-async function sendPaymentRequest() {
-  if (!household) return showToast('Créez d\'abord un foyer','error');
-  const company = document.getElementById('pr-company').value;
+async function saveRequest() {
+  if (!HH) return toast('Créez d\'abord un foyer','error');
+  const company = $('req-co').value;
+  $('save-req-btn').disabled = true;
   const { error } = await db.from('payment_requests').insert([{
-    household_id:     household.id,
-    diaspora_id:      currentUser.id,
-    company,
-    billing_month:    document.getElementById('pr-month').value||null,
-    estimated_amount: parseFloat(document.getElementById('pr-amount').value)||null,
-    message:          document.getElementById('pr-message').value.trim()||null,
+    household_id: HH.id, diaspora_id: ME.id, company,
+    billing_month:    $('req-month').value || null,
+    estimated_amount: parseFloat($('req-amount').value) || null,
+    message:          $('req-msg').value.trim() || null,
   }]);
-  if (error) return showToast('Erreur: '+error.message,'error');
-  closeModal('modal-payreq');
-  showToast('📨 Demande envoyée à la famille!','success');
-  await loadPayRequests();
-  // Generate WhatsApp link
-  const msg = encodeURIComponent(`🛡 BillSafe — Demande de paiement\n\n📌 ${company} — ${document.getElementById('pr-month').value}\n💰 Montant estimé: ${document.getElementById('pr-amount').value||'?'} FCFA\n\n${document.getElementById('pr-message').value||''}\n\nMerci de payer et d'ajouter le reçu sur BillSafe:\n${window.location.origin}/pages/home-member.html?token=${household.invite_token}`);
-  window.open('https://wa.me/?text='+msg, '_blank');
+  $('save-req-btn').disabled = false;
+  if (error) return toast('Erreur: '+error.message,'error');
+  closeM('modal-req');
+  toast('📨 Demande envoyée!');
+  $('req-msg').value=''; $('req-amount').value='';
+  await loadReqs();
+  renderDashboard();
+  // Open WhatsApp with the request
+  const msg = encodeURIComponent(`🛡 BillSafe — Demande de paiement\n\n📌 ${company}\n\n${$('req-msg').value||''}\n\nMerci d'ajouter le reçu ici:\n${window.location.origin}/pages/home-member.html?token=${HH.invite_token}`);
+  setTimeout(()=>window.open('https://wa.me/?text='+msg,'_blank'),500);
 }
 
 // ── RENDER DASHBOARD ──────────────────────────────────
 function renderDashboard() {
-  document.getElementById('setup-guide').style.display = 'none';
-  document.getElementById('main-dashboard').style.display = 'block';
-
   // Household info
-  document.getElementById('hh-name').textContent = household.name;
-  document.getElementById('hh-location').textContent = (household.address||'') + (household.city?', '+household.city:'') + ', Cameroun';
-  document.getElementById('hh-members').textContent = members.length;
-  document.getElementById('hh-total-bills').textContent = diasporaBills.length;
+  $('hh-name').textContent = HH.name;
+  $('hh-loc').textContent  = [HH.address, HH.city, 'Cameroun'].filter(Boolean).join(', ');
+  $('hh-m-count').textContent = MEMBERS.length;
+  $('hh-b-count').textContent = FEED.length;
 
   // Invite link
-  const link = `${window.location.origin}/pages/home-member.html?token=${household.invite_token}`;
-  document.getElementById('invite-link').textContent = link;
+  const link = `${window.location.origin}/pages/home-member.html?token=${HH.invite_token}`;
+  $('invite-link-text').textContent = link;
+  $('copy-btn').onclick = () => { navigator.clipboard.writeText(link); toast('📋 Lien copié!'); };
+  $('whatsapp-btn').onclick = () => {
+    const m = encodeURIComponent(`🛡 *BillSafe — Invitation familiale*\n\nBonjour! Je surveille nos factures depuis l'étranger avec BillSafe.\nMerci d'ajouter vos reçus ENEO, CamWater et Camtel ici:\n${link}`);
+    window.open('https://wa.me/?text='+m,'_blank');
+  };
+  $('add-member-btn').onclick = () => openM('modal-member');
+  $('new-req-btn').onclick    = () => openM('modal-req');
+  $('refresh-btn').onclick    = async () => { await Promise.all([loadFeed(),loadReqs()]); renderDashboard(); toast('🔄 Actualisé'); };
 
-  // Members chips
-  const row = document.getElementById('members-row');
-  const colors = ['av-green','av-blue','av-purple','av-amber'];
-  const chips = members.map((m,i) => `
-    <div class="member-chip">
-      <div class="member-av ${colors[i%4]}">${initials(m.full_name)}</div>
-      <div>
-        <div class="member-name">${m.full_name}</div>
-        <div class="member-role">${relLabel[m.relationship]||m.relationship}</div>
-      </div>
-    </div>`).join('');
-  row.innerHTML = chips + `<button class="add-member-chip" onclick="openModal('modal-member')">+ Inviter</button>`;
+  // Members
+  const row = $('members-row');
+  row.innerHTML = MEMBERS.map((m,i) => `
+    <div class="m-chip">
+      <div class="m-av ${avColors[i%4]}">${ini(m.full_name)}</div>
+      <div><div class="m-name">${m.full_name}</div><div class="m-role">${relLabel[m.relationship]||m.relationship}</div></div>
+    </div>`).join('') +
+    `<button class="add-m" onclick="openM('modal-member')">+ Inviter</button>`;
 
   // Stats
   const now = new Date();
-  const thisMonth = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}`;
-  const monthBills = diasporaBills.filter(b=>b.billing_month?.startsWith(thisMonth));
-  const total  = monthBills.reduce((s,b)=>s+(b.amount||0),0);
-  const unseen = diasporaBills.filter(b=>!b.seen_by_diaspora).length;
-  const pending = payRequests.filter(p=>p.status==='pending').length;
-  document.getElementById('s-bills').textContent    = monthBills.length;
-  document.getElementById('s-total').textContent    = Math.round(total).toLocaleString('fr-FR');
-  document.getElementById('s-unseen').textContent   = unseen;
-  document.getElementById('s-requests').textContent = pending;
+  const mo  = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}`;
+  const moBills = FEED.filter(b=>b.billing_month?.startsWith(mo));
+  const total   = moBills.reduce((s,b)=>s+(b.amount||0),0);
+  const unseen  = FEED.filter(b=>!b.seen_by_diaspora).length;
+  const pending = REQS.filter(r=>r.status==='pending').length;
+  $('s-bills').textContent  = moBills.length;
+  $('s-total').textContent  = fmt(total);
+  $('s-unseen').textContent = unseen;
+  $('s-reqs').textContent   = pending;
+
+  // Feed
+  renderFeed();
+  renderReqs();
 }
 
-// ── INVITE ACTIONS ────────────────────────────────────
-function copyInvite() {
-  const link = document.getElementById('invite-link').textContent;
-  navigator.clipboard.writeText(link);
-  showToast('📋 Lien copié!','success');
+function renderFeed() {
+  const el = $('feed-list');
+  if (!FEED.length) {
+    el.innerHTML = `<div style="text-align:center;padding:48px;color:var(--gray)">
+      <div style="font-size:40px;margin-bottom:12px">📡</div>
+      <div style="font-family:var(--font-h);font-weight:700;color:#555;margin-bottom:6px">En attente de reçus</div>
+      <div style="font-size:13px">Envoyez le lien WhatsApp à votre famille.<br>Leurs reçus apparaîtront ici immédiatement.</div>
+    </div>`;
+    return;
+  }
+  const now = Date.now();
+  el.innerHTML = FEED.map(b => {
+    const icon = companyIcon[b.company]||'📌';
+    const cls  = companyClass[b.company]||'fi-other';
+    const diff = Math.round((now - new Date(b.created_at)) / 3600000);
+    const time = diff < 1 ? 'À l\'instant' : diff < 24 ? `Il y a ${diff}h` : fmtD(b.created_at);
+    const isNew = !b.seen_by_diaspora;
+    return `<div class="feed-item ${isNew?'feed-new':''}">
+      <div class="fi-icon ${cls}">${icon}</div>
+      <div class="feed-body">
+        <div class="feed-title">${b.company} — ${fmtM(b.billing_month)}</div>
+        <div class="feed-meta">Par ${b.added_by||'Famille'} · ${b.status==='paid'?'✅ Payée':'⏳ En attente'}</div>
+        <div class="feed-amount">${fmtA(b.amount)}</div>
+        ${b.notes?`<div style="font-size:12px;color:var(--gray);margin-top:4px">💬 ${b.notes}</div>`:''}
+        ${b.file_url?`<a href="${b.file_url}" target="_blank" style="font-size:12px;color:#185FA5;margin-top:6px;display:inline-block">👁 Voir le reçu</a>`:''}
+      </div>
+      <div class="feed-time">${time}</div>
+    </div>`;
+  }).join('');
 }
 
-function shareWhatsApp() {
-  const link = document.getElementById('invite-link').textContent;
-  const msg  = encodeURIComponent(`🛡 *BillSafe — Invitation familiale*\n\nBonjour! Je surveille nos factures depuis l'étranger avec BillSafe.\n\nMerci de créer un compte gratuit et d'y ajouter nos factures ENEO, CamWater et Camtel dès qu'elles sont payées.\n\nLien d'accès: ${link}`);
-  window.open('https://wa.me/?text='+msg,'_blank');
+function renderReqs() {
+  const el = $('req-list');
+  if (!REQS.length) { el.innerHTML=`<div style="font-size:13px;color:var(--gray);text-align:center;padding:16px">Aucune demande</div>`; return; }
+  el.innerHTML = REQS.slice(0,4).map(r => `
+    <div class="pr-card ${r.status}">
+      <div class="pr-co">${companyIcon[r.company]||'📌'} ${r.company}</div>
+      ${r.estimated_amount?`<div class="pr-amt">~${fmtA(r.estimated_amount)}</div>`:''}
+      ${r.message?`<div class="pr-msg">💬 ${r.message}</div>`:''}
+      <span class="pill ${r.status==='paid'?'pill-paid':'pill-pending'}">${r.status==='paid'?'✅ Payée':'⏳ En attente'}</span>
+    </div>`).join('');
 }
 
-// ── CURRENCY CONVERTER ────────────────────────────────
+// ── CURRENCY ──────────────────────────────────────────
 function convertCurrency() {
-  const amount = parseFloat(document.getElementById('conv-input').value)||0;
-  const sel    = document.getElementById('currency-select');
+  const amount = parseFloat($('conv-input').value) || 0;
+  const sel    = $('curr-select');
   const opt    = sel.options[sel.selectedIndex];
-  const rate   = parseFloat(opt.dataset.rate)||0.001524;
-  const flag   = opt.dataset.flag||'🇪🇺';
-  const label  = opt.dataset.label||'Euro';
-  const code   = opt.value;
-  const result = (amount * rate).toFixed(2);
-  document.getElementById('fcfa-amount').textContent    = Math.round(amount).toLocaleString('fr-FR')+' FCFA';
-  document.getElementById('converted-amount').textContent = `≈ ${result} ${code}`;
-  document.getElementById('currency-label').textContent = label;
-  document.getElementById('eur-flag').textContent       = flag;
+  const rate   = parseFloat(opt.dataset.rate);
+  $('fcfa-display').textContent  = fmt(amount)+' FCFA';
+  $('conv-display').textContent  = '≈ '+(amount*rate).toFixed(2)+' '+opt.value;
+  $('curr-flag').textContent     = opt.dataset.flag;
+  $('curr-label').textContent    = opt.dataset.label;
 }
 </script>
 </body>
