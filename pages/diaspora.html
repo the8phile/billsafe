@@ -455,12 +455,24 @@ async function doLogout() {
 
 // ── HOUSEHOLD ─────────────────────────────────────────
 async function loadHousehold() {
-  const { data, error } = await db.from('households').select('*').eq('diaspora_id', ME.id).maybeSingle();
-  HH = data || null;
+  // Use limit(1) + order to avoid crash when multiple rows exist
+  const { data, error } = await db.from('households')
+    .select('*')
+    .eq('diaspora_id', ME.id)
+    .order('created_at', { ascending: false })
+    .limit(1);
+  HH = (data && data.length > 0) ? data[0] : null;
+  if (error) console.error('Household load error:', error);
   if (!HH) { showView('setup'); return; }
-  await Promise.all([loadMembers(), loadFeed(), loadReqs()]);
-  renderDashboard();
-  showView('dashboard');
+  try {
+    await Promise.all([loadMembers(), loadFeed(), loadReqs()]);
+    renderDashboard();
+    showView('dashboard');
+  } catch(e) {
+    console.error('Dashboard render error:', e);
+    showView('dashboard'); // still show even if feed fails
+    renderDashboard();
+  }
   convertCurrency();
 }
 
@@ -477,8 +489,12 @@ async function saveHousehold() {
     address: $('hh-addr-in').value.trim() || null,
     city:    $('hh-city-in').value.trim() || 'Douala',
   };
-  const { error } = HH
-    ? await db.from('households').update(payload).eq('id', HH.id)
+  // Always check fresh from DB before deciding insert vs update
+  const { data: existing } = await db.from('households')
+    .select('id').eq('diaspora_id', ME.id).limit(1);
+  const existingHH = existing && existing.length > 0 ? existing[0] : null;
+  const { error } = existingHH
+    ? await db.from('households').update(payload).eq('id', existingHH.id)
     : await db.from('households').insert([payload]);
 
   $('save-hh-btn').textContent = '🏠 Créer le foyer';
