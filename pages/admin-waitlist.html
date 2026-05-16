@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BillSafe — Admin Waitlist</title>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=DM+Sans:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../css/portal.css">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+.biz-pill{display:inline-block;font-size:10px;font-weight:700;padding:3px 9px;border-radius:20px;font-family:var(--font-h);background:#f0f0f0;color:var(--gray)}
+.plan-free{background:#f0f0f0;color:var(--gray)}
+.plan-pro{background:var(--blue-bg,#E6F1FB);color:var(--blue,#185FA5)}
+.plan-business{background:var(--purple-bg,#EEEDFE);color:var(--purple,#534AB7)}
+.stat-big{font-family:var(--font-h);font-weight:800;font-size:40px;color:var(--dark)}
+.export-btn{background:var(--lime);color:var(--dark);font-family:var(--font-h);font-weight:700;font-size:13px;padding:8px 18px;border-radius:100px;border:none;cursor:pointer}
+</style>
+</head>
+<body>
+<div class="layout">
+  <aside class="sidebar">
+    <div class="sidebar-brand"><div class="sidebar-logo">🛡</div><div class="sidebar-name">BillSafe</div></div>
+    <span class="sidebar-plan">Admin</span>
+    <div class="nav-group-label">Admin</div>
+    <a class="nav-item active" href="admin-waitlist.html"><span class="ni">📋</span> Liste d'attente</a>
+    <a class="nav-item" href="dashboard.html"><span class="ni">📊</span> Dashboard</a>
+    <div class="sidebar-bottom">
+      <div class="user-row">
+        <div class="user-avatar" id="user-avatar">?</div>
+        <div class="user-info"><div class="user-name" id="user-name">Admin</div></div>
+        <button class="logout-btn" id="logout-btn">⏻</button>
+      </div>
+    </div>
+  </aside>
+  <main class="main">
+    <div class="topbar">
+      <div class="topbar-left">
+        <h2>📋 Liste d'attente</h2>
+        <p>Personnes inscrites sur la landing page</p>
+      </div>
+      <button class="export-btn" onclick="exportCSV()">⬇️ Exporter CSV</button>
+    </div>
+
+    <!-- STATS -->
+    <div class="stats-grid" style="margin-bottom:24px">
+      <div class="stat-card dark"><div class="stat-label">Total inscrits</div><div class="stat-big" id="s-total">—</div></div>
+      <div class="stat-card lime"><div class="stat-label">Plan Pro intéressés</div><div class="stat-big" id="s-pro">—</div></div>
+      <div class="stat-card"><div class="stat-label">Business intéressés</div><div class="stat-big" id="s-biz">—</div></div>
+      <div class="stat-card"><div class="stat-label">Aujourd'hui</div><div class="stat-big" id="s-today">—</div></div>
+    </div>
+
+    <!-- CITY BREAKDOWN -->
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px">
+      <div class="card"><div class="card-title">📍 Douala</div><div style="font-family:var(--font-h);font-weight:800;font-size:32px;color:var(--dark)" id="s-douala">—</div><div style="font-size:12px;color:var(--gray)">inscrits</div></div>
+      <div class="card"><div class="card-title">📍 Yaoundé</div><div style="font-family:var(--font-h);font-weight:800;font-size:32px;color:var(--dark)" id="s-yaounde">—</div><div style="font-size:12px;color:var(--gray)">inscrits</div></div>
+    </div>
+
+    <!-- TABLE -->
+    <div class="card">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px">
+        <div><div class="card-title">Tous les inscrits</div></div>
+        <input class="form-input" id="search" placeholder="🔍 Rechercher..." style="width:220px" oninput="filterTable()">
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr>
+            <th>Nom</th><th>Téléphone</th><th>Ville</th><th>Type</th><th>Plan souhaité</th><th>Date</th><th>Action</th>
+          </tr></thead>
+          <tbody id="waitlist-tbody"><tr><td colspan="7" style="text-align:center;padding:40px;color:var(--gray)">Chargement...</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+  </main>
+</div>
+<div class="toast" id="toast"></div>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="../js/portal.js"></script>
+<script>
+let allEntries=[], currentUser=null;
+
+window.addEventListener('DOMContentLoaded', async()=>{
+  currentUser = await requireAuth();
+  if(!currentUser)return;
+  renderSidebarUser(currentUser);
+  document.getElementById('logout-btn').onclick=logout;
+  await loadWaitlist();
+});
+
+async function loadWaitlist(){
+  const {data,error}=await db.from('waitlist').select('*').order('created_at',{ascending:false});
+  if(error)return showToast('Erreur: '+error.message,'error');
+  allEntries=data||[];
+  renderStats();
+  renderTable(allEntries);
+}
+
+function renderStats(){
+  const today=new Date().toISOString().split('T')[0];
+  document.getElementById('s-total').textContent=allEntries.length;
+  document.getElementById('s-pro').textContent=allEntries.filter(e=>e.plan_interest==='pro').length;
+  document.getElementById('s-biz').textContent=allEntries.filter(e=>e.plan_interest==='business').length;
+  document.getElementById('s-today').textContent=allEntries.filter(e=>e.created_at?.startsWith(today)).length;
+  document.getElementById('s-douala').textContent=allEntries.filter(e=>e.city==='Douala').length;
+  document.getElementById('s-yaounde').textContent=allEntries.filter(e=>e.city==='Yaoundé').length;
+}
+
+function renderTable(entries){
+  const tbody=document.getElementById('waitlist-tbody');
+  if(!entries.length){tbody.innerHTML=`<tr><td colspan="7" style="text-align:center;padding:40px;color:var(--gray)">Aucun inscrit</td></tr>`;return;}
+  const bizLabel={boutique:'🏪 Boutique',restaurant:'🍽 Restaurant',pharmacie:'💊 Pharmacie',transport:'🚗 Transport',landlord:'🏠 Propriétaire',famille:'👨‍👩‍👧 Famille',diaspora:'🌍 Diaspora',autre:'📦 Autre'};
+  const planCls={free:'plan-free',pro:'plan-pro',business:'plan-business'};
+  const planLabel={free:'Gratuit',pro:'⭐ Pro',business:'🏢 Business'};
+  tbody.innerHTML=entries.map(e=>`<tr>
+    <td style="font-weight:600;font-family:var(--font-h)">${e.full_name}</td>
+    <td><a href="https://wa.me/${e.phone.replace(/[^0-9+]/g,'')}" target="_blank" style="color:var(--green)">${e.phone}</a></td>
+    <td>📍 ${e.city||'—'}</td>
+    <td><span class="biz-pill">${bizLabel[e.business_type]||e.business_type||'—'}</span></td>
+    <td><span class="pill ${planCls[e.plan_interest]||'plan-free'}">${planLabel[e.plan_interest]||e.plan_interest}</span></td>
+    <td style="font-size:12px;color:var(--gray)">${new Date(e.created_at).toLocaleDateString('fr-FR')}</td>
+    <td><a href="https://wa.me/${e.phone.replace(/[^0-9+]/g,'')}?text=${encodeURIComponent('Bonjour '+e.full_name+' ! Votre accès BillSafe est prêt. Cliquez ici pour créer votre compte: https://lighthearted-clafoutis-5bf7db.netlify.app/pages/auth.html')}" target="_blank" class="btn btn-ghost btn-sm">💬 Contacter</a></td>
+  </tr>`).join('');
+}
+
+function filterTable(){
+  const q=document.getElementById('search').value.toLowerCase();
+  renderTable(allEntries.filter(e=>(e.full_name+e.phone+e.city+e.business_type).toLowerCase().includes(q)));
+}
+
+function exportCSV(){
+  const headers=['Nom','Téléphone','Email','Ville','Type','Plan','Date'];
+  const rows=allEntries.map(e=>[e.full_name,e.phone,e.email||'',e.city,e.business_type,e.plan_interest,new Date(e.created_at).toLocaleDateString('fr-FR')]);
+  const csv=[headers,...rows].map(r=>r.join(',')).join('\n');
+  const blob=new Blob([csv],{type:'text/csv'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  a.href=url;a.download='billsafe-waitlist.csv';a.click();
+  URL.revokeObjectURL(url);
+  showToast('📋 CSV exporté!');
+}
+</script>
+</body>
+</html>

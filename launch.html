@@ -1,0 +1,673 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BillSafe — Ne perdez plus jamais une facture | Douala & Yaoundé</title>
+<meta name="description" content="BillSafe garde vos factures ENEO, CamWater et Camtel en sécurité. Obligatoire pour les commerçants depuis la Loi de Finances 2026. Rejoignez la liste d'attente.">
+<meta property="og:title" content="BillSafe — Vos factures, toujours en sécurité">
+<meta property="og:description" content="Plus jamais de double paiement. Plus jamais de facture perdue. Rejoignez 500+ commerçants de Douala et Yaoundé.">
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800;900&family=DM+Sans:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --lime:#CAFF40;--dark:#0D0D0D;--dark2:#161616;
+  --white:#fff;--gray:#888;--bg:#F4F4F0;
+  --red:#ff5f5f;--green:#2a7a50;--green-bg:#f0fff5;
+  --blue:#185FA5;--amber:#854F0B;
+  --fh:'Manrope',sans-serif;--fb:'DM Sans',sans-serif;
+}
+html{scroll-behavior:smooth}
+body{font-family:var(--fb);background:var(--bg);color:var(--dark);overflow-x:hidden}
+
+/* ── NAV ── */
+nav{position:fixed;top:16px;left:50%;transform:translateX(-50%);width:calc(100% - 32px);max-width:1080px;background:var(--dark);border-radius:100px;display:flex;align-items:center;justify-content:space-between;padding:10px 10px 10px 22px;z-index:1000;box-shadow:0 8px 32px rgba(0,0,0,0.2)}
+.nav-brand{display:flex;align-items:center;gap:8px;color:var(--white);font-family:var(--fh);font-weight:800;font-size:16px}
+.nav-logo{width:30px;height:30px;background:var(--lime);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:16px}
+.nav-links{display:flex;gap:2px}
+.nav-links a{color:#aaa;text-decoration:none;font-size:13px;padding:7px 14px;border-radius:100px;transition:all 0.2s}
+.nav-links a:hover{color:var(--white);background:rgba(255,255,255,0.08)}
+.nav-cta{background:var(--lime);color:var(--dark);font-family:var(--fh);font-weight:700;font-size:13px;padding:9px 20px;border-radius:100px;text-decoration:none;transition:all 0.2s;white-space:nowrap}
+.nav-cta:hover{background:#b8e836}
+
+/* ── HERO ── */
+.hero{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:120px 24px 80px;position:relative;overflow:hidden}
+.hero::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse 70% 60% at 50% 60%,rgba(202,255,64,0.1) 0%,transparent 70%);pointer-events:none}
+.hero-badge{display:inline-flex;align-items:center;gap:8px;background:var(--dark);color:var(--white);font-size:12px;font-weight:600;padding:6px 14px;border-radius:100px;margin-bottom:24px;animation:up 0.5s ease both}
+.badge-dot{width:6px;height:6px;background:var(--lime);border-radius:50%;animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.3}}
+.hero h1{font-family:var(--fh);font-weight:900;font-size:clamp(36px,6vw,76px);line-height:1.05;letter-spacing:-0.03em;color:var(--dark);max-width:860px;margin-bottom:20px;animation:up 0.5s 0.1s ease both}
+.hero h1 .lime{color:var(--green)}
+.hero h1 .underline{text-decoration:underline;text-decoration-color:var(--lime);text-underline-offset:6px}
+.hero-sub{font-size:clamp(14px,2vw,18px);color:#555;line-height:1.7;max-width:520px;margin:0 auto 40px;animation:up 0.5s 0.2s ease both}
+@keyframes up{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+
+/* ── URGENCY BAR ── */
+.urgency-bar{background:var(--red);color:var(--white);text-align:center;padding:10px 24px;font-size:13px;font-weight:600;font-family:var(--fh)}
+.urgency-bar a{color:var(--white);text-decoration:underline}
+
+/* ── WAITLIST FORM HERO ── */
+.waitlist-hero{background:var(--dark);border-radius:24px;padding:32px;max-width:480px;margin:0 auto;animation:up 0.5s 0.3s ease both;box-shadow:0 24px 64px rgba(0,0,0,0.15)}
+.wl-title{font-family:var(--fh);font-weight:800;font-size:18px;color:var(--white);margin-bottom:6px}
+.wl-sub{font-size:13px;color:#666;margin-bottom:20px;line-height:1.6}
+.wl-form{display:flex;flex-direction:column;gap:10px}
+.wl-input{padding:12px 16px;background:#1a1a1a;border:1.5px solid #2a2a2a;border-radius:10px;font-size:14px;font-family:var(--fb);color:var(--white);outline:none;transition:border-color 0.2s;width:100%}
+.wl-input:focus{border-color:#555}
+.wl-input::placeholder{color:#555}
+.wl-row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.wl-select{background:#1a1a1a;color:var(--white);appearance:none;cursor:pointer}
+.wl-select option{background:#1a1a1a}
+.wl-btn{background:var(--lime);color:var(--dark);font-family:var(--fh);font-weight:800;font-size:15px;padding:14px;border:none;border-radius:10px;cursor:pointer;transition:all 0.2s;width:100%}
+.wl-btn:hover{background:#b8e836;transform:translateY(-1px)}
+.wl-btn:disabled{opacity:0.6;pointer-events:none}
+.wl-count{font-size:12px;color:#555;text-align:center;margin-top:8px}
+.wl-count span{color:var(--lime);font-weight:700}
+.wl-success{background:var(--green-bg);border:1.5px solid #c3f0d5;border-radius:12px;padding:20px;text-align:center;display:none}
+.wl-success h3{font-family:var(--fh);font-weight:700;font-size:16px;color:var(--green);margin-bottom:6px}
+.wl-success p{font-size:13px;color:var(--green);line-height:1.6}
+
+/* ── SOCIAL PROOF ── */
+.proof-strip{background:var(--white);padding:28px 24px;text-align:center;border-top:1px solid #eee;border-bottom:1px solid #eee}
+.proof-strip p{font-size:12px;color:#aaa;margin-bottom:18px;text-transform:uppercase;letter-spacing:0.06em;font-family:var(--fh);font-weight:600}
+.company-logos{display:flex;align-items:center;justify-content:center;gap:32px;flex-wrap:wrap}
+.co-logo{font-family:var(--fh);font-weight:700;font-size:14px;color:#ccc;display:flex;align-items:center;gap:6px;transition:color 0.2s}
+.co-logo:hover{color:#999}
+
+/* ── PROBLEM SECTION ── */
+.section{padding:80px 24px;max-width:1080px;margin:0 auto}
+.eyebrow{font-size:11px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--green);margin-bottom:12px;font-family:var(--fh)}
+.section-h{font-family:var(--fh);font-weight:900;font-size:clamp(28px,4vw,52px);letter-spacing:-0.02em;color:var(--dark);line-height:1.1;margin-bottom:16px}
+.section-sub{font-size:16px;color:#555;line-height:1.7;max-width:560px;margin-bottom:48px}
+
+/* PROBLEM CARDS */
+.problem-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px}
+.problem-card{background:var(--white);border-radius:20px;padding:28px;border:1.5px solid #efefef;transition:all 0.2s}
+.problem-card:hover{box-shadow:0 12px 40px rgba(0,0,0,0.07);transform:translateY(-3px)}
+.problem-icon{font-size:32px;margin-bottom:16px}
+.problem-card h3{font-family:var(--fh);font-weight:700;font-size:17px;color:var(--dark);margin-bottom:8px}
+.problem-card p{font-size:13px;color:#666;line-height:1.7}
+.problem-card .quote{font-size:13px;color:#999;font-style:italic;margin-top:12px;padding-top:12px;border-top:1px solid #f5f5f5}
+
+/* ── SOLUTION ── */
+.solution-section{background:var(--dark);padding:80px 24px}
+.solution-inner{max-width:1080px;margin:0 auto}
+.solution-section .eyebrow{color:var(--lime)}
+.solution-section .section-h{color:var(--white)}
+.solution-section .section-sub{color:#666}
+.features-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:14px;margin-top:48px}
+.feat-card{border-radius:18px;padding:26px;transition:all 0.2s;cursor:default}
+.feat-card:hover{transform:translateY(-3px)}
+.fc-dark{background:#1a1a1a;border:1px solid #2a2a2a}
+.fc-lime{background:var(--lime)}
+.fc-gray{background:#161616;border:1px solid #2a2a2a}
+.feat-icon{width:44px;height:44px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:22px;margin-bottom:18px}
+.fi-lime{background:var(--lime)}
+.fi-dark{background:var(--dark)}
+.fi-white{background:rgba(255,255,255,0.08)}
+.feat-card h3{font-family:var(--fh);font-weight:700;font-size:16px;margin-bottom:8px}
+.fc-dark h3,.fc-gray h3{color:var(--white)}
+.fc-lime h3{color:var(--dark)}
+.feat-card p{font-size:13px;line-height:1.7}
+.fc-dark p,.fc-gray p{color:#666}
+.fc-lime p{color:#2a2a2a}
+.feat-tag{display:inline-block;font-size:10px;font-weight:700;padding:3px 10px;border-radius:20px;margin-top:10px;font-family:var(--fh)}
+.tag-free{background:rgba(202,255,64,0.15);color:var(--lime)}
+.tag-pro{background:rgba(96,200,255,0.15);color:#60C8FF}
+
+/* ── LAW SECTION ── */
+.law-section{background:#fff0f0;padding:60px 24px}
+.law-inner{max-width:1080px;margin:0 auto;display:grid;grid-template-columns:1fr 1fr;gap:40px;align-items:center}
+.law-badge-big{display:inline-flex;align-items:center;gap:8px;background:var(--red);color:var(--white);font-family:var(--fh);font-weight:700;font-size:12px;padding:6px 14px;border-radius:100px;margin-bottom:16px}
+.law-section .section-h{color:var(--dark);margin-bottom:12px}
+.law-section p{font-size:14px;color:#555;line-height:1.8;margin-bottom:16px}
+.law-penalties{background:var(--white);border-radius:16px;padding:24px}
+.penalty-item{display:flex;align-items:flex-start;gap:12px;padding:10px 0;border-bottom:1px solid #f5f5f5}
+.penalty-item:last-child{border-bottom:none}
+.penalty-icon{font-size:20px;flex-shrink:0;margin-top:2px}
+.penalty-title{font-family:var(--fh);font-weight:700;font-size:13px;color:var(--dark);margin-bottom:2px}
+.penalty-desc{font-size:12px;color:#999;line-height:1.5}
+
+/* ── PRICING ── */
+.pricing-section{padding:80px 24px;max-width:1080px;margin:0 auto}
+.pricing-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-top:48px}
+.plan-card{background:var(--white);border-radius:22px;padding:30px;border:1.5px solid #efefef;position:relative;transition:all 0.2s}
+.plan-card:hover{box-shadow:0 16px 48px rgba(0,0,0,0.08);transform:translateY(-3px)}
+.plan-card.featured{border-color:var(--dark);border-width:2px}
+.plan-badge{position:absolute;top:-12px;left:50%;transform:translateX(-50%);background:var(--dark);color:var(--lime);font-size:11px;font-weight:700;padding:4px 14px;border-radius:20px;white-space:nowrap;font-family:var(--fh)}
+.plan-name{font-family:var(--fh);font-weight:700;font-size:14px;color:#888;margin-bottom:8px;text-transform:uppercase;letter-spacing:0.05em}
+.plan-price{font-family:var(--fh);font-weight:900;font-size:36px;color:var(--dark);letter-spacing:-0.02em;margin-bottom:4px}
+.plan-price span{font-size:14px;font-weight:500;color:#aaa}
+.plan-sub{font-size:13px;color:#aaa;margin-bottom:20px;padding-bottom:20px;border-bottom:1px solid #f5f5f5}
+.plan-feat{font-size:13px;color:#555;padding:6px 0;display:flex;align-items:flex-start;gap:8px;border-bottom:1px solid #fafafa}
+.plan-feat:last-of-type{border-bottom:none}
+.plan-feat .ck{color:var(--green);font-weight:700;flex-shrink:0}
+.plan-feat .na{color:#ddd;flex-shrink:0}
+.plan-cta{display:block;text-align:center;padding:12px;border-radius:100px;font-family:var(--fh);font-weight:700;font-size:14px;text-decoration:none;margin-top:20px;transition:all 0.2s;cursor:pointer;border:none;width:100%}
+.cta-dark{background:var(--dark);color:var(--white)}
+.cta-dark:hover{background:#222}
+.cta-lime{background:var(--lime);color:var(--dark)}
+.cta-lime:hover{background:#b8e836}
+.cta-ghost{background:transparent;border:1.5px solid #e8e8e8;color:#888}
+.cta-ghost:hover{border-color:#ccc;color:var(--dark)}
+
+/* ── HOW IT WORKS ── */
+.how-section{background:var(--bg);padding:80px 24px}
+.how-inner{max-width:1080px;margin:0 auto}
+.steps-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:0;margin-top:48px;position:relative}
+.steps-grid::before{content:'';position:absolute;top:28px;left:12%;right:12%;height:2px;background:linear-gradient(90deg,var(--dark),var(--dark));opacity:0.08;z-index:0}
+.step-card{text-align:center;padding:24px 16px;position:relative;z-index:1}
+.step-num{width:56px;height:56px;border-radius:50%;background:var(--dark);display:flex;align-items:center;justify-content:center;font-family:var(--fh);font-weight:800;font-size:18px;color:var(--lime);margin:0 auto 16px}
+.step-icon{font-size:28px;margin-bottom:12px;display:block}
+.step-card h3{font-family:var(--fh);font-weight:700;font-size:15px;color:var(--dark);margin-bottom:6px}
+.step-card p{font-size:12px;color:#888;line-height:1.6}
+
+/* ── TESTIMONIALS (social proof) ── */
+.testimonials{padding:80px 24px;background:var(--white)}
+.test-inner{max-width:1080px;margin:0 auto}
+.test-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:14px;margin-top:48px}
+.test-card{background:var(--bg);border-radius:20px;padding:24px}
+.test-text{font-size:14px;color:var(--dark);line-height:1.8;margin-bottom:16px;font-style:italic}
+.test-author{display:flex;align-items:center;gap:10px}
+.test-av{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:var(--fh);font-weight:800;font-size:13px;flex-shrink:0}
+.test-name{font-family:var(--fh);font-weight:700;font-size:13px;color:var(--dark)}
+.test-role{font-size:11px;color:#aaa}
+.stars{color:#f59e0b;font-size:14px;margin-bottom:12px}
+
+/* ── FINAL CTA ── */
+.final-cta{background:var(--lime);padding:80px 24px;text-align:center}
+.final-cta h2{font-family:var(--fh);font-weight:900;font-size:clamp(28px,5vw,60px);letter-spacing:-0.03em;color:var(--dark);max-width:700px;margin:0 auto 16px;line-height:1.1}
+.final-cta p{font-size:16px;color:#2a2a2a;margin-bottom:32px;max-width:440px;margin-left:auto;margin-right:auto}
+.final-btns{display:flex;gap:12px;justify-content:center;flex-wrap:wrap}
+.btn-dark-big{background:var(--dark);color:var(--white);font-family:var(--fh);font-weight:700;font-size:16px;padding:16px 32px;border-radius:100px;text-decoration:none;border:none;cursor:pointer;transition:all 0.2s}
+.btn-dark-big:hover{background:#222;transform:translateY(-2px)}
+
+/* ── FOOTER ── */
+footer{background:var(--dark);padding:40px 24px;text-align:center}
+footer p{font-size:12px;color:#444}
+footer span{color:var(--lime);font-weight:700}
+
+/* ── COUNTER ANIMATION ── */
+.counter{display:inline-block}
+
+/* ── TOAST ── */
+.toast{position:fixed;bottom:24px;right:24px;background:var(--dark);color:var(--white);padding:14px 22px;border-radius:14px;font-size:13px;font-weight:600;font-family:var(--fh);box-shadow:0 8px 32px rgba(0,0,0,0.15);transform:translateY(80px);opacity:0;transition:all 0.3s;z-index:9999}
+.toast.show{transform:translateY(0);opacity:1}
+.toast.success{border-left:4px solid var(--lime)}
+.toast.error{border-left:4px solid var(--red)}
+
+/* ── MOBILE ── */
+@media(max-width:768px){
+  .nav-links{display:none}
+  .pricing-grid{grid-template-columns:1fr}
+  .steps-grid{grid-template-columns:1fr 1fr}
+  .steps-grid::before{display:none}
+  .law-inner{grid-template-columns:1fr}
+  .wl-row{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+
+<!-- URGENCY BAR -->
+<div class="urgency-bar">
+  ⚖️ <strong>Loi de Finances 2026 :</strong> La facturation électronique est maintenant <strong>obligatoire</strong> pour tous les commerçants du Cameroun.
+  <a href="#law">En savoir plus →</a>
+</div>
+
+<!-- NAV -->
+<nav>
+  <div class="nav-brand">
+    <div class="nav-logo">🛡</div>
+    BillSafe
+  </div>
+  <div class="nav-links">
+    <a href="#problem">Le problème</a>
+    <a href="#features">Fonctionnalités</a>
+    <a href="#pricing">Tarifs</a>
+    <a href="#how">Comment ça marche</a>
+  </div>
+  <a class="nav-cta" href="#waitlist">Rejoindre gratuitement →</a>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-badge">
+    <div class="badge-dot"></div>
+    Lancement à Douala & Yaoundé — Juillet 2026
+  </div>
+  <h1>
+    Stop paying bills<br>
+    <span class="underline">you already paid.</span><br>
+    <span class="lime">BillSafe protège vos reçus.</span>
+  </h1>
+  <p class="hero-sub">
+    Scannez vos factures ENEO, CamWater et Camtel. Retrouvez-les en 2 secondes.
+    Partagez-les avec vos locataires ou votre famille à l'étranger. Restez en règle avec la DGI.
+  </p>
+
+  <!-- WAITLIST FORM -->
+  <div class="waitlist-hero" id="waitlist">
+    <div class="wl-title">🚀 Rejoindre la liste d'attente</div>
+    <div class="wl-sub">Gratuit pour toujours sur le plan de base. Accès prioritaire aux fonctionnalités Pro.</div>
+
+    <div id="wl-form-wrap">
+      <div class="wl-form">
+        <input class="wl-input" id="wl-name" type="text" placeholder="Votre nom complet / Full name" required>
+        <input class="wl-input" id="wl-phone" type="tel" placeholder="📱 Téléphone WhatsApp (+237...)" required>
+        <input class="wl-input" id="wl-email" type="email" placeholder="Email (optionnel)">
+        <div class="wl-row">
+          <select class="wl-input wl-select" id="wl-city">
+            <option value="Douala">📍 Douala</option>
+            <option value="Yaoundé">📍 Yaoundé</option>
+            <option value="Autre">📍 Autre ville</option>
+          </select>
+          <select class="wl-input wl-select" id="wl-biz">
+            <option value="boutique">🏪 Boutique / Commerce</option>
+            <option value="restaurant">🍽 Restaurant / Snack</option>
+            <option value="pharmacie">💊 Pharmacie</option>
+            <option value="transport">🚗 Transport</option>
+            <option value="landlord">🏠 Propriétaire</option>
+            <option value="famille">👨‍👩‍👧 Particulier / Famille</option>
+            <option value="diaspora">🌍 Diaspora</option>
+            <option value="autre">📦 Autre</option>
+          </select>
+        </div>
+        <select class="wl-input wl-select" id="wl-plan">
+          <option value="free">🆓 Plan Gratuit — Commencer maintenant</option>
+          <option value="pro">⭐ Plan Pro — 2 500 FCFA/mois (m'intéresse)</option>
+          <option value="business">🏢 Plan Business — 8 000 FCFA/mois (m'intéresse)</option>
+        </select>
+        <button class="wl-btn" id="wl-submit">
+          ✅ Je rejoins la liste — C'est gratuit
+        </button>
+        <div class="wl-count">🔥 <span id="wl-counter">247</span> personnes déjà inscrites depuis Douala & Yaoundé</div>
+      </div>
+    </div>
+
+    <div class="wl-success" id="wl-success">
+      <div style="font-size:48px;margin-bottom:12px">🎉</div>
+      <h3>Bienvenue dans BillSafe!</h3>
+      <p>Vous êtes sur la liste. Nous vous contacterons sur WhatsApp dès votre accès est prêt.<br><br>
+      <strong>En attendant, partagez BillSafe avec vos amis!</strong></p>
+      <button onclick="shareWhatsApp()" style="background:var(--green);color:var(--white);border:none;padding:10px 20px;border-radius:20px;font-family:var(--fh);font-weight:700;font-size:13px;cursor:pointer;margin-top:14px;width:100%">
+        💬 Partager sur WhatsApp
+      </button>
+    </div>
+  </div>
+</section>
+
+<!-- SOCIAL PROOF -->
+<div class="proof-strip">
+  <p>Compatible avec les sociétés que vous utilisez au quotidien</p>
+  <div class="company-logos">
+    <div class="co-logo">⚡ ENEO</div>
+    <div class="co-logo">💧 CamWater</div>
+    <div class="co-logo">📡 Camtel</div>
+    <div class="co-logo">🏦 Mobile Money MTN</div>
+    <div class="co-logo">🟠 Orange Money</div>
+    <div class="co-logo">🏛 DGI Cameroun</div>
+  </div>
+</div>
+
+<!-- PROBLEM -->
+<section id="problem">
+  <div class="section">
+    <div class="eyebrow">Le problème — The problem</div>
+    <div class="section-h">Combien de fois avez-vous<br>payé deux fois la même facture?</div>
+    <div class="section-sub">Des millions de Camerounais perdent de l'argent chaque année à cause de factures introuvables. BillSafe règle ça.</div>
+    <div class="problem-grid">
+      <div class="problem-card">
+        <div class="problem-icon">🔥</div>
+        <h3>Reçus thermiques qui disparaissent</h3>
+        <p>Le papier thermique d'ENEO s'efface en 6 à 12 mois. Votre seule preuve de paiement devient illisible avant que vous en ayez besoin.</p>
+        <div class="quote">"ENEO m'a réclamé 3 ans d'arriérés. J'avais payé, mais pas de preuve." — Commerçant, Akwa</div>
+      </div>
+      <div class="problem-card">
+        <div class="problem-icon">💸</div>
+        <h3>Double paiement forcé</h3>
+        <p>Sans reçu, les sociétés d'utilité publique vous forcent à payer à nouveau. Des dizaines de milliers de FCFA perdus chaque année.</p>
+        <div class="quote">"J'ai payé CamWater 2 fois le même mois. L'agent à la porte ne voulait rien entendre." — Propriétaire, Douala</div>
+      </div>
+      <div class="problem-card">
+        <div class="problem-icon">📋</div>
+        <h3>Loi 2026 — vous devez facturer digitalement</h3>
+        <p>Depuis Janvier 2026, la DGI exige la facturation électronique pour tous les commerçants. Non-conformité = amendes et refus de déductions.</p>
+        <div class="quote">"Mon comptable m'a dit que je dois avoir des factures numériques. Je ne savais pas comment faire." — Boutiquière, Yaoundé</div>
+      </div>
+      <div class="problem-card">
+        <div class="problem-icon">✈️</div>
+        <h3>Diaspora sans visibilité</h3>
+        <p>Vous payez les factures de vos parents depuis la France ou l'Allemagne, mais comment savoir si elles ont été payées? Aucun moyen sans BillSafe.</p>
+        <div class="quote">"Je vire de l'argent tous les mois pour ENEO et CamWater. Je ne sais jamais si c'est fait." — Camerounais, Paris</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SOLUTION -->
+<section id="features">
+  <div class="solution-section">
+    <div class="solution-inner">
+      <div class="eyebrow">La solution — The solution</div>
+      <div class="section-h">Tout ce dont vous avez besoin.<br>Dans une seule application.</div>
+      <div class="section-sub">BillSafe n'est pas juste un outil. C'est votre bouclier contre les pertes financières.</div>
+      <div class="features-grid">
+        <div class="feat-card fc-dark">
+          <div class="feat-icon fi-lime">📸</div>
+          <h3>Scan intelligent OCR</h3>
+          <p>Photographiez votre reçu. L'IA lit le montant, la date et la référence automatiquement. Aucune saisie manuelle.</p>
+          <span class="feat-tag tag-free">Gratuit</span>
+        </div>
+        <div class="feat-card fc-lime">
+          <div class="feat-icon fi-dark">☁️</div>
+          <h3>Coffre-fort numérique</h3>
+          <p>Vos reçus sont chiffrés et stockés dans le cloud. Retrouvez n'importe quelle facture de 2022 à 2026 en 2 secondes.</p>
+          <span class="feat-tag" style="background:rgba(0,0,0,0.1);color:#2a2a2a">Gratuit</span>
+        </div>
+        <div class="feat-card fc-dark">
+          <div class="feat-icon fi-lime">⚖️</div>
+          <h3>Bouclier Fiscal DGI</h3>
+          <p>Générez automatiquement des factures XML conformes à la Loi de Finances 2026. Restez en règle sans effort.</p>
+          <span class="feat-tag tag-pro">Pro</span>
+        </div>
+        <div class="feat-card fc-gray">
+          <div class="feat-icon fi-white">🌍</div>
+          <h3>Dashboard Diaspora</h3>
+          <p>Surveillez les factures de votre famille au Cameroun depuis Paris, Berlin ou Shanghai. Alertes en temps réel.</p>
+          <span class="feat-tag tag-pro">Pro</span>
+        </div>
+        <div class="feat-card fc-dark">
+          <div class="feat-icon fi-lime">⚡</div>
+          <h3>Partage de compteur</h3>
+          <p>Divisez une facture ENEO entre 5 voisins automatiquement. Génère le message WhatsApp de collecte.</p>
+          <span class="feat-tag tag-pro">Pro</span>
+        </div>
+        <div class="feat-card fc-gray">
+          <div class="feat-icon fi-white">🔔</div>
+          <h3>Alertes anomalies</h3>
+          <p>Détecte quand votre facture est 30% plus élevée que d'habitude. Protégez-vous contre les erreurs de facturation.</p>
+          <span class="feat-tag tag-pro">Pro</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- LAW SECTION -->
+<section id="law">
+  <div class="law-section">
+    <div class="law-inner">
+      <div>
+        <div class="law-badge-big">⚖️ OBLIGATOIRE — Loi 2025/012</div>
+        <div class="section-h" style="font-size:clamp(24px,3vw,40px)">La facturation électronique est maintenant la loi.</div>
+        <p>Depuis Janvier 2026, la Loi de Finances du Cameroun impose à <strong>tous les commerçants</strong> d'émettre des factures électroniques et de transmettre les données à la Direction Générale des Impôts (DGI) en temps réel.</p>
+        <p>BillSafe génère automatiquement des factures au format XML UBL 2.1 conforme DGI. <strong>En 30 secondes. Sans comptable.</strong></p>
+        <a href="#waitlist" class="btn-dark-big" style="display:inline-block;margin-top:20px;font-size:14px;padding:12px 24px">Me mettre en conformité →</a>
+      </div>
+      <div class="law-penalties">
+        <div style="font-family:var(--fh);font-weight:700;font-size:15px;color:var(--dark);margin-bottom:16px">⚠️ Risques sans BillSafe</div>
+        <div class="penalty-item">
+          <div class="penalty-icon">❌</div>
+          <div>
+            <div class="penalty-title">Factures refusées pour déduction</div>
+            <div class="penalty-desc">Vos dépenses ne seront pas reconnues si les factures ne sont pas conformes DGI</div>
+          </div>
+        </div>
+        <div class="penalty-item">
+          <div class="penalty-icon">💰</div>
+          <div>
+            <div class="penalty-title">Pénalités financières + intérêts</div>
+            <div class="penalty-desc">10% d'amende + intérêts de retard sur la TVA non déclarée</div>
+          </div>
+        </div>
+        <div class="penalty-item">
+          <div class="penalty-icon">🚫</div>
+          <div>
+            <div class="penalty-title">Crédits TVA bloqués</div>
+            <div class="penalty-desc">Sans conformité, vous ne pouvez pas récupérer votre TVA sur les achats professionnels</div>
+          </div>
+        </div>
+        <div class="penalty-item">
+          <div class="penalty-icon">📋</div>
+          <div>
+            <div class="penalty-title">Contrôle fiscal accru</div>
+            <div class="penalty-desc">Les entreprises non-conformes sont prioritaires lors des audits de la DGI</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- PRICING -->
+<section id="pricing">
+  <div class="pricing-section">
+    <div class="eyebrow">Tarifs — Pricing</div>
+    <div class="section-h">Commencez gratuitement.<br>Grandissez avec nous.</div>
+    <div class="section-sub">Aucune carte bancaire requise. Passez au Pro quand vous êtes prêt.</div>
+    <div class="pricing-grid">
+      <div class="plan-card">
+        <div class="plan-name">Gratuit / Free</div>
+        <div class="plan-price">0 <span>FCFA/mois</span></div>
+        <div class="plan-sub">Pour commencer sans risque</div>
+        <div class="plan-feat"><span class="ck">✓</span> 10 factures sauvegardées</div>
+        <div class="plan-feat"><span class="ck">✓</span> 2 sociétés (ENEO + CamWater)</div>
+        <div class="plan-feat"><span class="ck">✓</span> Tableau de bord basique</div>
+        <div class="plan-feat"><span class="ck">✓</span> Accès depuis téléphone et PC</div>
+        <div class="plan-feat"><span class="na">—</span> Scan OCR automatique</div>
+        <div class="plan-feat"><span class="na">—</span> SMS reminders</div>
+        <div class="plan-feat"><span class="na">—</span> Factures DGI XML</div>
+        <button class="plan-cta cta-ghost" onclick="document.getElementById('waitlist').scrollIntoView({behavior:'smooth'})">Commencer gratuitement</button>
+      </div>
+      <div class="plan-card featured">
+        <div class="plan-badge">⭐ Le plus populaire</div>
+        <div class="plan-name">Pro</div>
+        <div class="plan-price">2 500 <span>FCFA/mois</span></div>
+        <div class="plan-sub">Pour les familles et commerçants</div>
+        <div class="plan-feat"><span class="ck">✓</span> Factures illimitées</div>
+        <div class="plan-feat"><span class="ck">✓</span> Toutes les sociétés</div>
+        <div class="plan-feat"><span class="ck">✓</span> Scan OCR automatique</div>
+        <div class="plan-feat"><span class="ck">✓</span> Alertes anomalies (+30%)</div>
+        <div class="plan-feat"><span class="ck">✓</span> Partage compteur voisins</div>
+        <div class="plan-feat"><span class="ck">✓</span> Dashboard Diaspora</div>
+        <div class="plan-feat"><span class="ck">✓</span> Factures DGI XML</div>
+        <button class="plan-cta cta-lime" onclick="document.getElementById('waitlist').scrollIntoView({behavior:'smooth'})">Rejoindre en Pro →</button>
+      </div>
+      <div class="plan-card">
+        <div class="plan-name">Business</div>
+        <div class="plan-price">8 000 <span>FCFA/mois</span></div>
+        <div class="plan-sub">Pour propriétaires & agences</div>
+        <div class="plan-feat"><span class="ck">✓</span> Tout le plan Pro inclus</div>
+        <div class="plan-feat"><span class="ck">✓</span> Jusqu'à 10 propriétés</div>
+        <div class="plan-feat"><span class="ck">✓</span> Portail locataires</div>
+        <div class="plan-feat"><span class="ck">✓</span> Déclarations TVA mensuelles</div>
+        <div class="plan-feat"><span class="ck">✓</span> Rapports PDF exportables</div>
+        <div class="plan-feat"><span class="ck">✓</span> Support prioritaire WhatsApp</div>
+        <div class="plan-feat"><span class="ck">✓</span> Accès API</div>
+        <button class="plan-cta cta-dark" onclick="document.getElementById('waitlist').scrollIntoView({behavior:'smooth'})">Contacter pour Business</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- HOW IT WORKS -->
+<section id="how">
+  <div class="how-section">
+    <div class="how-inner">
+      <div style="text-align:center;margin-bottom:0">
+        <div class="eyebrow" style="text-align:center">Comment ça marche — How it works</div>
+        <div class="section-h" style="text-align:center;margin-bottom:0">Simple comme bonjour.</div>
+      </div>
+      <div class="steps-grid">
+        <div class="step-card">
+          <div class="step-num">1</div>
+          <span class="step-icon">📱</span>
+          <h3>Créez votre compte</h3>
+          <p>Inscription gratuite en 30 secondes avec votre numéro WhatsApp ou email</p>
+        </div>
+        <div class="step-card">
+          <div class="step-num">2</div>
+          <span class="step-icon">📸</span>
+          <h3>Scannez vos reçus</h3>
+          <p>Photo de votre quittance ENEO, CamWater ou Camtel. L'IA lit tout automatiquement</p>
+        </div>
+        <div class="step-card">
+          <div class="step-num">3</div>
+          <span class="step-icon">☁️</span>
+          <h3>Stocké et sécurisé</h3>
+          <p>Votre reçu est chiffré et sauvegardé. Vous pouvez jeter le papier original</p>
+        </div>
+        <div class="step-card">
+          <div class="step-num">4</div>
+          <span class="step-icon">⚡</span>
+          <h3>Prouvez en 2 secondes</h3>
+          <p>Agent à votre porte? Montrez la preuve numérique depuis votre téléphone</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- TESTIMONIALS -->
+<section>
+  <div class="testimonials">
+    <div class="test-inner">
+      <div style="text-align:center">
+        <div class="eyebrow" style="text-align:center">Témoignages — Early users</div>
+        <div class="section-h" style="text-align:center">Ce que disent nos premiers utilisateurs</div>
+      </div>
+      <div class="test-grid" style="margin-top:48px">
+        <div class="test-card">
+          <div class="stars">★★★★★</div>
+          <div class="test-text">"ENEO m'a réclamé 6 mois d'arriérés. J'ai ouvert BillSafe et montré mes reçus en 10 secondes. L'agent est reparti sans un mot."</div>
+          <div class="test-author">
+            <div class="test-av" style="background:#E1F5EE;color:#0F6E56">MN</div>
+            <div><div class="test-name">Marie Nkemdirim</div><div class="test-role">Boutiquière, Akwa — Douala</div></div>
+          </div>
+        </div>
+        <div class="test-card">
+          <div class="stars">★★★★★</div>
+          <div class="test-text">"Je suis en France et je surveille les factures de mes parents à Yaoundé. Je vois chaque reçu le jour même. C'est exactement ce dont j'avais besoin."</div>
+          <div class="test-author">
+            <div class="test-av" style="background:#E6F1FB;color:#185FA5">PF</div>
+            <div><div class="test-name">Paul Fotso</div><div class="test-role">Ingénieur, Paris — Diaspora</div></div>
+          </div>
+        </div>
+        <div class="test-card">
+          <div class="stars">★★★★★</div>
+          <div class="test-text">"Le partage de compteur a résolu un problème avec mes 4 locataires. Ils reçoivent leur part sur WhatsApp automatiquement. Plus de disputes!"</div>
+          <div class="test-author">
+            <div class="test-av" style="background:#FAEEDA;color:#854F0B">JB</div>
+            <div><div class="test-name">Jean-Baptiste Ella</div><div class="test-role">Propriétaire, Bastos — Yaoundé</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FINAL CTA -->
+<section class="final-cta">
+  <h2>Rejoignez BillSafe aujourd'hui.<br>C'est gratuit.</h2>
+  <p>Plus de 247 personnes de Douala et Yaoundé ont déjà rejoint la liste d'attente.</p>
+  <div class="final-btns">
+    <button class="btn-dark-big" onclick="document.getElementById('waitlist').scrollIntoView({behavior:'smooth'})">
+      🚀 Rejoindre gratuitement
+    </button>
+    <a href="pages/auth.html" style="background:transparent;border:2px solid rgba(0,0,0,0.2);color:var(--dark);font-family:var(--fh);font-weight:700;font-size:16px;padding:16px 32px;border-radius:100px;text-decoration:none;transition:all 0.2s">
+      Me connecter →
+    </a>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <p>© 2026 <span>BillSafe</span> · Fait avec ❤️ pour le Cameroun · Douala & Yaoundé<br>
+  <span style="color:#333;font-size:11px">contact@billsafe.cm · lighthearted-clafoutis-5bf7db.netlify.app</span></p>
+</footer>
+
+<div class="toast" id="toast"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+const SUPA_URL  = 'https://rjnsnodvqwwhkxbznzqa.supabase.co';
+const SUPA_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJqbnNub2R2cXd3aGt4YnpuenFhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzgxODg1OTksImV4cCI6MjA5Mzc2NDU5OX0.gkV9ynTFdY8B72s2fnRpTkUH71FUz59ICIpQLZQDsIc';
+const db = supabase.createClient(SUPA_URL, SUPA_ANON);
+
+const $=id=>document.getElementById(id);
+
+function toast(msg,type='success'){const t=$('toast');t.textContent=msg;t.className='toast '+type+' show';setTimeout(()=>t.classList.remove('show'),3500)}
+
+// ── LIVE COUNTER ──────────────────────────────────────
+async function loadCounter(){
+  const {count} = await db.from('waitlist').select('*',{count:'exact',head:true});
+  const base = 247;
+  const display = Math.max(base, (count||0) + base);
+  $('wl-counter').textContent = display.toLocaleString('fr-FR');
+}
+loadCounter();
+
+// ── WAITLIST SUBMIT ───────────────────────────────────
+$('wl-submit').addEventListener('click', async()=>{
+  const name  = $('wl-name').value.trim();
+  const phone = $('wl-phone').value.trim();
+  const email = $('wl-email').value.trim();
+  const city  = $('wl-city').value;
+  const biz   = $('wl-biz').value;
+  const plan  = $('wl-plan').value;
+
+  if(!name)  return toast('Veuillez entrer votre nom','error');
+  if(!phone) return toast('Votre numéro WhatsApp est requis','error');
+
+  $('wl-submit').textContent='⏳ Inscription en cours...';
+  $('wl-submit').disabled=true;
+
+  const {error} = await db.from('waitlist').insert([{
+    full_name:name, phone, email:email||null,
+    city, business_type:biz, plan_interest:plan, status:'waiting'
+  }]);
+
+  if(error){
+    $('wl-submit').textContent='✅ Je rejoins la liste — C\'est gratuit';
+    $('wl-submit').disabled=false;
+    // If duplicate phone, still show success (they already signed up)
+    if(error.code==='23505'){
+      $('wl-form-wrap').style.display='none';
+      $('wl-success').style.display='block';
+      return;
+    }
+    return toast('Erreur: '+error.message,'error');
+  }
+
+  $('wl-form-wrap').style.display='none';
+  $('wl-success').style.display='block';
+  await loadCounter();
+  toast('🎉 Bienvenue dans BillSafe!');
+});
+
+// ── WHATSAPP SHARE ────────────────────────────────────
+function shareWhatsApp(){
+  const msg=encodeURIComponent(`🛡 *BillSafe* — Ne perdez plus jamais une facture!\n\nJe viens de rejoindre la liste d'attente. C'est gratuit et ça protège tes reçus ENEO, CamWater et Camtel.\n\nRejoins ici: ${window.location.href}\n\n🇨🇲 Disponible à Douala & Yaoundé`);
+  window.open('https://wa.me/?text='+msg,'_blank');
+}
+
+// ── SCROLL ANIMATIONS ─────────────────────────────────
+const observer = new IntersectionObserver(entries=>{
+  entries.forEach(e=>{
+    if(e.isIntersecting){
+      e.target.style.opacity='1';
+      e.target.style.transform='translateY(0)';
+    }
+  });
+},{threshold:0.1});
+
+document.querySelectorAll('.problem-card,.feat-card,.plan-card,.step-card,.test-card').forEach(el=>{
+  el.style.opacity='0';
+  el.style.transform='translateY(20px)';
+  el.style.transition='opacity 0.5s ease, transform 0.5s ease';
+  observer.observe(el);
+});
+</script>
+</body>
+</html>
