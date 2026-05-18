@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>BillSafe — Tableau de bord</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@phosphor-icons/web@2.1.1/src/regular/style.css">
 <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,400&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
@@ -77,7 +78,7 @@ body{font-family:var(--fb);background:var(--bg);color:var(--dark);overflow-x:hid
 .nav-item:hover{background:var(--dark3);color:#ddd}
 .nav-item.active{background:var(--lime-dim);color:var(--lime)}
 .nav-item.active .ni-icon{color:var(--lime)}
-.ni-icon{font-size:16px;width:20px;text-align:center;flex-shrink:0}
+.ni-icon{font-size:18px;width:20px;text-align:center;flex-shrink:0;display:flex;align-items:center;justify-content:center}.ni-icon i{font-size:18px}.qa-icon i{font-size:24px}.sc-icon i{font-size:20px}
 .nav-badge{
   margin-left:auto;background:var(--lime);color:var(--dark);
   font-size:9px;font-weight:800;font-family:var(--fh);
@@ -378,7 +379,7 @@ select.form-input{cursor:pointer}
 <!-- ═══════════════ SIDEBAR ═══════════════ -->
 <aside class="sidebar">
   <div class="sb-brand">
-    <div class="sb-logo">🛡</div>
+    <div class="sb-logo"><i class="ph ph-shield-check" style="font-size:20px;color:var(--dark)"></i></div>
     <div>
       <div class="sb-name">BillSafe</div>
       <span class="sb-plan">BUSINESS</span>
@@ -387,23 +388,23 @@ select.form-input{cursor:pointer}
 
   <nav class="sb-nav">
     <div class="nav-section-label">Principal</div>
-    <a class="nav-item active" href="dashboard.html"><span class="ni-icon">📊</span> Tableau de bord</a>
-    <a class="nav-item" href="bills.html"><span class="ni-icon">📄</span> Mes factures <span class="nav-badge" id="nav-bill-count">—</span></a>
-    <a class="nav-item" href="upload.html"><span class="ni-icon">📤</span> Ajouter facture</a>
+    <a class="nav-item active" href="dashboard.html"><span class="ni-icon"><i class="ph ph-chart-bar"></i></span> Tableau de bord</a>
+    <a class="nav-item" href="bills.html"><span class="ni-icon"><i class="ph ph-file-text"></i></span> Mes factures <span class="nav-badge" id="nav-bill-count">—</span></a>
+    <a class="nav-item" href="upload.html"><span class="ni-icon"><i class="ph ph-upload-simple"></i></span> Ajouter facture</a>
 
     <div class="nav-section-label">Outils</div>
-    <a class="nav-item" href="meter-split.html"><span class="ni-icon">⚡</span> Partage compteur</a>
-    <a class="nav-item" href="diaspora.html"><span class="ni-icon">🌍</span> Ma famille au pays</a>
-    <a class="nav-item" href="fiscal.html"><span class="ni-icon">🏛</span> E-Facturation DGI</a>
+    <a class="nav-item" href="meter-split.html"><span class="ni-icon"><i class="ph ph-lightning"></i></span> Partage compteur</a>
+    <a class="nav-item" href="diaspora.html"><span class="ni-icon"><i class="ph ph-globe-hemisphere-west"></i></span> Ma famille au pays</a>
+    <a class="nav-item" href="fiscal.html"><span class="ni-icon"><i class="ph ph-bank"></i></span> E-Facturation DGI</a>
 
     <div class="nav-section-label">Portail</div>
-    <a class="nav-item" href="landlord.html"><span class="ni-icon">🏢</span> Mes propriétés</a>
-    <a class="nav-item" href="tenants.html"><span class="ni-icon">👥</span> Locataires</a>
-    <a class="nav-item" href="shared.html"><span class="ni-icon">🔗</span> Factures partagées</a>
+    <a class="nav-item" href="landlord.html"><span class="ni-icon"><i class="ph ph-buildings"></i></span> Mes propriétés</a>
+    <a class="nav-item" href="tenants.html"><span class="ni-icon"><i class="ph ph-users"></i></span> Locataires</a>
+    <a class="nav-item" href="shared.html"><span class="ni-icon"><i class="ph ph-share-network"></i></span> Factures partagées</a>
 
     <div class="nav-section-label">Compte</div>
-    <a class="nav-item" href="settings.html"><span class="ni-icon">⚙️</span> Paramètres</a>
-    <a class="nav-item" href="alerts.html"><span class="ni-icon">🔔</span> Alertes <span class="nav-badge red" id="anomaly-badge" style="display:none">!</span></a>
+    <a class="nav-item" href="settings.html"><span class="ni-icon"><i class="ph ph-gear"></i></span> Paramètres</a>
+    <a class="nav-item" href="alerts.html"><span class="ni-icon"><i class="ph ph-bell"></i></span> Alertes <span class="nav-badge red" id="anomaly-badge" style="display:none">!</span></a>
   </nav>
 
   <div class="sb-bottom">
@@ -413,7 +414,7 @@ select.form-input{cursor:pointer}
         <div class="sb-user-name" id="user-name">Chargement...</div>
         <div class="sb-user-email" id="user-email">—</div>
       </div>
-      <button class="sb-logout" id="logout-btn" title="Déconnecter">⏻</button>
+      <button class="sb-logout" id="logout-btn" title="Déconnecter"><i class="ph ph-sign-out" style="font-size:18px"></i></button>
     </div>
   </div>
 </aside>
@@ -432,7 +433,7 @@ select.form-input{cursor:pointer}
       <button class="tb-icon-btn" onclick="window.location.href='alerts.html'" title="Alertes">
         🔔<span class="notif-dot" id="notif-dot" style="display:none"></span>
       </button>
-      <button class="tb-btn tb-btn-lime" onclick="openUploadModal()">+ Ajouter facture</button>
+      <button class="tb-btn tb-btn-lime" onclick="openUploadModal()"><i class="ph ph-plus" style="font-size:14px"></i> Ajouter facture</button>
     </div>
   </header>
 
@@ -450,17 +451,17 @@ select.form-input{cursor:pointer}
           <p id="greeting-sub">Voici un résumé de vos dépenses. Tout semble normal ce mois-ci.</p>
         </div>
         <div class="gc-right">
-          <button class="tb-btn tb-btn-ghost" style="color:#aaa;border-color:#2a2a2a;background:#1a1a1a" onclick="window.location.href='fiscal.html'">⚖️ DGI 2026</button>
-          <button class="tb-btn tb-btn-lime" onclick="openUploadModal()">+ Scanner</button>
+          <button class="tb-btn tb-btn-ghost" style="color:#aaa;border-color:#2a2a2a;background:#1a1a1a" onclick="window.location.href='fiscal.html'"><i class="ph ph-scales" style="font-size:15px"></i> DGI 2026</button>
+          <button class="tb-btn tb-btn-lime" onclick="openUploadModal()"><i class="ph ph-scan" style="font-size:14px"></i> Scanner</button>
         </div>
       </div>
       <div class="card" style="padding:20px">
         <div class="card-title" style="margin-bottom:14px">Actions rapides</div>
         <div class="qa-grid">
-          <a class="qa-btn qa-lime" href="upload.html"><span class="qa-icon">📸</span><div><div class="qa-label">Scanner</div><div class="qa-sub">Photo reçu</div></div></a>
-          <a class="qa-btn qa-dark" href="meter-split.html"><span class="qa-icon">⚡</span><div><div class="qa-label" style="color:var(--white)">Partager</div><div class="qa-sub">Compteur</div></div></a>
-          <a class="qa-btn qa-light" href="diaspora.html"><span class="qa-icon">🌍</span><div><div class="qa-label">Diaspora</div><div class="qa-sub">Famille</div></div></a>
-          <a class="qa-btn qa-blue" href="fiscal.html"><span class="qa-icon">🏛</span><div><div class="qa-label">DGI 2026</div><div class="qa-sub">Fiscal</div></div></a>
+          <a class="qa-btn qa-lime" href="upload.html"><span class="qa-icon"><i class="ph ph-camera" style="font-size:24px"></i></span><div><div class="qa-label">Scanner</div><div class="qa-sub">Photo reçu</div></div></a>
+          <a class="qa-btn qa-dark" href="meter-split.html"><span class="qa-icon"><i class="ph ph-lightning" style="font-size:24px"></i></span><div><div class="qa-label" style="color:var(--white)">Partager</div><div class="qa-sub">Compteur</div></div></a>
+          <a class="qa-btn qa-light" href="diaspora.html"><span class="qa-icon"><i class="ph ph-globe-hemisphere-west" style="font-size:24px"></i></span><div><div class="qa-label">Diaspora</div><div class="qa-sub">Famille</div></div></a>
+          <a class="qa-btn qa-blue" href="fiscal.html"><span class="qa-icon"><i class="ph ph-bank" style="font-size:24px"></i></span><div><div class="qa-label">DGI 2026</div><div class="qa-sub">Fiscal</div></div></a>
         </div>
       </div>
     </div>
@@ -468,25 +469,25 @@ select.form-input{cursor:pointer}
     <!-- ② STATS ROW -->
     <div class="stats-row">
       <div class="stat-card stat-card-dark">
-        <div class="sc-header"><div class="sc-icon sc-icon-dark">💰</div><span class="sc-badge sc-badge-neutral">Ce mois</span></div>
+        <div class="sc-header"><div class="sc-icon sc-icon-dark"><i class="ph ph-currency-circle-dollar" style="font-size:20px;color:var(--lime)"></i></div><span class="sc-badge sc-badge-neutral">Ce mois</span></div>
         <div class="sc-label">Total dépensé</div>
         <div class="sc-value" id="stat-total">—</div>
         <div class="sc-sub">FCFA ce mois</div>
       </div>
       <div class="stat-card stat-card-lime">
-        <div class="sc-header"><div class="sc-icon" style="background:rgba(0,0,0,0.08)">✅</div><span class="sc-badge" style="background:rgba(0,0,0,0.08);color:#2a2a2a">Confirmées</span></div>
+        <div class="sc-header"><div class="sc-icon" style="background:rgba(0,0,0,0.08)"><i class="ph ph-check-circle" style="font-size:20px;color:var(--dark)"></i></div><span class="sc-badge" style="background:rgba(0,0,0,0.08);color:#2a2a2a">Confirmées</span></div>
         <div class="sc-label">Factures payées</div>
         <div class="sc-value" id="stat-paid">—</div>
         <div class="sc-sub">sur <span id="stat-total-count">—</span> enregistrées</div>
       </div>
       <div class="stat-card">
-        <div class="sc-header"><div class="sc-icon sc-icon-amber">⏳</div><span class="sc-badge sc-badge-down">À régler</span></div>
+        <div class="sc-header"><div class="sc-icon sc-icon-amber"><i class="ph ph-clock" style="font-size:20px"></i></div><span class="sc-badge sc-badge-down">À régler</span></div>
         <div class="sc-label">En attente</div>
         <div class="sc-value" id="stat-pending" style="color:var(--amber)">—</div>
         <div class="sc-sub">factures non réglées</div>
       </div>
       <div class="stat-card">
-        <div class="sc-header"><div class="sc-icon sc-icon-green">📁</div><span class="sc-badge sc-badge-up">Vault</span></div>
+        <div class="sc-header"><div class="sc-icon sc-icon-green"><i class="ph ph-vault" style="font-size:20px"></i></div><span class="sc-badge sc-badge-up">Vault</span></div>
         <div class="sc-label">Factures sauvegardées</div>
         <div class="sc-value" id="stat-vault" style="color:var(--green)">—</div>
         <div class="sc-sub">protégées dans le cloud</div>
@@ -558,7 +559,7 @@ select.form-input{cursor:pointer}
       <div class="card">
         <div class="card-header">
           <div><div class="card-title">Activité récente</div><div class="card-sub">Vos dernières actions</div></div>
-          <button class="card-action" onclick="loadBills()">🔄</button>
+          <button class="card-action" onclick="loadBills()"><i class="ph ph-arrow-clockwise" style="font-size:14px"></i></button>
         </div>
         <div id="activity-list">
           <div class="skeleton" style="height:52px;margin-bottom:8px;border-radius:10px"></div>
@@ -581,7 +582,7 @@ select.form-input{cursor:pointer}
     </div>
     <div class="drop-zone" id="drop-zone" onclick="document.getElementById('file-in').click()">
       <input type="file" id="file-in" accept="image/*,.pdf" style="display:none" onchange="handleFile(this.files[0])">
-      <div style="font-size:32px;margin-bottom:8px">🖼</div>
+      <div style="font-size:32px;margin-bottom:8px"><i class="ph ph-image" style="font-size:36px;color:var(--gray)"></i></div>
       <h3>Photo ou PDF de la facture</h3>
       <p>JPG, PNG ou PDF — max 10 MB</p>
       <div class="file-name" id="file-name"></div>
@@ -820,9 +821,9 @@ function renderDonutChart() {
 // ── BREAKDOWN ──────────────────────────────────
 function renderBreakdown() {
   const companies = [
-    { name:'ENEO',     icon:'⚡', color:'#C8FF00' },
-    { name:'CamWater', icon:'💧', color:'#60A5FA' },
-    { name:'Camtel',   icon:'📡', color:'#A78BFA' },
+    { name:'ENEO',     icon:'<i class="ph ph-lightning"></i>', color:'#C8FF00' },
+    { name:'CamWater', icon:'<i class="ph ph-drop"></i>', color:'#60A5FA' },
+    { name:'Camtel',   icon:'<i class="ph ph-wifi-high"></i>', color:'#A78BFA' },
   ];
   const now = new Date();
   const mo  = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}`;
@@ -863,9 +864,9 @@ function renderBillsTable(bills) {
     return;
   }
   const coMap = {
-    ENEO:     { icon:'⚡', cls:'co-eneo' },
-    CamWater: { icon:'💧', cls:'co-camwater' },
-    Camtel:   { icon:'📡', cls:'co-camtel' },
+    ENEO:     { icon:'<i class="ph ph-lightning"></i>', cls:'co-eneo' },
+    CamWater: { icon:'<i class="ph ph-drop"></i>', cls:'co-camwater' },
+    Camtel:   { icon:'<i class="ph ph-wifi-high"></i>', cls:'co-camtel' },
   };
   wrap.innerHTML = `<table class="bills-table">
     <thead><tr>
@@ -885,8 +886,8 @@ function renderBillsTable(bills) {
         <td class="amount-val">${fmtA(b.amount)}</td>
         <td>${pill}</td>
         <td><div style="display:flex;gap:4px">
-          ${b.file_url ? `<button class="row-action" onclick="window.open('${b.file_url}')" title="Voir">👁</button>` : ''}
-          <button class="row-action" onclick="deleteBill('${b.id}')" title="Supprimer">🗑</button>
+          ${b.file_url ? `<button class="row-action" onclick="window.open('${b.file_url}')" title="Voir"><i class='ph ph-eye'></i></button>` : ''}
+          <button class="row-action" onclick="deleteBill('${b.id}')" title="Supprimer"><i class='ph ph-trash'></i></button>
         </div></td>
       </tr>`;
     }).join('')}</tbody>
@@ -902,7 +903,7 @@ function renderActivity() {
     return;
   }
   const now = Date.now();
-  const coIcon = { ENEO:'⚡', CamWater:'💧', Camtel:'📡' };
+  const coIcon = { ENEO:'<i class="ph ph-lightning"></i>', CamWater:'<i class="ph ph-drop"></i>', Camtel:'<i class="ph ph-wifi-high"></i>' };
   const coBg   = { ENEO:'rgba(200,255,0,0.12)', CamWater:'rgba(96,165,250,0.1)', Camtel:'rgba(167,139,250,0.1)' };
   el.innerHTML = recent.map(b => {
     const diff = Math.round((now - new Date(b.created_at))/3600000);
@@ -932,7 +933,7 @@ async function checkAnomalies() {
   const warning  = data.length;
   const wrap     = $('anomaly-banner-wrap');
   const cls      = critical ? 'ab-critical' : 'ab-warning';
-  const icon     = critical ? '🚨' : '⚠️';
+  const icon     = critical ? '<i class="ph ph-warning-circle" style="font-size:28px;color:var(--red)"></i>' : '<i class="ph ph-warning" style="font-size:28px;color:var(--amber)"></i>';
   const title    = critical ? `${critical} facture${critical>1?'s':''} critique${critical>1?'s':''}` : `${warning} anomalie${warning>1?'s':''} détectée${warning>1?'s':''}`;
   const sub      = critical ? 'Vos factures sont bien au-dessus de la normale. Vérifiez maintenant.' : 'Certaines factures sont inhabituellement élevées.';
   wrap.innerHTML = `<div class="anomaly-banner ${cls}">
