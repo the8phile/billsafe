@@ -439,127 +439,160 @@ select.form-input{cursor:pointer}
   <!-- CONTENT -->
   <div class="content">
 
-    <!-- ANOMALY BANNER (injected dynamically) -->
+    <!-- ANOMALY BANNER -->
     <div id="anomaly-banner-wrap"></div>
 
-    <!-- GREETING -->
-    <div class="greeting-card" id="greeting-card">
-      <div class="gc-left">
-        <h2 id="greeting-text">Bonjour 👋</h2>
-        <p id="greeting-sub">Voici un résumé de vos dépenses. Tout semble normal ce mois-ci.</p>
+    <!-- ① GREETING + QUICK ACTIONS ROW -->
+    <div style="display:grid;grid-template-columns:1fr 340px;gap:18px;margin-bottom:22px">
+      <div class="greeting-card" id="greeting-card" style="margin-bottom:0">
+        <div class="gc-left">
+          <h2 id="greeting-text">Bonjour 👋</h2>
+          <p id="greeting-sub">Voici un résumé de vos dépenses. Tout semble normal ce mois-ci.</p>
+        </div>
+        <div class="gc-right">
+          <button class="tb-btn tb-btn-ghost" style="color:#aaa;border-color:#2a2a2a;background:#1a1a1a" onclick="window.location.href='fiscal.html'">⚖️ DGI 2026</button>
+          <button class="tb-btn tb-btn-lime" onclick="openUploadModal()">+ Scanner</button>
+        </div>
       </div>
-      <div class="gc-right">
-        <button class="tb-btn tb-btn-ghost" style="color:#aaa;border-color:#2a2a2a;background:#1a1a1a" onclick="window.location.href='fiscal.html'">⚖️ DGI 2026</button>
-        <button class="tb-btn tb-btn-lime" onclick="openUploadModal()">+ Scanner un reçu</button>
+      <div class="card" style="padding:20px">
+        <div class="card-title" style="margin-bottom:14px">Actions rapides</div>
+        <div class="qa-grid">
+          <a class="qa-btn qa-lime" href="upload.html"><span class="qa-icon">📸</span><div><div class="qa-label">Scanner</div><div class="qa-sub">Photo reçu</div></div></a>
+          <a class="qa-btn qa-dark" href="meter-split.html"><span class="qa-icon">⚡</span><div><div class="qa-label" style="color:var(--white)">Partager</div><div class="qa-sub">Compteur</div></div></a>
+          <a class="qa-btn qa-light" href="diaspora.html"><span class="qa-icon">🌍</span><div><div class="qa-label">Diaspora</div><div class="qa-sub">Famille</div></div></a>
+          <a class="qa-btn qa-blue" href="fiscal.html"><span class="qa-icon">🏛</span><div><div class="qa-label">DGI 2026</div><div class="qa-sub">Fiscal</div></div></a>
+        </div>
       </div>
     </div>
 
-    <!-- STATS ROW -->
+    <!-- ② STATS ROW -->
     <div class="stats-row">
-      <!-- Total ce mois -->
       <div class="stat-card stat-card-dark">
-        <div class="sc-header">
-          <div class="sc-icon sc-icon-dark">💰</div>
-          <span class="sc-badge sc-badge-neutral" id="badge-total">Ce mois</span>
-        </div>
+        <div class="sc-header"><div class="sc-icon sc-icon-dark">💰</div><span class="sc-badge sc-badge-neutral">Ce mois</span></div>
         <div class="sc-label">Total dépensé</div>
         <div class="sc-value" id="stat-total">—</div>
         <div class="sc-sub">FCFA ce mois</div>
       </div>
-      <!-- Payées -->
       <div class="stat-card stat-card-lime">
-        <div class="sc-header">
-          <div class="sc-icon" style="background:rgba(0,0,0,0.08)">✅</div>
-          <span class="sc-badge" style="background:rgba(0,0,0,0.08);color:#2a2a2a" id="badge-paid">Confirmées</span>
-        </div>
+        <div class="sc-header"><div class="sc-icon" style="background:rgba(0,0,0,0.08)">✅</div><span class="sc-badge" style="background:rgba(0,0,0,0.08);color:#2a2a2a">Confirmées</span></div>
         <div class="sc-label">Factures payées</div>
         <div class="sc-value" id="stat-paid">—</div>
         <div class="sc-sub">sur <span id="stat-total-count">—</span> enregistrées</div>
       </div>
-      <!-- En attente -->
       <div class="stat-card">
-        <div class="sc-header">
-          <div class="sc-icon sc-icon-amber">⏳</div>
-          <span class="sc-badge sc-badge-down" id="badge-pending">À régler</span>
-        </div>
+        <div class="sc-header"><div class="sc-icon sc-icon-amber">⏳</div><span class="sc-badge sc-badge-down">À régler</span></div>
         <div class="sc-label">En attente</div>
         <div class="sc-value" id="stat-pending" style="color:var(--amber)">—</div>
         <div class="sc-sub">factures non réglées</div>
       </div>
-      <!-- Économies -->
       <div class="stat-card">
-        <div class="sc-header">
-          <div class="sc-icon sc-icon-green">📁</div>
-          <span class="sc-badge sc-badge-up">Sauvegardées</span>
-        </div>
-        <div class="sc-label">Vault total</div>
+        <div class="sc-header"><div class="sc-icon sc-icon-green">📁</div><span class="sc-badge sc-badge-up">Vault</span></div>
+        <div class="sc-label">Factures sauvegardées</div>
         <div class="sc-value" id="stat-vault" style="color:var(--green)">—</div>
-        <div class="sc-sub">factures protégées</div>
+        <div class="sc-sub">protégées dans le cloud</div>
       </div>
     </div>
 
-    <!-- CHART + QUICK ACTIONS -->
-    <div class="content-grid" style="margin-bottom:18px">
-      <!-- Chart card -->
+    <!-- ③ CHARTS — ROW 1: Main bar (wide) + Donut (narrow) -->
+    <div style="display:grid;grid-template-columns:1.8fr 1fr;gap:18px;margin-bottom:18px">
+      <!-- Chart 1: Monthly bar -->
       <div class="card">
         <div class="card-header">
-          <div>
-            <div class="card-title">Dépenses mensuelles</div>
-            <div class="card-sub">6 derniers mois par société</div>
-          </div>
+          <div><div class="card-title">Dépenses mensuelles par société</div><div class="card-sub">6 derniers mois</div></div>
           <div class="chart-legend">
             <div class="legend-item"><div class="legend-dot" style="background:var(--lime)"></div>ENEO</div>
             <div class="legend-item"><div class="legend-dot" style="background:#60A5FA"></div>CamWater</div>
             <div class="legend-item"><div class="legend-dot" style="background:#A78BFA"></div>Camtel</div>
           </div>
         </div>
-        <div class="chart-wrap"><canvas id="main-chart"></canvas></div>
+        <div class="chart-wrap" style="height:220px"><canvas id="main-chart"></canvas></div>
       </div>
-
-      <!-- Quick actions + breakdown -->
-      <div style="display:flex;flex-direction:column;gap:18px">
-        <!-- Quick actions -->
-        <div class="card">
-          <div class="card-header">
-            <div class="card-title">Actions rapides</div>
-          </div>
-          <div class="qa-grid">
-            <a class="qa-btn qa-lime" href="upload.html">
-              <span class="qa-icon">📸</span>
-              <div><div class="qa-label">Scanner</div><div class="qa-sub">Photo d'un reçu</div></div>
-            </a>
-            <a class="qa-btn qa-dark" href="meter-split.html">
-              <span class="qa-icon">⚡</span>
-              <div><div class="qa-label" style="color:var(--white)">Partager</div><div class="qa-sub">Compteur voisins</div></div>
-            </a>
-            <a class="qa-btn qa-light" href="diaspora.html">
-              <span class="qa-icon">🌍</span>
-              <div><div class="qa-label">Diaspora</div><div class="qa-sub">Ma famille</div></div>
-            </a>
-            <a class="qa-btn qa-blue" href="fiscal.html">
-              <span class="qa-icon">🏛</span>
-              <div><div class="qa-label">Fiscal DGI</div><div class="qa-sub">Conformité 2026</div></div>
-            </a>
+      <!-- Chart 2: Donut -->
+      <div class="card">
+        <div class="card-header">
+          <div><div class="card-title">Répartition par société</div><div class="card-sub">Total cumulé</div></div>
+        </div>
+        <div style="position:relative">
+          <div style="height:180px;position:relative"><canvas id="donut-chart"></canvas></div>
+          <div class="donut-center">
+            <div class="donut-val" id="donut-total">—</div>
+            <div class="donut-lbl">FCFA total</div>
           </div>
         </div>
+        <div id="donut-legend" style="margin-top:12px;display:flex;flex-direction:column;gap:6px"></div>
+      </div>
+    </div>
 
-        <!-- Breakdown by company -->
-        <div class="card" style="flex:1">
-          <div class="card-header">
-            <div><div class="card-title">Par société</div><div class="card-sub">Ce mois</div></div>
+    <!-- ④ CHARTS — ROW 2: Trend line + Compare + Status -->
+    <div class="charts-row-3" style="margin-bottom:18px">
+      <!-- Chart 3: Trend line -->
+      <div class="card">
+        <div class="card-header">
+          <div><div class="card-title">Tendance 12 mois</div><div class="card-sub">Évolution des dépenses</div></div>
+          <span class="trend-badge trend-up" id="trend-badge-label">↑ 0%</span>
+        </div>
+        <div class="kpi-row">
+          <div class="kpi-box"><div class="kpi-val" id="kpi-avg">—</div><div class="kpi-lbl">Moy/mois</div></div>
+          <div class="kpi-box"><div class="kpi-val" id="kpi-max">—</div><div class="kpi-lbl">Max</div></div>
+          <div class="kpi-box"><div class="kpi-val" id="kpi-min">—</div><div class="kpi-lbl">Min</div></div>
+        </div>
+        <div class="chart-wrap-sm"><canvas id="trend-chart"></canvas></div>
+      </div>
+      <!-- Chart 4: Compare this month vs last -->
+      <div class="card">
+        <div class="card-header">
+          <div><div class="card-title">Ce mois vs Mois dernier</div><div class="card-sub">Par société</div></div>
+        </div>
+        <div class="chart-wrap-md"><canvas id="compare-chart"></canvas></div>
+        <div id="compare-summary" style="margin-top:10px;font-size:11px;color:var(--gray);text-align:center;line-height:1.6"></div>
+      </div>
+      <!-- Chart 5: Status donut -->
+      <div class="card">
+        <div class="card-header">
+          <div><div class="card-title">Statut des paiements</div><div class="card-sub">Toutes les factures</div></div>
+        </div>
+        <div class="chart-wrap-sm" style="height:150px"><canvas id="status-chart"></canvas></div>
+        <div id="status-stats" style="margin-top:12px;display:flex;flex-direction:column;gap:6px"></div>
+      </div>
+    </div>
+
+    <!-- ⑤ CHARTS — ROW 3: Heatmap (wide) + Breakdown (narrow) -->
+    <div style="display:grid;grid-template-columns:1.6fr 1fr;gap:18px;margin-bottom:18px">
+      <!-- Chart 6: Heatmap -->
+      <div class="card">
+        <div class="card-header">
+          <div><div class="card-title">Fréquence des paiements</div><div class="card-sub">12 dernières semaines</div></div>
+          <div style="display:flex;align-items:center;gap:6px;font-size:11px;color:var(--gray)">
+            <div style="width:10px;height:10px;background:#F3F4F6;border-radius:2px"></div>Aucun
+            <div style="width:10px;height:10px;background:rgba(200,255,0,0.4);border-radius:2px"></div>Peu
+            <div style="width:10px;height:10px;background:var(--lime);border-radius:2px"></div>Élevé
           </div>
-          <div id="breakdown-list">
-            <div class="skeleton" style="height:14px;margin-bottom:12px"></div>
-            <div class="skeleton" style="height:14px;margin-bottom:12px"></div>
-            <div class="skeleton" style="height:14px"></div>
-          </div>
+        </div>
+        <div class="heatmap-labels">
+          <div class="heatmap-day">Lun</div><div class="heatmap-day">Mar</div><div class="heatmap-day">Mer</div>
+          <div class="heatmap-day">Jeu</div><div class="heatmap-day">Ven</div><div class="heatmap-day">Sam</div>
+          <div class="heatmap-day">Dim</div>
+        </div>
+        <div class="heatmap-grid" id="heatmap-grid"></div>
+        <div style="margin-top:10px;display:flex;justify-content:space-between;font-size:11px;color:var(--gray)">
+          <span id="heatmap-start">—</span><span id="heatmap-end">Aujourd'hui</span>
+        </div>
+      </div>
+      <!-- Breakdown by company -->
+      <div class="card">
+        <div class="card-header">
+          <div><div class="card-title">Par société</div><div class="card-sub">Ce mois — répartition</div></div>
+        </div>
+        <div id="breakdown-list">
+          <div class="skeleton" style="height:14px;margin-bottom:14px;border-radius:6px"></div>
+          <div class="skeleton" style="height:14px;margin-bottom:14px;border-radius:6px"></div>
+          <div class="skeleton" style="height:14px;border-radius:6px"></div>
         </div>
       </div>
     </div>
 
-    <!-- BILLS TABLE + ACTIVITY -->
+    <!-- ⑥ BILLS TABLE + ACTIVITY -->
     <div class="content-grid">
-      <!-- Bills table -->
       <div class="card">
         <div class="card-header">
           <div><div class="card-title">Factures récentes</div><div class="card-sub">Vos dernières quittances</div></div>
@@ -578,8 +611,6 @@ select.form-input{cursor:pointer}
           <div class="skeleton" style="height:52px;border-radius:10px"></div>
         </div>
       </div>
-
-      <!-- Activity feed -->
       <div class="card">
         <div class="card-header">
           <div><div class="card-title">Activité récente</div><div class="card-sub">Vos dernières actions</div></div>
@@ -590,106 +621,6 @@ select.form-input{cursor:pointer}
           <div class="skeleton" style="height:52px;margin-bottom:8px;border-radius:10px"></div>
           <div class="skeleton" style="height:52px;border-radius:10px"></div>
         </div>
-      </div>
-    </div>
-
-
-    <!-- ═══ SECTION: ANALYTICS APPROFONDIS ═══ -->
-    <div class="section-divider">
-      <div class="section-divider-line"></div>
-      <div class="section-divider-label">📊 Analyses approfondies</div>
-      <div class="section-divider-line"></div>
-    </div>
-
-    <!-- ROW: Trend + Donut + Monthly avg -->
-    <div class="charts-row-3" style="margin-bottom:18px">
-
-      <!-- CHART 1: Spending trend line -->
-      <div class="card">
-        <div class="card-header">
-          <div>
-            <div class="card-title">Tendance des dépenses</div>
-            <div class="card-sub">Évolution sur 12 mois</div>
-          </div>
-          <span class="trend-badge trend-up" id="trend-badge-label">↑ 0%</span>
-        </div>
-        <div class="kpi-row">
-          <div class="kpi-box"><div class="kpi-val" id="kpi-avg">—</div><div class="kpi-lbl">Moyenne/mois</div></div>
-          <div class="kpi-box"><div class="kpi-val" id="kpi-max">—</div><div class="kpi-lbl">Mois le + cher</div></div>
-          <div class="kpi-box"><div class="kpi-val" id="kpi-min">—</div><div class="kpi-lbl">Mois le + bas</div></div>
-        </div>
-        <div class="chart-wrap-sm"><canvas id="trend-chart"></canvas></div>
-      </div>
-
-      <!-- CHART 2: Donut by company -->
-      <div class="card">
-        <div class="card-header">
-          <div>
-            <div class="card-title">Répartition par société</div>
-            <div class="card-sub">Total cumulé</div>
-          </div>
-        </div>
-        <div style="position:relative">
-          <div class="chart-wrap-md"><canvas id="donut-chart"></canvas></div>
-          <div class="donut-center">
-            <div class="donut-val" id="donut-total">—</div>
-            <div class="donut-lbl">FCFA total</div>
-          </div>
-        </div>
-        <div id="donut-legend" style="margin-top:12px;display:flex;flex-direction:column;gap:6px"></div>
-      </div>
-
-      <!-- CHART 3: Month-on-month comparison -->
-      <div class="card">
-        <div class="card-header">
-          <div>
-            <div class="card-title">Ce mois vs Mois dernier</div>
-            <div class="card-sub">Comparaison par société</div>
-          </div>
-        </div>
-        <div class="chart-wrap-md"><canvas id="compare-chart"></canvas></div>
-        <div id="compare-summary" style="margin-top:12px;font-size:12px;color:var(--gray);text-align:center;line-height:1.6"></div>
-      </div>
-    </div>
-
-    <!-- ROW: Heatmap + Status funnel -->
-    <div class="charts-row-2">
-
-      <!-- CHART 4: Bill frequency heatmap (last 12 weeks) -->
-      <div class="card">
-        <div class="card-header">
-          <div>
-            <div class="card-title">Fréquence des paiements</div>
-            <div class="card-sub">12 dernières semaines — chaque case = 1 semaine</div>
-          </div>
-          <div style="display:flex;align-items:center;gap:6px;font-size:11px;color:var(--gray)">
-            <div style="width:10px;height:10px;background:#F3F4F6;border-radius:2px"></div>Aucun
-            <div style="width:10px;height:10px;background:rgba(200,255,0,0.4);border-radius:2px"></div>Peu
-            <div style="width:10px;height:10px;background:var(--lime);border-radius:2px"></div>Élevé
-          </div>
-        </div>
-        <div class="heatmap-labels">
-          <div class="heatmap-day">Lun</div><div class="heatmap-day">Mar</div>
-          <div class="heatmap-day">Mer</div><div class="heatmap-day">Jeu</div>
-          <div class="heatmap-day">Ven</div><div class="heatmap-day">Sam</div>
-          <div class="heatmap-day">Dim</div>
-        </div>
-        <div class="heatmap-grid" id="heatmap-grid"></div>
-        <div style="margin-top:12px;display:flex;justify-content:space-between;font-size:11px;color:var(--gray)">
-          <span id="heatmap-start">—</span><span id="heatmap-end">—</span>
-        </div>
-      </div>
-
-      <!-- CHART 5: Payment status funnel + stats -->
-      <div class="card">
-        <div class="card-header">
-          <div>
-            <div class="card-title">Statut des paiements</div>
-            <div class="card-sub">Toutes les factures</div>
-          </div>
-        </div>
-        <div class="chart-wrap-md"><canvas id="status-chart"></canvas></div>
-        <div id="status-stats" style="margin-top:16px;display:flex;flex-direction:column;gap:8px"></div>
       </div>
     </div>
 
