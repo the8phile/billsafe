@@ -523,71 +523,15 @@ select.form-input{cursor:pointer}
       </div>
     </div>
 
-    <!-- ④ CHARTS — ROW 2: Trend line + Compare + Status -->
-    <div class="charts-row-3" style="margin-bottom:18px">
-      <!-- Chart 3: Trend line -->
-      <div class="card">
-        <div class="card-header">
-          <div><div class="card-title">Tendance 12 mois</div><div class="card-sub">Évolution des dépenses</div></div>
-          <span class="trend-badge trend-up" id="trend-badge-label">↑ 0%</span>
-        </div>
-        <div class="kpi-row">
-          <div class="kpi-box"><div class="kpi-val" id="kpi-avg">—</div><div class="kpi-lbl">Moy/mois</div></div>
-          <div class="kpi-box"><div class="kpi-val" id="kpi-max">—</div><div class="kpi-lbl">Max</div></div>
-          <div class="kpi-box"><div class="kpi-val" id="kpi-min">—</div><div class="kpi-lbl">Min</div></div>
-        </div>
-        <div class="chart-wrap-sm"><canvas id="trend-chart"></canvas></div>
+    <!-- ⑤ BREAKDOWN — full width -->
+    <div class="card" style="margin-bottom:18px">
+      <div class="card-header">
+        <div><div class="card-title">Dépenses par société</div><div class="card-sub">Ce mois — répartition</div></div>
       </div>
-      <!-- Chart 4: Compare this month vs last -->
-      <div class="card">
-        <div class="card-header">
-          <div><div class="card-title">Ce mois vs Mois dernier</div><div class="card-sub">Par société</div></div>
-        </div>
-        <div class="chart-wrap-md"><canvas id="compare-chart"></canvas></div>
-        <div id="compare-summary" style="margin-top:10px;font-size:11px;color:var(--gray);text-align:center;line-height:1.6"></div>
-      </div>
-      <!-- Chart 5: Status donut -->
-      <div class="card">
-        <div class="card-header">
-          <div><div class="card-title">Statut des paiements</div><div class="card-sub">Toutes les factures</div></div>
-        </div>
-        <div class="chart-wrap-sm" style="height:150px"><canvas id="status-chart"></canvas></div>
-        <div id="status-stats" style="margin-top:12px;display:flex;flex-direction:column;gap:6px"></div>
-      </div>
-    </div>
-
-    <!-- ⑤ CHARTS — ROW 3: Heatmap (wide) + Breakdown (narrow) -->
-    <div style="display:grid;grid-template-columns:1.6fr 1fr;gap:18px;margin-bottom:18px">
-      <!-- Chart 6: Heatmap -->
-      <div class="card">
-        <div class="card-header">
-          <div><div class="card-title">Fréquence des paiements</div><div class="card-sub">12 dernières semaines</div></div>
-          <div style="display:flex;align-items:center;gap:6px;font-size:11px;color:var(--gray)">
-            <div style="width:10px;height:10px;background:#F3F4F6;border-radius:2px"></div>Aucun
-            <div style="width:10px;height:10px;background:rgba(200,255,0,0.4);border-radius:2px"></div>Peu
-            <div style="width:10px;height:10px;background:var(--lime);border-radius:2px"></div>Élevé
-          </div>
-        </div>
-        <div class="heatmap-labels">
-          <div class="heatmap-day">Lun</div><div class="heatmap-day">Mar</div><div class="heatmap-day">Mer</div>
-          <div class="heatmap-day">Jeu</div><div class="heatmap-day">Ven</div><div class="heatmap-day">Sam</div>
-          <div class="heatmap-day">Dim</div>
-        </div>
-        <div class="heatmap-grid" id="heatmap-grid"></div>
-        <div style="margin-top:10px;display:flex;justify-content:space-between;font-size:11px;color:var(--gray)">
-          <span id="heatmap-start">—</span><span id="heatmap-end">Aujourd'hui</span>
-        </div>
-      </div>
-      <!-- Breakdown by company -->
-      <div class="card">
-        <div class="card-header">
-          <div><div class="card-title">Par société</div><div class="card-sub">Ce mois — répartition</div></div>
-        </div>
-        <div id="breakdown-list">
-          <div class="skeleton" style="height:14px;margin-bottom:14px;border-radius:6px"></div>
-          <div class="skeleton" style="height:14px;margin-bottom:14px;border-radius:6px"></div>
-          <div class="skeleton" style="height:14px;border-radius:6px"></div>
-        </div>
+      <div id="breakdown-list">
+        <div class="skeleton" style="height:14px;border-radius:6px"></div>
+        <div class="skeleton" style="height:14px;border-radius:6px"></div>
+        <div class="skeleton" style="height:14px;border-radius:6px"></div>
       </div>
     </div>
 
@@ -830,74 +774,11 @@ function renderChart() {
 }
 
 // ── CHART INSTANCES ─────────────────────────────
-let trendChart=null, donutChart=null, compareChart=null, statusChart=null;
+let donutChart=null;
 
 // ── RENDER ALL NEW CHARTS ────────────────────────
 function renderAllCharts() {
-  renderTrendChart();
   renderDonutChart();
-  renderCompareChart();
-  renderHeatmap();
-  renderStatusChart();
-}
-
-// ── 1. TREND LINE — 12 months ───────────────────
-function renderTrendChart() {
-  const months=[], labels=[], totals=[];
-  for(let i=11;i>=0;i--){
-    const d=new Date(); d.setMonth(d.getMonth()-i);
-    const mo=`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
-    months.push(mo);
-    labels.push(d.toLocaleDateString('fr-FR',{month:'short'}));
-    totals.push(allBills.filter(b=>b.billing_month?.startsWith(mo)).reduce((s,b)=>s+(b.amount||0),0));
-  }
-
-  // KPIs
-  const nonZero=totals.filter(t=>t>0);
-  const avg=nonZero.length?Math.round(nonZero.reduce((a,b)=>a+b,0)/nonZero.length):0;
-  const max=Math.max(...totals,0);
-  const min=nonZero.length?Math.min(...nonZero):0;
-  $('kpi-avg').textContent = avg ? fmt(avg)+' F' : '—';
-  $('kpi-max').textContent = max ? fmt(max)+' F' : '—';
-  $('kpi-min').textContent = min ? fmt(min)+' F' : '—';
-
-  // Trend badge
-  const last=totals[totals.length-1]||0;
-  const prev=totals[totals.length-2]||0;
-  const badge=$('trend-badge-label');
-  if(prev>0){
-    const pct=Math.round(((last-prev)/prev)*100);
-    badge.textContent=(pct>=0?'↑ +':'↓ ')+pct+'%';
-    badge.className='trend-badge '+(pct>=0?'trend-up':'trend-down');
-  }
-
-  if(trendChart)trendChart.destroy();
-  const ctx=$('trend-chart').getContext('2d');
-  const grad=ctx.createLinearGradient(0,0,0,160);
-  grad.addColorStop(0,'rgba(200,255,0,0.3)');
-  grad.addColorStop(1,'rgba(200,255,0,0)');
-  trendChart=new Chart(ctx,{
-    type:'line',
-    data:{labels,datasets:[{
-      label:'Total',data:totals,
-      borderColor:'#C8FF00',borderWidth:2.5,
-      backgroundColor:grad,fill:true,
-      pointBackgroundColor:'#C8FF00',pointRadius:3,pointHoverRadius:6,
-      tension:0.4,
-    }]},
-    options:{
-      responsive:true,maintainAspectRatio:false,
-      plugins:{legend:{display:false},tooltip:{
-        backgroundColor:'#0A0A0A',titleFont:{family:'Syne',weight:'700'},
-        bodyFont:{family:'DM Sans'},padding:10,cornerRadius:8,
-        callbacks:{label:ctx=>` ${fmt(ctx.raw)} FCFA`}
-      }},
-      scales:{
-        x:{grid:{display:false},ticks:{font:{family:'DM Sans',size:10},color:'#9CA3AF'}},
-        y:{grid:{color:'#F3F4F6'},ticks:{font:{family:'DM Sans',size:10},color:'#9CA3AF',callback:v=>fmt(v/1000)+'k'}}
-      }
-    }
-  });
 }
 
 // ── 2. DONUT — by company ────────────────────────
@@ -934,132 +815,6 @@ function renderDonutChart() {
       <span style="font-family:var(--fh);font-weight:700;font-size:12px;color:var(--dark)">${fmt(totals[i])} F</span>
     </div>`;
   }).join('');
-}
-
-// ── 3. COMPARE — this month vs last month ────────
-function renderCompareChart() {
-  const now=new Date();
-  const thisMo=`${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}`;
-  const lastD=new Date(now); lastD.setMonth(lastD.getMonth()-1);
-  const lastMo=`${lastD.getFullYear()}-${String(lastD.getMonth()+1).padStart(2,'0')}`;
-  const companies=['ENEO','CamWater','Camtel'];
-  const colors=['#C8FF00','#60A5FA','#A78BFA'];
-  const thisData=companies.map(co=>allBills.filter(b=>b.company===co&&b.billing_month?.startsWith(thisMo)).reduce((s,b)=>s+(b.amount||0),0));
-  const lastData=companies.map(co=>allBills.filter(b=>b.company===co&&b.billing_month?.startsWith(lastMo)).reduce((s,b)=>s+(b.amount||0),0));
-
-  if(compareChart)compareChart.destroy();
-  const ctx=$('compare-chart').getContext('2d');
-  compareChart=new Chart(ctx,{
-    type:'bar',
-    data:{
-      labels:companies,
-      datasets:[
-        {label:'Ce mois',data:thisData,backgroundColor:colors,borderRadius:8,borderSkipped:false},
-        {label:'Mois dernier',data:lastData,backgroundColor:colors.map(c=>c+'44'),borderRadius:8,borderSkipped:false,borderWidth:1.5,borderColor:colors},
-      ]
-    },
-    options:{
-      responsive:true,maintainAspectRatio:false,
-      plugins:{
-        legend:{display:true,position:'bottom',labels:{font:{family:'DM Sans',size:11},boxWidth:10,boxHeight:10,borderRadius:3,usePointStyle:true,color:'#6B7280'}},
-        tooltip:{backgroundColor:'#0A0A0A',titleFont:{family:'Syne',weight:'700'},bodyFont:{family:'DM Sans'},padding:10,cornerRadius:8,callbacks:{label:ctx=>` ${fmt(ctx.raw)} FCFA`}}
-      },
-      scales:{
-        x:{grid:{display:false},ticks:{font:{family:'DM Sans',size:11},color:'#9CA3AF'}},
-        y:{grid:{color:'#F3F4F6'},ticks:{font:{family:'DM Sans',size:10},color:'#9CA3AF',callback:v=>fmt(v/1000)+'k'}}
-      }
-    }
-  });
-
-  // Summary text
-  const thisTotal=thisData.reduce((a,b)=>a+b,0);
-  const lastTotal=lastData.reduce((a,b)=>a+b,0);
-  const diff=thisTotal-lastTotal;
-  const pct=lastTotal?Math.round(Math.abs(diff)/lastTotal*100):0;
-  $('compare-summary').innerHTML=lastTotal
-    ?`Ce mois: <strong>${fmt(thisTotal)} FCFA</strong> · ${diff>=0?'↑ +':'↓ '}${pct}% vs mois dernier`
-    :'Pas de données du mois dernier pour comparer.';
-}
-
-// ── 4. HEATMAP — 12 weeks ───────────────────────
-function renderHeatmap() {
-  const grid=$('heatmap-grid');
-  const now=new Date();
-  const cells=[];
-  // Go back 12 weeks (84 days)
-  const start=new Date(now); start.setDate(start.getDate()-83);
-  // Align to Monday
-  const dayOfWeek=start.getDay(); // 0=Sun
-  const offset=(dayOfWeek===0?6:dayOfWeek-1);
-  start.setDate(start.getDate()-offset);
-  $('heatmap-start').textContent=start.toLocaleDateString('fr-FR',{day:'numeric',month:'short'});
-  $('heatmap-end').textContent=now.toLocaleDateString('fr-FR',{day:'numeric',month:'short'});
-
-  // Count bills per date
-  const billsByDate={};
-  allBills.forEach(b=>{
-    if(b.payment_date){ billsByDate[b.payment_date]=(billsByDate[b.payment_date]||0)+1; }
-    else if(b.created_at){ const d=b.created_at.split('T')[0]; billsByDate[d]=(billsByDate[d]||0)+1; }
-  });
-  const maxCount=Math.max(...Object.values(billsByDate),1);
-
-  // Build 7 cols (days of week), rows = weeks
-  const totalDays=91; // 13 weeks * 7
-  grid.innerHTML='';
-  for(let i=0;i<totalDays;i++){
-    const d=new Date(start); d.setDate(d.getDate()+i);
-    const key=d.toISOString().split('T')[0];
-    const count=billsByDate[key]||0;
-    const intensity=count?Math.max(0.2,count/maxCount):0;
-    const isFuture=d>now;
-    const bg=isFuture?'#F9FAFB':count===0?'#F3F4F6':`rgba(200,255,0,${intensity})`;
-    const border=count>0?'1px solid rgba(200,255,0,0.3)':'1px solid transparent';
-    const cell=document.createElement('div');
-    cell.className='heatmap-cell';
-    cell.style.cssText=`background:${bg};border:${border};`;
-    cell.title=`${d.toLocaleDateString('fr-FR')}: ${count} facture${count!==1?'s':''}`;
-    grid.appendChild(cell);
-  }
-}
-
-// ── 5. STATUS CHART — pie ───────────────────────
-function renderStatusChart() {
-  const paid   =allBills.filter(b=>b.status==='paid').length;
-  const pending=allBills.filter(b=>b.status==='pending').length;
-  const other  =allBills.length-paid-pending;
-  const total  =allBills.length||1;
-
-  if(statusChart)statusChart.destroy();
-  const ctx=$('status-chart').getContext('2d');
-  statusChart=new Chart(ctx,{
-    type:'doughnut',
-    data:{
-      labels:['Payées','En attente','Autres'],
-      datasets:[{data:[paid,pending,other],backgroundColor:['#10B981','#F59E0B','#E5E7EB'],borderWidth:0,hoverOffset:6}]
-    },
-    options:{
-      responsive:true,maintainAspectRatio:false,cutout:'65%',
-      plugins:{legend:{display:false},tooltip:{backgroundColor:'#0A0A0A',titleFont:{family:'Syne',weight:'700'},bodyFont:{family:'DM Sans'},padding:10,cornerRadius:8}}
-    }
-  });
-
-  // Stats below
-  const rows=[
-    {label:'Payées',count:paid,color:'#10B981',pct:Math.round(paid/total*100)},
-    {label:'En attente',count:pending,color:'#F59E0B',pct:Math.round(pending/total*100)},
-  ];
-  $('status-stats').innerHTML=rows.map(r=>`
-    <div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid #F3F4F6">
-      <div style="width:8px;height:8px;border-radius:50%;background:${r.color};flex-shrink:0"></div>
-      <span style="flex:1;font-size:13px;font-family:var(--fh);font-weight:600;color:var(--dark)">${r.label}</span>
-      <div style="text-align:right">
-        <div style="font-family:var(--fh);font-weight:800;font-size:14px;color:var(--dark)">${r.count}</div>
-        <div style="font-size:10px;color:var(--gray)">${r.pct}%</div>
-      </div>
-      <div style="width:80px;height:6px;background:#F3F4F6;border-radius:10px;overflow:hidden">
-        <div style="width:${r.pct}%;height:100%;background:${r.color};border-radius:10px"></div>
-      </div>
-    </div>`).join('');
 }
 
 // ── BREAKDOWN ──────────────────────────────────
