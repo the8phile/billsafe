@@ -1,6 +1,17 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
+  <!-- PWA + iPhone Home Screen -->
+  <link rel="manifest" href="/manifest.json">
+  <link rel="apple-touch-icon" href="/icons/icon-180.png">
+  <link rel="apple-touch-icon" sizes="120x120" href="/icons/icon-120.png">
+  <link rel="apple-touch-icon" sizes="152x152" href="/icons/icon-152.png">
+  <link rel="apple-touch-icon" sizes="167x167" href="/icons/icon-167.png">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="BillSafe">
+  <meta name="theme-color" content="#0052FF">
+  <meta name="mobile-web-app-capable" content="yes">
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>BillSafe — Connexion</title>
@@ -188,7 +199,9 @@
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
-// ── CONFIG — REPLACE THESE ──────────────────────────────────
+// ── CONFIG ────────────────────────────────────────────────────
+// Allowed URLs in Supabase: billsafe-iota.vercel.app + lighthearted-clafoutis-5bf7db.netlify.app
+// ──────────────────────────────────────────────────────────────
 const SUPABASE_URL  = 'https://rjnsnodvqwwhkxbznzqa.supabase.co';
 const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJqbnNub2R2cXd3aGt4YnpuenFhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzgxODg1OTksImV4cCI6MjA5Mzc2NDU5OX0.gkV9ynTFdY8B72s2fnRpTkUH71FUz59ICIpQLZQDsIc';
 // ────────────────────────────────────────────────────────────
@@ -252,6 +265,15 @@ async function handleEmail() {
   btn.classList.add('loading');
   btn.querySelector('span').textContent = 'Chargement...';
 
+  // Wake up Supabase if paused (free tier auto-pauses after 1 week inactivity)
+  try {
+    // Quick ping to wake the project
+    await Promise.race([
+      db.auth.getSession(),
+      new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), 8000))
+    ]).catch(() => {}); // ignore timeout — proceed anyway
+  } catch(_) {}
+
   try {
     if (currentTab === 'login') {
       const { error } = await db.auth.signInWithPassword({ email, password });
@@ -285,7 +307,38 @@ async function handleEmail() {
       showMsg('Compte créé! Vérifiez votre email, puis connectez-vous.', 'success');
     }
   } catch(e) {
-    showMsg(e.message || 'Une erreur est survenue.');
+    const msg = e.message || '';
+    if (msg.includes('Failed to fetch') || msg.includes('NetworkError') || msg.includes('fetch')) {
+      showMsg('❌ Connexion impossible au serveur. Réessayez dans 30 secondes.', 'error');
+      document.getElementById('server-banner').style.display = 'block';
+      // Auto-retry after 30s
+      let countdown = 30;
+      const retryInterval = setInterval(() => {
+        countdown--;
+        const btn2 = document.getElementById('email-btn');
+        if (btn2 && countdown > 0) {
+          btn2.querySelector('span').textContent = `Réessayer dans ${countdown}s...`;
+          btn2.disabled = true;
+        } else {
+          clearInterval(retryInterval);
+          if (btn2) {
+            btn2.querySelector('span').textContent = 'Se connecter';
+            btn2.disabled = false;
+            document.getElementById('server-banner').innerHTML += '<br><strong style="color:green">✅ Prêt — Cliquez sur Se connecter</strong>';
+          }
+        }
+      }, 1000);
+    } else if (msg.includes('Invalid login credentials') || msg.includes('invalid_credentials')) {
+      showMsg('❌ Email ou mot de passe incorrect. Vérifiez vos informations.', 'error');
+    } else if (msg.includes('Email not confirmed')) {
+      showMsg('📧 Votre email n\'est pas encore confirmé. Vérifiez votre boîte mail et cliquez sur le lien de confirmation.', 'error');
+    } else if (msg.includes('Too many requests') || msg.includes('rate limit')) {
+      showMsg('⏳ Trop de tentatives. Attendez quelques minutes et réessayez.', 'error');
+    } else if (msg.includes('User already registered')) {
+      showMsg('⚠️ Cet email est déjà utilisé. Essayez de vous connecter à la place.', 'error');
+    } else {
+      showMsg('❌ ' + (msg || 'Une erreur est survenue. Réessayez.'), 'error');
+    }
   } finally {
     btn.classList.remove('loading');
     btn.querySelector('span').textContent = currentTab === 'login' ? 'Se connecter' : "S'inscrire";

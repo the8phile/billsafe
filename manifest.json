@@ -1,0 +1,18 @@
+{
+  "name": "BillSafe",
+  "short_name": "BillSafe",
+  "description": "Gardez vos factures ENEO, CamWater et Camtel en sécurité",
+  "start_url": "/pages/dashboard.html",
+  "display": "standalone",
+  "background_color": "#0A1628",
+  "theme_color": "#0052FF",
+  "orientation": "portrait",
+  "icons": [
+    { "src": "/icons/icon-60.png",  "sizes": "60x60",   "type": "image/png" },
+    { "src": "/icons/icon-87.png",  "sizes": "87x87",   "type": "image/png" },
+    { "src": "/icons/icon-120.png", "sizes": "120x120", "type": "image/png" },
+    { "src": "/icons/icon-152.png", "sizes": "152x152", "type": "image/png" },
+    { "src": "/icons/icon-167.png", "sizes": "167x167", "type": "image/png" },
+    { "src": "/icons/icon-180.png", "sizes": "180x180", "type": "image/png", "purpose": "apple-touch-icon" }
+  ]
+}

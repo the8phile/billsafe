@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>BillSafe Icon Generator</title>
+<style>
+body { font-family: Arial, sans-serif; background: #FAF8FF; padding: 20px; }
+canvas { display: block; margin: 10px auto; border-radius: 20px; }
+.icon-set { display: flex; flex-wrap: wrap; gap: 20px; justify-content: center; margin: 20px 0; }
+.icon-item { text-align: center; }
+.icon-item p { font-size: 12px; color: #666; margin: 4px 0; }
+.download-btn { background: #0052FF; color: #fff; border: none; padding: 10px 20px; border-radius: 20px; font-weight: 700; cursor: pointer; display: block; margin: 5px auto; font-size: 13px; }
+.download-btn:hover { background: #003EC7; }
+h2 { text-align: center; color: #131B2E; font-family: Arial; }
+</style>
+</head>
+<body>
+<h2>🛡 BillSafe — App Icons</h2>
+<div class="icon-set" id="icons"></div>
+<script>
+const sizes = [
+  { size: 180, label: 'iPhone (180×180)', file: 'billsafe-icon-180.png' },
+  { size: 167, label: 'iPad Pro (167×167)', file: 'billsafe-icon-167.png' },
+  { size: 152, label: 'iPad (152×152)', file: 'billsafe-icon-152.png' },
+  { size: 120, label: 'iPhone Small (120×120)', file: 'billsafe-icon-120.png' },
+  { size: 87,  label: 'Spotlight (87×87)', file: 'billsafe-icon-87.png' },
+  { size: 60,  label: 'Preview (60×60)', file: 'billsafe-icon-60.png' },
+];
+
+function drawIcon(canvas, size) {
+  const ctx = canvas.getContext('2d');
+  const s = size;
+  const r = s * 0.22; // corner radius
+
+  // Background — deep navy gradient
+  const bg = ctx.createLinearGradient(0, 0, s, s);
+  bg.addColorStop(0, '#1A2540');
+  bg.addColorStop(1, '#0A1628');
+  
+  // Rounded rect background
+  ctx.beginPath();
+  ctx.moveTo(r, 0);
+  ctx.lineTo(s - r, 0);
+  ctx.quadraticCurveTo(s, 0, s, r);
+  ctx.lineTo(s, s - r);
+  ctx.quadraticCurveTo(s, s, s - r, s);
+  ctx.lineTo(r, s);
+  ctx.quadraticCurveTo(0, s, 0, s - r);
+  ctx.lineTo(0, r);
+  ctx.quadraticCurveTo(0, 0, r, 0);
+  ctx.closePath();
+  ctx.fillStyle = bg;
+  ctx.fill();
+
+  // Subtle glow circle
+  const glow = ctx.createRadialGradient(s*0.5, s*0.42, 0, s*0.5, s*0.42, s*0.45);
+  glow.addColorStop(0, 'rgba(0,82,255,0.25)');
+  glow.addColorStop(1, 'rgba(0,82,255,0)');
+  ctx.fillStyle = glow;
+  ctx.fillRect(0, 0, s, s);
+
+  // Shield shape
+  const cx = s * 0.5;
+  const sy = s * 0.17; // shield top y
+  const sw = s * 0.52; // shield width
+  const sh = s * 0.60; // shield height
+
+  ctx.beginPath();
+  ctx.moveTo(cx, sy);
+  ctx.lineTo(cx + sw/2, sy + sh*0.18);
+  ctx.lineTo(cx + sw/2, sy + sh*0.52);
+  ctx.quadraticCurveTo(cx + sw/2, sy + sh*0.82, cx, sy + sh);
+  ctx.quadraticCurveTo(cx - sw/2, sy + sh*0.82, cx - sw/2, sy + sh*0.52);
+  ctx.lineTo(cx - sw/2, sy + sh*0.18);
+  ctx.closePath();
+
+  // Shield fill — blue gradient
+  const shieldGrad = ctx.createLinearGradient(cx - sw/2, sy, cx + sw/2, sy + sh);
+  shieldGrad.addColorStop(0, '#0066FF');
+  shieldGrad.addColorStop(1, '#0038C7');
+  ctx.fillStyle = shieldGrad;
+  ctx.fill();
+
+  // Shield inner highlight
+  ctx.beginPath();
+  ctx.moveTo(cx, sy + sh*0.05);
+  ctx.lineTo(cx + sw*0.38, sy + sh*0.21);
+  ctx.lineTo(cx + sw*0.38, sy + sh*0.50);
+  ctx.quadraticCurveTo(cx + sw*0.38, sy + sh*0.73, cx, sy + sh*0.88);
+  ctx.quadraticCurveTo(cx - sw*0.38, sy + sh*0.73, cx - sw*0.38, sy + sh*0.50);
+  ctx.lineTo(cx - sw*0.38, sy + sh*0.21);
+  ctx.closePath();
+  ctx.fillStyle = 'rgba(255,255,255,0.07)';
+  ctx.fill();
+
+  // Checkmark inside shield
+  const ck = s * 0.095;
+  const ckx = cx - ck * 0.4;
+  const cky = sy + sh * 0.44;
+  ctx.beginPath();
+  ctx.moveTo(ckx - ck, cky);
+  ctx.lineTo(ckx, cky + ck);
+  ctx.lineTo(ckx + ck * 1.8, cky - ck);
+  ctx.strokeStyle = '#FFFFFF';
+  ctx.lineWidth = s * 0.055;
+  ctx.lineCap = 'round';
+  ctx.lineJoin = 'round';
+  ctx.stroke();
+
+  // "BS" text at bottom
+  const fontSize = s * 0.145;
+  ctx.font = `800 ${fontSize}px Arial Black, Arial`;
+  ctx.textAlign = 'center';
+  ctx.fillStyle = 'rgba(255,255,255,0.55)';
+  ctx.fillText('BILLSAFE', cx, s * 0.895);
+}
+
+const container = document.getElementById('icons');
+sizes.forEach(({ size, label, file }) => {
+  const div = document.createElement('div');
+  div.className = 'icon-item';
+  const canvas = document.createElement('canvas');
+  canvas.width = size;
+  canvas.height = size;
+  canvas.style.width = Math.min(size, 100) + 'px';
+  canvas.style.height = Math.min(size, 100) + 'px';
+  drawIcon(canvas, size);
+  const btn = document.createElement('button');
+  btn.className = 'download-btn';
+  btn.textContent = '⬇ Download';
+  btn.onclick = () => {
+    const a = document.createElement('a');
+    a.download = file;
+    a.href = canvas.toDataURL('image/png');
+    a.click();
+  };
+  const p = document.createElement('p');
+  p.textContent = label;
+  div.appendChild(canvas);
+  div.appendChild(p);
+  div.appendChild(btn);
+  container.appendChild(div);
+});
+</script>
+</body>
+</html>
