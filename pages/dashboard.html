@@ -393,6 +393,24 @@ select.form-input{cursor:pointer}
   .stats-row{grid-template-columns:1fr 1fr}
 }
 </style>
+
+<style>
+/* iPhone 8 specific (375px) */
+@media (max-width: 390px) {
+  .stats-row { grid-template-columns: 1fr 1fr !important; gap: 8px !important; }
+  .sc-value { font-size: 18px !important; }
+  .qa-grid { gap: 8px !important; }
+  .qa-btn { min-height: 64px !important; padding: 10px 8px !important; }
+  .qa-label { font-size: 11px !important; }
+  .content { padding-top: 72px !important; padding-left: 12px !important; padding-right: 12px !important; }
+  .greeting-card h2 { font-size: 16px !important; }
+  .greeting-card p { font-size: 12px !important; }
+  .card { padding: 16px !important; }
+  .card-title { font-size: 14px !important; }
+  .filter-chip { padding: 5px 10px !important; font-size: 11px !important; }
+  .topbar-right .tb-btn-lime { padding: 7px 12px !important; font-size: 12px !important; }
+}
+</style>
 </head>
 <body>
 <div class="app">
@@ -465,7 +483,7 @@ select.form-input{cursor:pointer}
     <div id="anomaly-banner-wrap"></div>
 
     <!-- ① GREETING + QUICK ACTIONS ROW -->
-    <div style="display:grid;grid-template-columns:1fr 340px;gap:18px;margin-bottom:22px">
+    <div style="display:grid;grid-template-columns:1fr 340px;gap:18px;margin-bottom:22px" class="greeting-actions-row">
       <div class="greeting-card" id="greeting-card" style="margin-bottom:0">
         <div class="gc-left">
           <h2 id="greeting-text">Bonjour 👋</h2>
@@ -516,7 +534,7 @@ select.form-input{cursor:pointer}
     </div>
 
     <!-- ③ CHARTS — ROW 1: Main bar (wide) + Donut (narrow) -->
-    <div style="display:grid;grid-template-columns:1.8fr 1fr;gap:18px;margin-bottom:18px">
+    <div class="chart-main-row" style="display:grid;grid-template-columns:1.8fr 1fr;gap:18px;margin-bottom:18px">
       <!-- Chart 1: Monthly bar -->
       <div class="card">
         <div class="card-header">
@@ -1034,5 +1052,27 @@ async function saveBill() {
   await loadBills();
 }
 </script>
+<nav class="mobile-nav">
+  <a href="dashboard.html" class="mn-item  active">
+    <i class="ph ph-chart-bar"></i>
+    <span>Dashboard</span>
+  </a>
+  <a href="bills.html" class="mn-item">
+    <i class="ph ph-file-text"></i>
+    <span>Factures</span>
+  </a>
+  <a href="upload.html" class="mn-item mn-fab">
+    <div class="mn-fab-circle"><i class="ph ph-scan"></i></div>
+    <span>Scanner</span>
+  </a>
+  <a href="meter-split.html" class="mn-item">
+    <i class="ph ph-lightning"></i>
+    <span>Partage</span>
+  </a>
+  <a href="alerts.html" class="mn-item">
+    <i class="ph ph-bell"></i>
+    <span>Alertes</span>
+  </a>
+</nav>
 </body>
 </html>
