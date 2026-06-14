@@ -1,705 +1,322 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-  <!-- PWA + iPhone Home Screen -->
-  <link rel="manifest" href="/manifest.json">
-  <link rel="apple-touch-icon" href="/icons/icon-180.png">
-  <link rel="apple-touch-icon" sizes="120x120" href="/icons/icon-120.png">
-  <link rel="apple-touch-icon" sizes="152x152" href="/icons/icon-152.png">
-  <link rel="apple-touch-icon" sizes="167x167" href="/icons/icon-167.png">
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <meta name="apple-mobile-web-app-title" content="BillSafe">
-  <meta name="theme-color" content="#0052FF">
-  <meta name="mobile-web-app-capable" content="yes">
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="BillSafe">
+<meta name="theme-color" content="#4F46E5">
+<link rel="apple-touch-icon" href="/icons/icon-180.png">
+<link rel="manifest" href="/manifest.json">
 <title>BillSafe — Partage Compteur</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@phosphor-icons/web@2.1.1/src/regular/style.css">
-<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=DM+Sans:wght@400;500&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="../css/portal.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@phosphor-icons/web@2.1.1/src/fill/style.css">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
-/* ── HERO ── */
-.split-hero{background:var(--dark);border-radius:var(--radius);padding:28px 32px;margin-bottom:24px;display:flex;align-items:center;justify-content:space-between;gap:20px;flex-wrap:wrap;position:relative;overflow:hidden}
-.split-hero::after{content:'⚡';position:absolute;right:28px;top:50%;transform:translateY(-50%);font-size:90px;opacity:0.05;pointer-events:none}
-.split-hero h2{font-family:var(--font-h);font-weight:800;font-size:22px;color:var(--white);margin-bottom:6px}
-.split-hero p{font-size:13px;color:#666;line-height:1.7;max-width:500px}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --purple:#4F46E5;--purple-dark:#3730A3;--purple-dim:rgba(79,70,229,0.1);
+  --violet:#7C3AED;--blue:#2563EB;
+  --bg:#F5F5FA;--surface:#FFFFFF;--surface2:#F8F8FF;
+  --dark:#1E1B4B;--dark2:#312E81;
+  --text:#1E1B4B;--text2:#6B7280;--text3:#9CA3AF;
+  --green:#10B981;--green-bg:rgba(16,185,129,0.1);
+  --red:#EF4444;--red-bg:rgba(239,68,68,0.1);
+  --amber:#F59E0B;--amber-bg:rgba(245,158,11,0.1);
+  --white:#FFFFFF;--nav-h:72px;
+  --radius:20px;--radius-sm:14px;
+  --shadow:0 2px 12px rgba(79,70,229,0.08);
+  --f:'Inter',sans-serif;
+}
+html,body{height:100%;overflow-x:hidden}
+body{font-family:var(--f);background:var(--bg);color:var(--text);-webkit-font-smoothing:antialiased;padding-bottom:var(--nav-h)}
+.app{min-height:100vh;max-width:430px;margin:0 auto}
+@media(min-width:769px){.app{box-shadow:0 0 40px rgba(0,0,0,0.12)}}
+.page-header{background:linear-gradient(145deg,#4F46E5 0%,#7C3AED 100%);padding:env(safe-area-inset-top,44px) 20px 28px;position:relative;overflow:hidden}
+.page-header::before{content:'';position:absolute;top:-40px;right:-30px;width:120px;height:120px;background:rgba(255,255,255,0.06);border-radius:50%}
+.ph-row{display:flex;align-items:center;gap:14px;padding-top:8px;position:relative;z-index:1}
+.back-btn{width:38px;height:38px;border-radius:50%;background:rgba(255,255,255,0.15);border:none;color:#fff;font-size:20px;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0}
+.page-title{font-size:18px;font-weight:700;color:#fff;flex:1}
+.ph-action{width:38px;height:38px;border-radius:50%;background:rgba(255,255,255,0.15);border:none;color:#fff;font-size:18px;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0}
+.ph-sub{font-size:13px;color:rgba(255,255,255,0.6);margin-top:4px;padding-left:52px;position:relative;z-index:1}
+.content{padding:20px 16px}
+.card{background:var(--surface);border-radius:var(--radius);padding:18px;box-shadow:var(--shadow);margin-bottom:14px}
+.card-dark{background:linear-gradient(135deg,#1E1B4B,#312E81);color:#fff}
+.card-purple{background:linear-gradient(135deg,#4F46E5,#7C3AED);color:#fff}
+.card-title{font-size:15px;font-weight:700;color:var(--text);margin-bottom:14px}
+.card-dark .card-title,.card-purple .card-title{color:#fff}
+.card-header-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px}
+.form-group{margin-bottom:14px}
+.form-label{font-size:11px;font-weight:700;color:var(--text2);margin-bottom:6px;display:block;text-transform:uppercase;letter-spacing:0.05em}
+.form-input{width:100%;padding:14px 16px;border:1.5px solid #E5E7EB;border-radius:var(--radius-sm);font-size:15px;font-family:var(--f);background:var(--surface2);color:var(--text);outline:none;transition:all 0.2s;-webkit-appearance:none}
+.form-input:focus{border-color:var(--purple);background:#fff;box-shadow:0 0 0 4px rgba(79,70,229,0.1)}
+select.form-input{cursor:pointer}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.btn-primary{width:100%;padding:16px;background:linear-gradient(135deg,#4F46E5,#7C3AED);color:#fff;font-size:15px;font-weight:700;font-family:var(--f);border:none;border-radius:var(--radius-sm);cursor:pointer;box-shadow:0 4px 16px rgba(79,70,229,0.35);transition:all 0.2s;margin-top:6px}
+.btn-primary:active{transform:scale(0.98)}
+.btn-ghost{width:100%;padding:14px;background:transparent;border:1.5px solid #E5E7EB;color:var(--text2);font-size:14px;font-weight:600;font-family:var(--f);border-radius:var(--radius-sm);cursor:pointer;margin-top:8px}
+.btn-sm{padding:9px 18px;border-radius:100px;font-size:13px;font-weight:700;font-family:var(--f);border:none;cursor:pointer;display:inline-flex;align-items:center;gap:6px;-webkit-tap-highlight-color:transparent;transition:all 0.2s}
+.btn-sm:active{transform:scale(0.95)}
+.btn-sm-purple{background:var(--purple);color:#fff;box-shadow:0 3px 10px rgba(79,70,229,0.3)}
+.btn-sm-ghost{background:var(--purple-dim);color:var(--purple)}
+.btn-sm-red{background:var(--red-bg);color:var(--red)}
+.pill{display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:700;padding:4px 10px;border-radius:100px}
+.pill-paid{background:var(--green-bg);color:var(--green)}
+.pill-pending{background:var(--amber-bg);color:var(--amber)}
+.pill-active{background:var(--green-bg);color:var(--green)}
+.pill-inactive{background:#F3F4F6;color:var(--text2)}
+.li-icon{width:44px;height:44px;border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0}
+.ic-eneo{background:linear-gradient(135deg,#FEF08A,#EAB308)}
+.ic-camwater{background:linear-gradient(135deg,#BAE6FD,#0284C7)}
+.ic-camtel{background:linear-gradient(135deg,#DDD6FE,#7C3AED)}
+.ic-green{background:linear-gradient(135deg,#BBF7D0,#10B981)}
+.ic-purple{background:linear-gradient(135deg,#E0E7FF,#4F46E5)}
+.ic-amber{background:var(--amber-bg)}
+.ic-gray{background:#F3F4F6}
+.avatar{width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:14px;flex-shrink:0}
+.av-purple{background:var(--purple-dim);color:var(--purple)}
+.av-green{background:var(--green-bg);color:var(--green)}
+.av-amber{background:var(--amber-bg);color:var(--amber)}
+.empty-state{text-align:center;padding:48px 24px}
+.empty-state .ei{font-size:48px;margin-bottom:14px;display:block}
+.empty-state h3{font-size:16px;font-weight:700;color:var(--text2);margin-bottom:6px}
+.empty-state p{font-size:13px;color:var(--text3);line-height:1.6}
+.skeleton{background:linear-gradient(90deg,#F3F4F6 25%,#E9EAEC 50%,#F3F4F6 75%);background-size:200% 100%;animation:shimmer 1.5s infinite;border-radius:10px}
+@keyframes shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}
+.toast{position:fixed;top:calc(env(safe-area-inset-top,44px)+8px);left:16px;right:16px;background:#1E1B4B;color:#fff;padding:14px 18px;border-radius:14px;font-size:13px;font-weight:600;box-shadow:0 8px 32px rgba(0,0,0,0.2);transform:translateY(-80px);opacity:0;transition:all 0.3s;z-index:9999;display:flex;align-items:center;gap:10px}
+.toast.show{transform:translateY(0);opacity:1}
+.toast.success{border-left:4px solid var(--green)}
+.toast.error{border-left:4px solid var(--red)}
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.5);backdrop-filter:blur(6px);z-index:2000;display:flex;align-items:flex-end;opacity:0;pointer-events:none;transition:opacity 0.25s}
+.modal-overlay.open{opacity:1;pointer-events:all}
+.modal{background:var(--surface);border-radius:28px 28px 0 0;width:100%;padding:20px 20px 40px;transform:translateY(30px);transition:transform 0.3s;max-height:90vh;overflow-y:auto}
+.modal-overlay.open .modal{transform:translateY(0)}
+.modal-handle{width:40px;height:4px;background:#E5E7EB;border-radius:2px;margin:0 auto 20px}
+.modal-title{font-size:18px;font-weight:700;color:var(--text);margin-bottom:18px}
+.bottom-nav{position:fixed;bottom:0;left:0;right:0;max-width:430px;margin:0 auto;height:var(--nav-h);background:var(--white);border-top:1px solid rgba(0,0,0,0.06);display:flex;align-items:stretch;z-index:1000;padding-bottom:env(safe-area-inset-bottom,0px);box-shadow:0 -4px 24px rgba(0,0,0,0.08)}
+.bn-item{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;text-decoration:none;color:var(--text3);font-size:10px;font-weight:600;cursor:pointer;border:none;background:transparent;font-family:var(--f);-webkit-tap-highlight-color:transparent;transition:color 0.15s;position:relative}
+.bn-item.active{color:var(--purple)}
+.bn-item.active::before{content:'';position:absolute;top:0;left:20%;right:20%;height:3px;background:var(--purple);border-radius:0 0 4px 4px}
+.bn-item i{font-size:22px;transition:transform 0.15s}
+.bn-item.active i{transform:scale(1.1)}
+.bn-fab{flex:0 0 60px}
+.bn-fab-circle{width:52px;height:52px;border-radius:50%;background:linear-gradient(135deg,#4F46E5,#7C3AED);display:flex;align-items:center;justify-content:center;box-shadow:0 4px 20px rgba(79,70,229,0.45);border:3px solid #fff;position:relative;top:-10px}
+.bn-fab-circle i{font-size:24px;color:#fff}
+.bn-fab::before{display:none!important}
 
-/* ── GROUP CARDS ── */
-.groups-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:14px;margin-bottom:24px}
-.group-card{background:var(--white);border-radius:var(--radius);padding:22px;border:1.5px solid #f0f0f0;cursor:pointer;transition:all 0.2s;position:relative}
-.group-card:hover{border-color:#ddd;transform:translateY(-2px);box-shadow:0 8px 24px rgba(0,0,0,0.06)}
-.group-card.selected{border-color:var(--dark);border-width:2px}
-.gc-icon{width:44px;height:44px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:22px;margin-bottom:14px}
-.gc-eneo{background:rgba(202,255,64,0.15)}
-.gc-camwater{background:rgba(96,200,255,0.12)}
-.gc-camtel{background:rgba(179,157,255,0.12)}
-.gc-other{background:#f0f0f0}
-.gc-name{font-family:var(--font-h);font-weight:700;font-size:15px;color:var(--dark);margin-bottom:3px}
-.gc-addr{font-size:12px;color:var(--gray);margin-bottom:14px}
-.gc-stats{display:flex;gap:14px;padding-top:12px;border-top:1px solid #f5f5f5}
-.gc-stat-val{font-family:var(--font-h);font-weight:700;font-size:17px;color:var(--dark)}
-.gc-stat-lbl{font-size:10px;color:var(--gray)}
-.add-group-card{background:transparent;border:2px dashed #e0e0e0;border-radius:var(--radius);padding:22px;display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:170px;cursor:pointer;transition:all 0.2s;color:var(--gray);gap:10px}
-.add-group-card:hover{border-color:var(--dark);color:var(--dark);background:#fafafa}
-.add-group-card span{font-family:var(--font-h);font-weight:600;font-size:14px}
-
-/* ── SPLIT BUILDER ── */
-.split-builder{display:grid;grid-template-columns:1fr 360px;gap:20px}
-.method-tabs{display:flex;gap:6px;margin-bottom:20px}
-.method-tab{flex:1;padding:10px;border:1.5px solid #e8e8e8;border-radius:10px;font-size:13px;font-weight:600;font-family:var(--font-h);cursor:pointer;background:var(--white);color:var(--gray);transition:all 0.2s;text-align:center}
-.method-tab.active{border-color:var(--dark);color:var(--dark);background:#f8f8f8}
-
-/* ── PARTICIPANT ROW ── */
-.p-row{display:flex;align-items:center;gap:10px;padding:12px 0;border-bottom:1px solid #f5f5f5}
-.p-row:last-child{border-bottom:none}
-.p-av{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:var(--font-h);font-weight:800;font-size:13px;flex-shrink:0}
-.p-info{flex:1}
-.p-name{font-family:var(--font-h);font-weight:600;font-size:13px;color:var(--dark)}
-.p-phone{font-size:11px;color:var(--gray)}
-.p-input{width:80px;padding:6px 10px;border:1.5px solid #e8e8e8;border-radius:8px;font-size:13px;font-family:var(--font-h);font-weight:700;text-align:right;outline:none;transition:border-color 0.15s}
-.p-input:focus{border-color:var(--dark)}
-.p-amount{font-family:var(--font-h);font-weight:800;font-size:15px;color:var(--dark);min-width:100px;text-align:right}
-.p-paid-btn{width:28px;height:28px;border-radius:50%;border:none;cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center;transition:all 0.15s;flex-shrink:0}
-.p-paid-btn.unpaid{background:#f0f0f0;color:#aaa}
-.p-paid-btn.paid{background:var(--green-bg);color:var(--green)}
-
-/* ── TOTAL BAR ── */
-.total-bar{background:#f8f8f8;border-radius:12px;padding:14px 18px;display:flex;align-items:center;justify-content:space-between;margin-top:16px}
-.total-bar-label{font-size:13px;color:var(--gray)}
-.total-bar-val{font-family:var(--font-h);font-weight:800;font-size:18px;color:var(--dark)}
-.pct-warning{background:#fff0f0;color:var(--red);font-size:12px;font-weight:600;padding:8px 14px;border-radius:8px;margin-top:10px;display:none}
-
-/* ── VISUAL PIE ── */
-.pie-wrap{position:relative;margin:0 auto 16px;width:140px;height:140px}
-.pie-label{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center}
-.pie-total{font-family:var(--font-h);font-weight:800;font-size:16px;color:var(--dark)}
-.pie-sub{font-size:10px;color:var(--gray);margin-top:2px}
-
-/* ── LEGEND ── */
-.legend-item{display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid #f5f5f5}
-.legend-item:last-child{border-bottom:none}
-.legend-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
-.legend-name{flex:1;font-size:13px;color:var(--dark);font-family:var(--font-h);font-weight:600}
-.legend-pct{font-size:12px;color:var(--gray)}
-.legend-amount{font-family:var(--font-h);font-weight:700;font-size:14px;color:var(--dark)}
-.legend-status{font-size:18px}
-
-/* ── HISTORY TABLE ── */
-.split-row{display:flex;align-items:center;gap:14px;padding:14px 0;border-bottom:1px solid #f5f5f5}
-.split-row:last-child{border-bottom:none}
-.split-month{font-family:var(--font-h);font-weight:700;font-size:14px;color:var(--dark)}
-.split-total{font-family:var(--font-h);font-weight:800;font-size:16px;color:var(--dark)}
-
-/* SHARE MESSAGE BOX */
-.share-msg-box{background:#f0f8ff;border:1.5px solid #c5d9f5;border-radius:12px;padding:14px 16px;font-size:13px;color:#185FA5;line-height:1.7;margin-top:12px;font-family:var(--font-b)}
-
-.spinner{width:36px;height:36px;border:3px solid #f0f0f0;border-top-color:var(--dark);border-radius:50%;animation:spin 0.8s linear infinite;margin:60px auto}
-@keyframes spin{to{transform:rotate(360deg)}}
-</style>
-</head>
-<body>
-<div class="layout">
-  <aside class="sidebar">
-    <div class="sidebar-brand"><div class="sidebar-logo"><i class="ph ph-shield-check" style="font-size:18px;color:var(--lime)"></i></div><div class="sidebar-name">BillSafe</div></div>
-    <span class="sidebar-plan">Business</span>
-    <div class="nav-group-label">Principal</div>
-    <a class="nav-item" href="dashboard.html"><span class="ni"><i class="ph ph-chart-bar"></i></span> Tableau de bord</a>
-    <a class="nav-item" href="bills.html"><span class="ni"><i class="ph ph-file-text"></i></span> Mes factures</a>
-    <a class="nav-item" href="upload.html"><span class="ni"><i class="ph ph-upload-simple"></i></span> Ajouter facture</a>
-    <div class="nav-group-label">Outils</div>
-    <a class="nav-item active" href="meter-split.html"><span class="ni"><i class="ph ph-lightning"></i></span> Partage compteur</a>
-    <a class="nav-item" href="diaspora.html"><span class="ni"><i class="ph ph-globe-hemisphere-west"></i></span> Ma famille au pays</a>
-    <a class="nav-item" href="fiscal.html"><span class="ni"><i class="ph ph-bank"></i></span> E-Facturation DGI</a>
-    <div class="nav-group-label">Portail Business</div>
-    <a class="nav-item" href="landlord.html"><span class="ni"><i class="ph ph-buildings"></i></span> Mes propriétés</a>
-    <a class="nav-item" href="tenants.html"><span class="ni"><i class="ph ph-users"></i></span> Locataires</a>
-    <div class="nav-group-label">Compte</div>
-    <a class="nav-item" href="settings.html"><span class="ni"><i class="ph ph-gear"></i></span> Paramètres</a>
-    <a class="nav-item" href="alerts.html"><span class="ni"><i class="ph ph-bell"></i></span> Alertes</a>
-    <div class="sidebar-bottom">
-      <div class="user-row">
-        <div class="user-avatar" id="user-avatar">?</div>
-        <div class="user-info"><div class="user-name" id="user-name">Chargement...</div><div class="user-role">Mon compte</div></div>
-        <button class="logout-btn" id="logout-btn">⏻</button>
-      </div>
-    </div>
-  </aside>
-
-  <main class="main">
-    <div class="topbar">
-      <div class="topbar-left">
-        <h2>⚡ Partage de Compteur</h2>
-        <p>Divisez automatiquement une facture ENEO, CamWater ou Camtel entre plusieurs personnes</p>
-      </div>
-      <button class="btn btn-dark" id="new-group-btn">+ Nouveau groupe</button>
-    </div>
-
-    <!-- HERO -->
-    <div class="split-hero">
-      <div>
-        <h2>Un compteur. Plusieurs voisins. Zéro dispute.</h2>
-        <p>Entrez le montant total de la facture — BillSafe calcule automatiquement la part de chacun et génère un message WhatsApp à envoyer pour collecter.</p>
-      </div>
-    </div>
-
-    <!-- STATS -->
-    <div class="stats-grid" style="margin-bottom:24px">
-      <div class="stat-card dark"><div class="stat-label">Groupes actifs</div><div class="stat-value" id="s-groups">—</div><div class="stat-sub">compteurs partagés</div></div>
-      <div class="stat-card lime"><div class="stat-label">Participants</div><div class="stat-value" id="s-parts">—</div><div class="stat-sub">au total</div></div>
-      <div class="stat-card"><div class="stat-label">Splits ce mois</div><div class="stat-value" id="s-splits">—</div><div class="stat-sub">calculs effectués</div></div>
-      <div class="stat-card"><div class="stat-label">Montant collecté</div><div class="stat-value" id="s-collected">—</div><div class="stat-sub">FCFA ce mois</div></div>
-    </div>
-
-    <!-- LOADING -->
-    <div id="view-loading"><div class="spinner"></div></div>
-
-    <!-- MAIN CONTENT -->
-    <div id="view-main" style="display:none">
-
-      <!-- GROUPS -->
-      <p style="font-size:11px;font-weight:700;font-family:var(--font-h);color:var(--gray);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:12px">Mes groupes de compteurs</p>
-      <div class="groups-grid" id="groups-grid">
-        <div class="add-group-card" id="add-group-card">
-          <span style="font-size:32px">⚡</span>
-          <span>Créer un groupe</span>
-        </div>
-      </div>
-
-      <!-- SPLIT BUILDER (shown when group selected) -->
-      <div id="split-section" style="display:none">
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:10px">
-          <div>
-            <div style="font-family:var(--font-h);font-weight:800;font-size:18px;color:var(--dark)" id="active-group-name">—</div>
-            <div style="font-size:13px;color:var(--gray)" id="active-group-sub">—</div>
-          </div>
-          <div style="display:flex;gap:8px">
-            <button class="btn btn-ghost btn-sm" id="add-participant-btn">+ Ajouter participant</button>
-            <button class="btn btn-ghost btn-sm" id="delete-group-btn" style="color:var(--red)">🗑 Supprimer</button>
-          </div>
-        </div>
-
-        <div class="split-builder">
-          <!-- LEFT: CALCULATOR -->
-          <div class="card">
-            <div class="card-title" style="margin-bottom:4px">🧮 Calculer le partage</div>
-            <div class="card-sub">Entrez le montant total de la facture</div>
-
-            <!-- Total amount input -->
-            <div style="display:flex;gap:10px;align-items:flex-end;margin-bottom:16px">
-              <div class="form-group" style="flex:1;margin-bottom:0">
-                <label class="form-label">Montant total facture (FCFA) *</label>
-                <input class="form-input" type="number" id="total-input" placeholder="ex: 45000" style="font-size:20px;font-family:var(--font-h);font-weight:700" oninput="recalc()">
-              </div>
-              <div class="form-group" style="width:150px;margin-bottom:0">
-                <label class="form-label">Mois</label>
-                <input class="form-input" type="month" id="split-month">
-              </div>
-            </div>
-
-            <!-- Split method -->
-            <div style="font-size:11px;font-weight:700;font-family:var(--font-h);color:var(--gray);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:8px">Méthode de partage</div>
-            <div class="method-tabs">
-              <div class="method-tab active" id="tab-equal" onclick="setMethod('equal')">⚖️ Égal</div>
-              <div class="method-tab" id="tab-percentage" onclick="setMethod('percentage')">% Pourcentage</div>
-              <div class="method-tab" id="tab-rooms" onclick="setMethod('rooms')">🚪 Par pièces</div>
-            </div>
-
-            <!-- Method hints -->
-            <div id="hint-equal" style="font-size:12px;color:var(--gray);background:#f8f8f8;border-radius:8px;padding:10px 12px;margin-bottom:16px">
-              ⚖️ <strong>Partage égal</strong> — La facture est divisée en parts identiques entre tous les participants.
-            </div>
-            <div id="hint-percentage" style="font-size:12px;color:var(--gray);background:#f8f8f8;border-radius:8px;padding:10px 12px;margin-bottom:16px;display:none">
-              📊 <strong>Par pourcentage</strong> — Définissez le % de chaque personne. Total doit faire 100%.
-            </div>
-            <div id="hint-rooms" style="font-size:12px;color:var(--gray);background:#f8f8f8;border-radius:8px;padding:10px 12px;margin-bottom:16px;display:none">
-              🚪 <strong>Par nombre de pièces</strong> — Plus vous avez de pièces, plus vous payez. Idéal pour les immeubles.
-            </div>
-
-            <!-- Participants -->
-            <div id="participants-list"></div>
-
-            <!-- PCT warning -->
-            <div class="pct-warning" id="pct-warning">⚠️ Le total des pourcentages doit être exactement 100%</div>
-
-            <!-- Total bar -->
-            <div class="total-bar">
-              <span class="total-bar-label">Montant à partager</span>
-              <span class="total-bar-val" id="total-bar-val">0 FCFA</span>
-            </div>
-
-            <!-- Action buttons -->
-            <div style="display:flex;gap:10px;margin-top:16px;flex-wrap:wrap">
-              <button class="btn btn-lime" style="flex:1;justify-content:center" id="save-split-btn">💾 Enregistrer ce partage</button>
-              <button class="btn btn-dark btn-sm" id="whatsapp-split-btn">💬 Envoyer WhatsApp</button>
-            </div>
-
-            <!-- WhatsApp preview -->
-            <div class="share-msg-box" id="share-msg-box" style="display:none"></div>
-          </div>
-
-          <!-- RIGHT: PIE + LEGEND -->
-          <div>
-            <div class="card" style="margin-bottom:16px">
-              <div class="card-title" style="margin-bottom:16px">📊 Répartition visuelle</div>
-              <div class="pie-wrap">
-                <svg id="pie-svg" viewBox="0 0 100 100" width="140" height="140"></svg>
-                <div class="pie-label">
-                  <div class="pie-total" id="pie-total">0</div>
-                  <div class="pie-sub">FCFA total</div>
-                </div>
-              </div>
-              <div id="pie-legend"></div>
-            </div>
-
-            <!-- HISTORY -->
-            <div class="card">
-              <div class="card-title" style="margin-bottom:14px">📋 Historique des partages</div>
-              <div id="split-history"><div style="font-size:13px;color:var(--gray);text-align:center;padding:20px">Aucun partage enregistré</div></div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </main>
+</style></head><body>
+<div class="app">
+<div class="page-header">
+  <div class="ph-row">
+    <button class="back-btn" onclick="history.back()"><i class="ph ph-arrow-left"></i></button>
+    <span class="page-title">Partage Compteur</span>
+    <button class="ph-action" onclick="openM('modal-group')"><i class="ph ph-plus"></i></button>
+  </div>
+  <div class="ph-sub">Un compteur, plusieurs voisins, zéro dispute</div>
 </div>
+<div class="content">
+
+  <!-- STATS -->
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:18px">
+    <div class="card card-dark" style="padding:16px">
+      <div style="font-size:26px;font-weight:800;color:#818CF8" id="s-groups">—</div>
+      <div style="font-size:11px;color:rgba(255,255,255,0.5);margin-top:4px;text-transform:uppercase;letter-spacing:0.04em">Groupes</div>
+    </div>
+    <div class="card card-purple" style="padding:16px">
+      <div style="font-size:26px;font-weight:800;color:#fff" id="s-splits">—</div>
+      <div style="font-size:11px;color:rgba(255,255,255,0.6);margin-top:4px;text-transform:uppercase;letter-spacing:0.04em">Partages</div>
+    </div>
+  </div>
+
+  <!-- GROUPS -->
+  <div id="groups-list"><div class="skeleton" style="height:80px;margin-bottom:10px"></div><div class="skeleton" style="height:80px"></div></div>
+
+  <!-- CALCULATOR (shown when group selected) -->
+  <div id="calc-section" style="display:none">
+    <div class="card card-dark" style="margin-bottom:14px">
+      <div style="font-size:15px;font-weight:700;color:#fff;margin-bottom:12px" id="calc-group-name">—</div>
+      <div class="form-group" style="margin-bottom:12px">
+        <label class="form-label" style="color:rgba(255,255,255,0.5)">Montant total (FCFA)</label>
+        <input class="form-input" type="number" id="calc-total" placeholder="45000" oninput="recalc()" style="background:rgba(255,255,255,0.1);border-color:rgba(255,255,255,0.15);color:#fff">
+      </div>
+      <!-- METHOD TABS -->
+      <div style="display:flex;gap:6px;margin-bottom:14px">
+        <button class="btn-sm btn-sm-purple" id="tab-equal" onclick="setMethod('equal')">⚖️ Égal</button>
+        <button class="btn-sm" id="tab-rooms" onclick="setMethod('rooms')" style="background:rgba(255,255,255,0.1);color:#fff">🚪 Pièces</button>
+        <button class="btn-sm" id="tab-pct" onclick="setMethod('pct')" style="background:rgba(255,255,255,0.1);color:#fff">% Custom</button>
+      </div>
+      <div id="parts-list"></div>
+      <div style="border-top:1px solid rgba(255,255,255,0.1);padding-top:12px;display:flex;justify-content:space-between;align-items:center;margin-top:10px">
+        <span style="font-size:12px;color:rgba(255,255,255,0.5)">Total</span>
+        <span style="font-size:18px;font-weight:800;color:#fff" id="calc-total-display">0 F</span>
+      </div>
+    </div>
+    <button class="btn-primary" onclick="saveSplit()">💾 Enregistrer ce partage</button>
+    <button class="btn-ghost" onclick="sendWhatsApp()" style="border-color:rgba(79,70,229,0.3);color:var(--purple);margin-top:8px">💬 Envoyer sur WhatsApp</button>
+  </div>
+</div>
+</div>
+<nav class="bottom-nav"><a class="bn-item" href="dashboard.html"><i class="ph ph-house-simple"></i><span>Accueil</span></a><a class="bn-item" href="bills.html"><i class="ph ph-file-text"></i><span>Factures</span></a><a class="bn-item bn-fab" href="upload.html"><div class="bn-fab-circle"><i class="ph ph-scan"></i></div><span>Scanner</span></a><a class="bn-item active" href="meter-split.html"><i class="ph-fill ph-lightning"></i><span>Partage</span></a><a class="bn-item" href="alerts.html"><i class="ph ph-bell"></i><span>Alertes</span></a></nav>
+<div class="toast" id="toast"></div>
 
 <!-- MODAL: New Group -->
 <div class="modal-overlay" id="modal-group">
-  <div class="modal">
-    <div class="modal-header">
-      <div class="modal-title">⚡ Nouveau groupe compteur</div>
-      <button class="modal-close" id="close-group-modal">✕</button>
+<div class="modal">
+  <div class="modal-handle"></div>
+  <div class="modal-title">⚡ Nouveau groupe</div>
+  <div class="form-group"><label class="form-label">Nom du groupe</label><input class="form-input" id="g-name" placeholder="Immeuble Akwa — ENEO"></div>
+  <div class="form-grid" style="margin-bottom:14px">
+    <div class="form-group" style="margin-bottom:0"><label class="form-label">Société</label>
+      <select class="form-input" id="g-co"><option value="ENEO">⚡ ENEO</option><option value="CamWater">💧 CamWater</option><option value="Camtel">📡 Camtel</option></select>
     </div>
-    <p style="font-size:13px;color:var(--gray);margin-bottom:20px">Un groupe représente un compteur partagé entre plusieurs personnes (voisins, locataires, collègues).</p>
-    <div class="form-grid" style="margin-bottom:20px">
-      <div class="form-group span-2">
-        <label class="form-label">Nom du groupe *</label>
-        <input class="form-input" id="g-name" placeholder="ex: Immeuble Akwa — ENEO">
-      </div>
-      <div class="form-group">
-        <label class="form-label">Société *</label>
-        <select class="form-input" id="g-company">
-          <option value="ENEO">⚡ ENEO / SONEL</option>
-          <option value="CamWater">💧 CamWater</option>
-          <option value="Camtel">📡 Camtel</option>
-          <option value="Autre">📌 Autre</option>
-        </select>
-      </div>
-      <div class="form-group">
-        <label class="form-label">Méthode par défaut</label>
-        <select class="form-input" id="g-method">
-          <option value="equal">⚖️ Partage égal</option>
-          <option value="percentage">% Pourcentage</option>
-          <option value="rooms">🚪 Par pièces</option>
-        </select>
-      </div>
-      <div class="form-group span-2">
-        <label class="form-label">Adresse / Localisation</label>
-        <input class="form-input" id="g-address" placeholder="ex: Rue Joss, Akwa, Douala">
-      </div>
+    <div class="form-group" style="margin-bottom:0"><label class="form-label">Méthode</label>
+      <select class="form-input" id="g-method"><option value="equal">⚖️ Égal</option><option value="rooms">🚪 Pièces</option><option value="pct">% Custom</option></select>
     </div>
-    <button class="btn btn-lime" id="save-group-btn" style="width:100%;justify-content:center">💾 Créer le groupe</button>
   </div>
+  <div class="form-group"><label class="form-label">Adresse</label><input class="form-input" id="g-addr" placeholder="Rue Joss, Akwa"></div>
+  <button class="btn-primary" onclick="saveGroup()">✅ Créer le groupe</button>
+</div>
 </div>
 
 <!-- MODAL: Add Participant -->
-<div class="modal-overlay" id="modal-participant">
-  <div class="modal">
-    <div class="modal-header">
-      <div class="modal-title">👤 Ajouter un participant</div>
-      <button class="modal-close" id="close-part-modal">✕</button>
-    </div>
-    <div class="form-grid" style="margin-bottom:20px">
-      <div class="form-group span-2">
-        <label class="form-label">Nom *</label>
-        <input class="form-input" id="p-name" placeholder="ex: Jean Nkemdirim">
-      </div>
-      <div class="form-group">
-        <label class="form-label">Téléphone WhatsApp</label>
-        <input class="form-input" id="p-phone" placeholder="+237 6XX XX XX XX">
-      </div>
-      <div class="form-group">
-        <label class="form-label">Pièces occupées</label>
-        <input class="form-input" type="number" id="p-rooms" value="1" min="1">
-      </div>
-    </div>
-    <button class="btn btn-lime" id="save-part-btn" style="width:100%;justify-content:center">➕ Ajouter</button>
+<div class="modal-overlay" id="modal-part">
+<div class="modal">
+  <div class="modal-handle"></div>
+  <div class="modal-title">👤 Ajouter participant</div>
+  <div class="form-group"><label class="form-label">Nom</label><input class="form-input" id="p-name" placeholder="Jean Nkemdirim"></div>
+  <div class="form-grid" style="margin-bottom:14px">
+    <div class="form-group" style="margin-bottom:0"><label class="form-label">Téléphone</label><input class="form-input" id="p-phone" placeholder="+237 6XX XX XX XX"></div>
+    <div class="form-group" style="margin-bottom:0"><label class="form-label">Pièces</label><input class="form-input" type="number" id="p-rooms" value="1" min="1"></div>
   </div>
+  <button class="btn-primary" onclick="saveParticipant()">➕ Ajouter</button>
 </div>
-
-<div class="toast" id="toast"></div>
+</div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
-const SUPA_URL  = 'https://rjnsnodvqwwhkxbznzqa.supabase.co';
-const SUPA_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJqbnNub2R2cXd3aGt4YnpuenFhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzgxODg1OTksImV4cCI6MjA5Mzc2NDU5OX0.gkV9ynTFdY8B72s2fnRpTkUH71FUz59ICIpQLZQDsIc';
-const db = supabase.createClient(SUPA_URL, SUPA_ANON);
 
-let ME=null, GROUPS=[], PARTS=[], SPLITS=[], ACTIVE_GROUP=null;
-let METHOD='equal';
-const COLORS=['#CAFF40','#60C8FF','#B39DFF','#FF8C69','#7BDA8A','#FFD97D','#FF6B9D','#4ECDC4'];
-const CO_ICON={ENEO:'⚡',CamWater:'💧',Camtel:'📡',Autre:'📌'};
-const CO_CLS ={ENEO:'gc-eneo',CamWater:'gc-camwater',Camtel:'gc-camtel',Autre:'gc-other'};
-const AV_COLS=['av-green','av-blue','av-purple','av-amber'];
-
+const SUPA_URL='https://rjnsnodvqwwhkxbznzqa.supabase.co';
+const SUPA_ANON='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJqbnNub2R2cXd3aGt4YnpuenFhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzgxODg1OTksImV4cCI6MjA5Mzc2NDU5OX0.gkV9ynTFdY8B72s2fnRpTkUH71FUz59ICIpQLZQDsIc';
+const db=supabase.createClient(SUPA_URL,SUPA_ANON);
+let ME=null;
 const $=id=>document.getElementById(id);
 const fmt=n=>Math.round(n||0).toLocaleString('fr-FR');
-const fmtA=n=>fmt(n)+' FCFA';
-const ini=n=>(n||'?').split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2);
+const fmtA=n=>fmt(n)+' F';
 const fmtM=m=>m?new Date(m+'-01').toLocaleDateString('fr-FR',{month:'long',year:'numeric'}):'—';
-
-function toast(msg,type='success'){const t=$('toast');t.textContent=msg;t.className='toast '+type+' show';setTimeout(()=>t.classList.remove('show'),3200)}
+const fmtMs=m=>m?new Date(m+'-01').toLocaleDateString('fr-FR',{month:'short',year:'numeric'}):'—';
+const fmtD=d=>d?new Date(d).toLocaleDateString('fr-FR'):'—';
+const ini=n=>(n||'?').split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2);
+const avCol=['av-purple','av-green','av-amber'];
+function toast(msg,type='success'){const t=$('toast');t.innerHTML=msg;t.className='toast '+type+' show';setTimeout(()=>t.classList.remove('show'),3000)}
 function openM(id){$(id).classList.add('open')}
 function closeM(id){$(id).classList.remove('open')}
 document.addEventListener('click',e=>{if(e.target.classList.contains('modal-overlay'))e.target.classList.remove('open')});
+async function initAuth(){const {data:{session}}=await db.auth.getSession();if(!session){window.location.href='auth.html';return null;}ME=session.user;return ME;}
 
-// ── INIT ──────────────────────────────────────────────
-window.addEventListener('DOMContentLoaded', async()=>{
-  const {data:{session}} = await db.auth.getSession();
-  if(!session){window.location.href='auth.html';return}
-  ME=session.user;
-  const name=ME.user_metadata?.full_name||ME.email||'Utilisateur';
-  $('user-avatar').textContent=name.split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2);
-  $('user-name').textContent=name;
-  $('logout-btn').onclick=async()=>{await db.auth.signOut();window.location.href='auth.html'};
+let groups=[],parts=[],splits=[],activeGroup=null,method='equal';
+const coIcon={ENEO:'⚡',CamWater:'💧',Camtel:'📡'};
+const colors=['#4F46E5','#0284C7','#7C3AED','#10B981','#F59E0B','#EF4444','#EC4899','#14B8A6'];
 
-  $('new-group-btn').onclick=()=>openM('modal-group');
-  $('add-group-card').onclick=()=>openM('modal-group');
-  $('close-group-modal').onclick=()=>closeM('modal-group');
-  $('save-group-btn').onclick=saveGroup;
-  $('close-part-modal').onclick=()=>closeM('modal-participant');
-  $('save-part-btn').onclick=saveParticipant;
-  $('save-split-btn').onclick=saveSplit;
-  $('whatsapp-split-btn').onclick=sendWhatsApp;
-  $('split-month').value=new Date().toISOString().slice(0,7);
-
-  await loadAll();
+window.addEventListener('DOMContentLoaded',async()=>{
+  ME=await initAuth();if(!ME)return;
+  await load();
 });
 
-async function loadAll(){
+async function load(){
   const [g,s]=await Promise.all([
     db.from('meter_groups').select('*').eq('owner_id',ME.id).order('created_at',{ascending:false}),
-    db.from('meter_splits').select('*').eq('owner_id',ME.id).order('created_at',{ascending:false})
+    db.from('meter_splits').select('*').eq('owner_id',ME.id)
   ]);
-  GROUPS=g.data||[];
-  SPLITS=s.data||[];
-  renderStats();
+  groups=g.data||[];splits=s.data||[];
+  $('s-groups').textContent=groups.length;
+  $('s-splits').textContent=splits.length;
   renderGroups();
-  $('view-loading').style.display='none';
-  $('view-main').style.display='block';
 }
 
-function renderStats(){
-  const now=new Date();
-  const mo=`${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}`;
-  const moSplits=SPLITS.filter(s=>s.billing_month?.startsWith(mo));
-  const collected=moSplits.reduce((sum,s)=>{
-    const paid=(s.participant_splits||[]).filter(p=>p.paid).reduce((a,p)=>a+p.amount,0);
-    return sum+paid;
-  },0);
-  const totalParts=GROUPS.reduce((s,g)=>s+(g._parts_count||0),0);
-  $('s-groups').textContent=GROUPS.length;
-  $('s-parts').textContent=totalParts;
-  $('s-splits').textContent=moSplits.length;
-  $('s-collected').textContent=fmt(collected);
-}
-
-// ── GROUPS ────────────────────────────────────────────
 function renderGroups(){
-  const grid=$('groups-grid');
-  const cards=GROUPS.map(g=>`
-    <div class="group-card${ACTIVE_GROUP?.id===g.id?' selected':''}" data-id="${g.id}">
-      <div class="gc-icon ${CO_CLS[g.company]||'gc-other'}">${CO_ICON[g.company]||'📌'}</div>
-      <div class="gc-name">${g.name}</div>
-      <div class="gc-addr">${g.address||g.company}</div>
-      <div class="gc-stats">
-        <div><div class="gc-stat-val">${g._parts_count||'—'}</div><div class="gc-stat-lbl">Participants</div></div>
-        <div><div class="gc-stat-val">${SPLITS.filter(s=>s.group_id===g.id).length}</div><div class="gc-stat-lbl">Partages</div></div>
+  const el=$('groups-list');
+  if(!groups.length){el.innerHTML=`<div class="empty-state"><span class="ei">⚡</span><h3>Aucun groupe</h3><p>Créez votre premier groupe de compteur partagé</p><button class="btn-sm btn-sm-purple" onclick="openM('modal-group')" style="margin-top:14px">+ Créer un groupe</button></div>`;return;}
+  el.innerHTML=groups.map((g,i)=>`
+    <div class="card" style="padding:16px;margin-bottom:10px;display:flex;align-items:center;gap:14px;cursor:pointer" onclick="selectGroup('${g.id}')">
+      <div class="li-icon" style="background:${coIcon[g.company]?'rgba(79,70,229,0.1)':'#F3F4F6'};font-size:22px">${coIcon[g.company]||'📌'}</div>
+      <div style="flex:1">
+        <div style="font-size:14px;font-weight:700;color:var(--text)">${g.name}</div>
+        <div style="font-size:12px;color:var(--text2);margin-top:2px">${g.company} · ${g.split_method==='equal'?'Partage égal':g.split_method==='rooms'?'Par pièces':'Pourcentage'}</div>
       </div>
+      <i class="ph ph-caret-right" style="color:var(--text3);font-size:18px"></i>
     </div>`).join('');
-  grid.innerHTML=cards+`<div class="add-group-card" id="add-group-card"><span style="font-size:32px">⚡</span><span>Créer un groupe</span></div>`;
-  grid.querySelectorAll('.group-card').forEach(card=>{
-    card.onclick=()=>selectGroup(card.dataset.id);
-  });
-  $('add-group-card').onclick=()=>openM('modal-group');
 }
 
 async function selectGroup(id){
-  ACTIVE_GROUP=GROUPS.find(g=>g.id===id);
-  if(!ACTIVE_GROUP)return;
-  // Load participants
-  const {data}=await db.from('meter_participants').select('*').eq('group_id',id).eq('status','active').order('created_at',{ascending:true});
-  PARTS=data||[];
-  // Load splits for this group
-  const {data:sp}=await db.from('meter_splits').select('*').eq('group_id',id).order('created_at',{ascending:false});
-  SPLITS=sp||[];
-  METHOD=ACTIVE_GROUP.split_method||'equal';
-  renderGroups();
-  $('split-section').style.display='block';
-  $('active-group-name').textContent=ACTIVE_GROUP.name;
-  $('active-group-sub').textContent=`${CO_ICON[ACTIVE_GROUP.company]||'📌'} ${ACTIVE_GROUP.company} · ${PARTS.length} participant(s)`;
-  $('add-participant-btn').onclick=()=>openM('modal-participant');
-  $('delete-group-btn').onclick=()=>deleteGroup(id);
-  setMethod(METHOD);
-  renderSplitHistory();
-  $('split-section').scrollIntoView({behavior:'smooth'});
+  activeGroup=groups.find(g=>g.id===id);
+  if(!activeGroup)return;
+  const {data}=await db.from('meter_participants').select('*').eq('group_id',id).eq('status','active');
+  parts=data||[];
+  method=activeGroup.split_method||'equal';
+  $('calc-group-name').textContent=coIcon[activeGroup.company]+' '+activeGroup.name;
+  $('calc-section').style.display='block';
+  $('calc-section').scrollIntoView({behavior:'smooth'});
+  setMethod(method);
 }
 
-async function saveGroup(){
-  const name=$('g-name').value.trim();
-  if(!name)return toast('Le nom est obligatoire','error');
-  $('save-group-btn').disabled=true;
-  const {error}=await db.from('meter_groups').insert([{
-    owner_id:ME.id,name,
-    company:$('g-company').value,
-    split_method:$('g-method').value,
-    address:$('g-address').value.trim()||null
-  }]);
-  $('save-group-btn').disabled=false;
-  if(error)return toast('Erreur: '+error.message,'error');
-  closeM('modal-group');
-  toast('✅ Groupe créé!');
-  $('g-name').value='';$('g-address').value='';
-  await loadAll();
-}
-
-async function deleteGroup(id){
-  if(!confirm('Supprimer ce groupe et tous ses partages?'))return;
-  await db.from('meter_groups').delete().eq('id',id);
-  ACTIVE_GROUP=null;
-  $('split-section').style.display='none';
-  toast('Groupe supprimé');
-  await loadAll();
-}
-
-// ── PARTICIPANTS ──────────────────────────────────────
-async function saveParticipant(){
-  const name=$('p-name').value.trim();
-  if(!name)return toast('Le nom est obligatoire','error');
-  if(!ACTIVE_GROUP)return toast('Sélectionnez d\'abord un groupe','error');
-  $('save-part-btn').disabled=true;
-  const {error}=await db.from('meter_participants').insert([{
-    group_id:ACTIVE_GROUP.id,owner_id:ME.id,
-    name,
-    phone:$('p-phone').value.trim()||null,
-    rooms:parseInt($('p-rooms').value)||1,
-    share_pct:0,status:'active'
-  }]);
-  $('save-part-btn').disabled=false;
-  if(error)return toast('Erreur: '+error.message,'error');
-  closeM('modal-participant');
-  toast('👤 Participant ajouté!');
-  $('p-name').value='';$('p-phone').value='';
-  await selectGroup(ACTIVE_GROUP.id);
-}
-
-// ── SPLIT METHOD ──────────────────────────────────────
 function setMethod(m){
-  METHOD=m;
-  ['equal','percentage','rooms'].forEach(t=>{
-    $('tab-'+t).classList.toggle('active',t===m);
-    $('hint-'+t).style.display=t===m?'block':'none';
+  method=m;
+  ['equal','rooms','pct'].forEach(t=>{
+    const btn=$('tab-'+t);
+    if(btn){btn.className='btn-sm '+(t===m?'btn-sm-purple':'');if(t!==m)btn.style.cssText='background:rgba(255,255,255,0.1);color:#fff';}
   });
   recalc();
 }
 
 function recalc(){
-  if(!PARTS.length)return;
-  const total=parseFloat($('total-input').value)||0;
-  $('total-bar-val').textContent=fmtA(total);
-  $('pie-total').textContent=fmt(total);
-
+  const total=parseFloat($('calc-total').value)||0;
+  $('calc-total-display').textContent=fmt(total)+' F';
+  if(!parts.length){$('parts-list').innerHTML=`<div style="text-align:center;padding:16px;color:rgba(255,255,255,0.4);font-size:13px">Aucun participant — <button onclick="openM('modal-part')" style="background:none;border:none;color:#818CF8;font-weight:600;cursor:pointer;font-size:13px">+ Ajouter</button></div>`;return;}
   let shares=[];
-  if(METHOD==='equal'){
-    const each=total/PARTS.length;
-    shares=PARTS.map(p=>({...p,amount:each,pct:100/PARTS.length}));
-  } else if(METHOD==='percentage'){
-    const inputs=document.querySelectorAll('.p-input.pct-in');
-    let totalPct=0;
-    shares=PARTS.map((p,i)=>{
-      const pct=parseFloat(inputs[i]?.value)||0;
-      totalPct+=pct;
-      return{...p,pct,amount:total*pct/100};
-    });
-    const warn=$('pct-warning');
-    warn.style.display=Math.abs(totalPct-100)>0.1?'block':'none';
-  } else if(METHOD==='rooms'){
-    const inputs=document.querySelectorAll('.p-input.rooms-in');
-    const totalRooms=Array.from(inputs).reduce((s,el)=>s+(parseFloat(el.value)||1),0)||1;
-    shares=PARTS.map((p,i)=>{
-      const rooms=parseFloat(inputs[i]?.value)||1;
-      return{...p,rooms,pct:rooms/totalRooms*100,amount:total*rooms/totalRooms};
-    });
-  }
-
-  renderParticipantRows(shares);
-  renderPie(shares);
-  updateShareMsg(shares,total);
-}
-
-function renderParticipantRows(shares){
-  const el=$('participants-list');
-  if(!shares.length){
-    el.innerHTML=`<div style="text-align:center;padding:28px;color:var(--gray)"><div style="font-size:28px;margin-bottom:8px">👥</div><div style="font-family:var(--font-h);font-weight:600;color:#555">Aucun participant</div><p style="font-size:13px;margin-top:4px">Cliquez "+ Ajouter participant" pour commencer.</p></div>`;
-    return;
-  }
-  el.innerHTML=shares.map((p,i)=>{
-    let inputHTML='';
-    if(METHOD==='percentage'){
-      inputHTML=`<input class="p-input pct-in" type="number" value="${p.share_pct||Math.round(100/PARTS.length)}" min="0" max="100" oninput="recalc()" title="% pour ${p.name}"> <span style="font-size:12px;color:var(--gray)">%</span>`;
-    } else if(METHOD==='rooms'){
-      inputHTML=`<input class="p-input rooms-in" type="number" value="${p.rooms||1}" min="1" oninput="recalc()" title="Pièces de ${p.name}"> <span style="font-size:12px;color:var(--gray)">pièces</span>`;
-    } else {
-      inputHTML=`<span style="font-size:12px;color:var(--gray)">${Math.round(p.pct)}%</span>`;
-    }
-    const color=COLORS[i%COLORS.length];
-    return `<div class="p-row" data-id="${p.id}">
-      <div class="p-av ${AV_COLS[i%4]}" style="background:${color}20;color:${color==='#CAFF40'?'#2a2a2a':color}">${ini(p.name)}</div>
-      <div class="p-info">
-        <div class="p-name">${p.name}</div>
-        ${p.phone?`<div class="p-phone">${p.phone}</div>`:''}
-      </div>
-      <div style="display:flex;align-items:center;gap:6px">${inputHTML}</div>
-      <div class="p-amount">${fmtA(p.amount)}</div>
-      <button class="p-paid-btn unpaid" title="Marquer payé" onclick="togglePaid(this,'${p.id}')">○</button>
-      <button class="icon-btn" onclick="removeParticipant('${p.id}')" title="Retirer" style="flex-shrink:0">✕</button>
-    </div>`;
-  }).join('');
-}
-
-function togglePaid(btn,id){
-  const isPaid=btn.classList.contains('paid');
-  btn.classList.toggle('paid',!isPaid);
-  btn.classList.toggle('unpaid',isPaid);
-  btn.textContent=isPaid?'○':'✓';
-  toast(isPaid?'Marqué non payé':'✅ Marqué comme payé');
-}
-
-async function removeParticipant(id){
-  if(!confirm('Retirer ce participant?'))return;
-  await db.from('meter_participants').update({status:'inactive'}).eq('id',id);
-  toast('Participant retiré');
-  await selectGroup(ACTIVE_GROUP.id);
-}
-
-// ── PIE CHART ─────────────────────────────────────────
-function renderPie(shares){
-  if(!shares.length){$('pie-svg').innerHTML='<circle cx="50" cy="50" r="40" fill="#f0f0f0"/>'; $('pie-legend').innerHTML=''; return;}
-  const total=shares.reduce((s,p)=>s+p.amount,0)||1;
-  let startAngle=-Math.PI/2;
-  let paths='';
-  shares.forEach((p,i)=>{
-    const slice=(p.amount/total)*Math.PI*2;
-    const endAngle=startAngle+slice;
-    const x1=50+40*Math.cos(startAngle), y1=50+40*Math.sin(startAngle);
-    const x2=50+40*Math.cos(endAngle),   y2=50+40*Math.sin(endAngle);
-    const large=slice>Math.PI?1:0;
-    const color=COLORS[i%COLORS.length];
-    paths+=`<path d="M50,50 L${x1},${y1} A40,40 0 ${large},1 ${x2},${y2} Z" fill="${color}" opacity="0.9"/>`;
-    startAngle=endAngle;
-  });
-  // Center white circle
-  paths+=`<circle cx="50" cy="50" r="25" fill="white"/>`;
-  $('pie-svg').innerHTML=paths;
-
-  $('pie-legend').innerHTML=shares.map((p,i)=>`
-    <div class="legend-item">
-      <div class="legend-dot" style="background:${COLORS[i%COLORS.length]}"></div>
-      <div class="legend-name">${p.name}</div>
-      <div class="legend-pct">${Math.round(p.pct)}%</div>
-      <div class="legend-amount">${fmtA(p.amount)}</div>
+  if(method==='equal'){const ea=total/parts.length;shares=parts.map(p=>({...p,amount:ea,pct:100/parts.length}));}
+  else if(method==='rooms'){const tr=parts.reduce((s,p)=>s+(p.rooms||1),0)||1;shares=parts.map(p=>{const r=p.rooms||1;return{...p,amount:total*r/tr,pct:r/tr*100}});}
+  else{shares=parts.map(p=>{const pct=p.share_pct||Math.round(100/parts.length);return{...p,amount:total*pct/100,pct}});}
+  $('parts-list').innerHTML=shares.map((p,i)=>`
+    <div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid rgba(255,255,255,0.08)">
+      <div style="width:32px;height:32px;border-radius:50%;background:${colors[i%colors.length]}22;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;color:${colors[i%colors.length]};flex-shrink:0">${ini(p.name)}</div>
+      <div style="flex:1"><div style="font-size:13px;font-weight:600;color:#fff">${p.name}</div><div style="font-size:11px;color:rgba(255,255,255,0.4)">${Math.round(p.pct)}%</div></div>
+      <div style="font-size:15px;font-weight:800;color:${colors[i%colors.length]}">${fmtA(p.amount)}</div>
     </div>`).join('');
-}
-
-// ── WHATSAPP MESSAGE ──────────────────────────────────
-function updateShareMsg(shares,total){
-  if(!shares.length||!total){$('share-msg-box').style.display='none';return;}
-  const month=$('split-month').value;
-  const monthLabel=month?new Date(month+'-01').toLocaleDateString('fr-FR',{month:'long',year:'numeric'}):'ce mois';
-  const lines=shares.map(p=>`• ${p.name}: *${fmtA(p.amount)}*`).join('\n');
-  const msg=`🛡 *BillSafe — Partage facture ${ACTIVE_GROUP?.company||''}*\n\nBonjour! Voici votre part de la facture ${ACTIVE_GROUP?.company||''} de ${monthLabel}:\n\n${lines}\n\n💰 Total: *${fmtA(total)}*\n\nMerci de régler votre part dès que possible. 🙏`;
-  $('share-msg-box').textContent=msg;
-  $('share-msg-box').style.display='block';
+  window._currentShares=shares;
 }
 
 function sendWhatsApp(){
-  const msg=$('share-msg-box').textContent;
-  if(!msg)return toast('Calculez d\'abord un partage','error');
-  window.open('https://wa.me/?text='+encodeURIComponent(msg),'_blank');
+  const total=parseFloat($('calc-total').value)||0;
+  if(!window._currentShares?.length)return toast('Calculez d'abord le partage','error');
+  const lines=window._currentShares.map(p=>`• ${p.name}: *${fmtA(p.amount)}*`).join('\n');
+  const msg=encodeURIComponent(`🛡 *BillSafe — Partage ${activeGroup?.company||''}*\n\n${lines}\n\n💰 Total: *${fmtA(total)}*\n\nMerci de payer votre part 🙏`);
+  window.open('https://wa.me/?text='+msg,'_blank');
 }
 
-// ── SAVE SPLIT ────────────────────────────────────────
 async function saveSplit(){
-  if(!ACTIVE_GROUP)return toast('Sélectionnez un groupe','error');
-  const total=parseFloat($('total-input').value);
-  if(!total)return toast('Entrez le montant total','error');
-  if(!PARTS.length)return toast('Ajoutez au moins un participant','error');
-
-  // Collect current split data
-  const paidBtns=document.querySelectorAll('.p-paid-btn');
-  const rows=document.querySelectorAll('.p-row');
-  const participant_splits=PARTS.map((p,i)=>({
-    id:p.id, name:p.name, phone:p.phone||null,
-    amount:parseFloat(rows[i]?.querySelector('.p-amount')?.textContent)||0,
-    pct:Math.round(100/PARTS.length),
-    paid:paidBtns[i]?.classList.contains('paid')||false
-  }));
-
-  $('save-split-btn').disabled=true;
-  const {error}=await db.from('meter_splits').insert([{
-    group_id:ACTIVE_GROUP.id, owner_id:ME.id,
-    billing_month:$('split-month').value,
-    total_amount:total,
-    split_method:METHOD,
-    participant_splits,
-    status:'active'
-  }]);
-  $('save-split-btn').disabled=false;
+  if(!activeGroup)return;
+  const total=parseFloat($('calc-total').value);
+  if(!total)return toast('Entrez le montant','error');
+  const {error}=await db.from('meter_splits').insert([{group_id:activeGroup.id,owner_id:ME.id,billing_month:new Date().toISOString().slice(0,7),total_amount:total,split_method:method,participant_splits:JSON.stringify(window._currentShares||[]),status:'active'}]);
   if(error)return toast('Erreur: '+error.message,'error');
-  toast('✅ Partage sauvegardé!');
-  await selectGroup(ACTIVE_GROUP.id);
+  toast('✅ Partage enregistré!');await load();
 }
 
-// ── SPLIT HISTORY ─────────────────────────────────────
-function renderSplitHistory(){
-  const el=$('split-history');
-  if(!SPLITS.length){el.innerHTML=`<div style="font-size:13px;color:var(--gray);text-align:center;padding:20px">Aucun partage enregistré</div>`;return;}
-  el.innerHTML=SPLITS.slice(0,6).map(s=>{
-    const paid=(s.participant_splits||[]).filter(p=>p.paid).length;
-    const total=(s.participant_splits||[]).length;
-    return`<div class="split-row">
-      <div style="flex:1">
-        <div class="split-month">${fmtM(s.billing_month)}</div>
-        <div style="font-size:11px;color:var(--gray);margin-top:2px">${paid}/${total} payés · ${s.split_method==='equal'?'Partage égal':s.split_method==='percentage'?'% Personnalisé':'Par pièces'}</div>
-      </div>
-      <div class="split-total">${fmtA(s.total_amount)}</div>
-      <span class="pill ${paid===total?'pill-paid':'pill-pending'}">${paid===total?'✓ Soldé':'⏳ En cours'}</span>
-    </div>`;
-  }).join('');
+async function saveGroup(){
+  const name=$('g-name').value.trim();if(!name)return toast('Le nom est obligatoire','error');
+  const {error}=await db.from('meter_groups').insert([{owner_id:ME.id,name,company:$('g-co').value,split_method:$('g-method').value,address:$('g-addr').value.trim()||null}]);
+  if(error)return toast('Erreur: '+error.message,'error');
+  closeM('modal-group');toast('✅ Groupe créé!');await load();
 }
-</script>
-<nav class="mobile-nav">
-  <a href="dashboard.html" class="mn-item">
-    <i class="ph ph-chart-bar"></i>
-    <span>Dashboard</span>
-  </a>
-  <a href="bills.html" class="mn-item">
-    <i class="ph ph-file-text"></i>
-    <span>Factures</span>
-  </a>
-  <a href="upload.html" class="mn-item mn-fab">
-    <div class="mn-fab-circle"><i class="ph ph-scan"></i></div>
-    <span>Scanner</span>
-  </a>
-  <a href="meter-split.html" class="mn-item  active">
-    <i class="ph ph-lightning"></i>
-    <span>Partage</span>
-  </a>
-  <a href="alerts.html" class="mn-item">
-    <i class="ph ph-bell"></i>
-    <span>Alertes</span>
-  </a>
-</nav>
-</body>
-</html>
+
+async function saveParticipant(){
+  const name=$('p-name').value.trim();if(!name)return toast('Le nom est obligatoire','error');
+  if(!activeGroup)return toast('Sélectionnez un groupe','error');
+  const {error}=await db.from('meter_participants').insert([{group_id:activeGroup.id,owner_id:ME.id,name,phone:$('p-phone').value.trim()||null,rooms:parseInt($('p-rooms').value)||1,status:'active'}]);
+  if(error)return toast('Erreur: '+error.message,'error');
+  closeM('modal-part');toast('✅ Participant ajouté!');
+  await selectGroup(activeGroup.id);
+}
+</script></body></html>

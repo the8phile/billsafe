@@ -1,369 +1,356 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-  <!-- PWA + iPhone Home Screen -->
-  <link rel="manifest" href="/manifest.json">
-  <link rel="apple-touch-icon" href="/icons/icon-180.png">
-  <link rel="apple-touch-icon" sizes="120x120" href="/icons/icon-120.png">
-  <link rel="apple-touch-icon" sizes="152x152" href="/icons/icon-152.png">
-  <link rel="apple-touch-icon" sizes="167x167" href="/icons/icon-167.png">
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <meta name="apple-mobile-web-app-title" content="BillSafe">
-  <meta name="theme-color" content="#0052FF">
-  <meta name="mobile-web-app-capable" content="yes">
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>BillSafe — Scan Intelligent</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="BillSafe">
+<meta name="theme-color" content="#4F46E5">
+<link rel="apple-touch-icon" href="/icons/icon-180.png">
+<link rel="manifest" href="/manifest.json">
+<title>BillSafe — Scanner</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@phosphor-icons/web@2.1.1/src/regular/style.css">
-<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=DM+Sans:wght@400;500&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="../css/portal.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@phosphor-icons/web@2.1.1/src/fill/style.css">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
-  .scan-wrap { max-width: 680px; }
-  .camera-zone { background: var(--dark); border-radius: var(--radius); overflow: hidden; margin-bottom: 20px; position: relative; min-height: 260px; display: flex; flex-direction: column; align-items: center; justify-content: center; }
-  .camera-placeholder { text-align: center; padding: 40px 24px; }
-  .cam-icon { font-size: 52px; margin-bottom: 14px; }
-  .camera-placeholder h3 { font-family: var(--font-h); font-weight: 700; font-size: 18px; color: var(--white); margin-bottom: 8px; }
-  .camera-placeholder p { font-size: 13px; color: #666; line-height: 1.6; }
-  .camera-btns { display: flex; gap: 10px; margin-top: 20px; justify-content: center; flex-wrap: wrap; }
-  .preview-wrap { position: relative; width: 100%; }
-  .preview-img { width: 100%; max-height: 320px; object-fit: contain; display: block; background: #000; }
-  .preview-overlay { position: absolute; top: 12px; right: 12px; display: flex; gap: 8px; }
-  .scan-line { position: absolute; top: 0; left: 0; right: 0; height: 3px; background: var(--lime); box-shadow: 0 0 12px var(--lime); animation: scanDown 2s ease-in-out infinite; }
-  @keyframes scanDown { 0%{top:0} 100%{top:100%} }
-  .scanning-overlay { position: absolute; inset: 0; background: rgba(13,13,13,0.75); display: none; flex-direction: column; align-items: center; justify-content: center; }
-  .scan-spinner { width: 48px; height: 48px; border: 3px solid #333; border-top-color: var(--lime); border-radius: 50%; animation: spin 0.8s linear infinite; margin-bottom: 14px; }
-  @keyframes spin { to { transform: rotate(360deg); } }
-  .scanning-overlay p { font-size: 14px; color: var(--lime); font-family: var(--font-h); font-weight: 600; }
-  .ocr-result { background: var(--green-bg); border: 1.5px solid #c3f0d5; border-radius: var(--radius-sm); padding: 16px 20px; margin-bottom: 20px; display: none; }
-  .ocr-badge { background: var(--green); color: var(--white); font-size: 11px; font-weight: 700; font-family: var(--font-h); padding: 3px 12px; border-radius: 20px; }
-  .ocr-fields { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-top: 14px; }
-  .ocr-field { background: var(--white); border-radius: 8px; padding: 10px 12px; }
-  .ocr-field-label { font-size: 10px; font-weight: 700; color: var(--gray); font-family: var(--font-h); letter-spacing: 0.04em; text-transform: uppercase; margin-bottom: 3px; }
-  .ocr-field-value { font-size: 14px; font-weight: 700; color: var(--dark); font-family: var(--font-h); }
-  .ocr-fail { background: #fff8e6; border: 1.5px solid #ffd97d; border-radius: var(--radius-sm); padding: 14px 18px; margin-bottom: 20px; display: none; font-size: 13px; color: #7a5000; }
-  .auto-filled { border-color: var(--green) !important; background: var(--green-bg) !important; }
-  .progress-bar { height: 6px; background: #f0f0f0; border-radius: 10px; margin-bottom: 20px; overflow: hidden; display: none; }
-  .progress-fill { height: 100%; background: var(--lime); border-radius: 10px; transition: width 0.4s; width: 0%; }
-  .tip-row { display: flex; gap: 8px; margin-bottom: 20px; flex-wrap: wrap; }
-  .tip { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--gray); background: #f5f5f5; padding: 6px 12px; border-radius: 20px; }
-  .form-section-label { font-size: 11px; font-weight: 700; font-family: var(--font-h); color: var(--gray); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 14px; display: flex; align-items: center; gap: 8px; }
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --purple:#4F46E5;--purple-dark:#3730A3;--purple-light:#6366F1;
+  --purple-dim:rgba(79,70,229,0.1);--purple-glow:rgba(79,70,229,0.2);
+  --violet:#7C3AED;--blue:#2563EB;
+  --bg:#F5F5FA;--surface:#FFFFFF;--surface2:#F8F8FF;
+  --dark:#1E1B4B;--dark2:#312E81;
+  --text:#1E1B4B;--text2:#6B7280;--text3:#9CA3AF;
+  --green:#10B981;--green-bg:rgba(16,185,129,0.1);
+  --red:#EF4444;--red-bg:rgba(239,68,68,0.1);
+  --amber:#F59E0B;--amber-bg:rgba(245,158,11,0.1);
+  --white:#FFFFFF;
+  --nav-h:72px;--header-h:64px;
+  --radius:20px;--radius-sm:14px;--radius-xs:10px;
+  --shadow:0 2px 12px rgba(79,70,229,0.08);
+  --shadow-md:0 8px 32px rgba(79,70,229,0.12);
+  --f:'Inter',sans-serif;
+}
+html,body{height:100%;overflow-x:hidden}
+body{font-family:var(--f);background:var(--bg);color:var(--text);-webkit-font-smoothing:antialiased;padding-bottom:var(--nav-h)}
+.app{min-height:100vh;max-width:430px;margin:0 auto}
+@media(min-width:769px){.app{box-shadow:0 0 40px rgba(0,0,0,0.12)}}
+
+/* PAGE HEADER */
+.page-header{
+  background:linear-gradient(145deg,#4F46E5 0%,#7C3AED 100%);
+  padding:env(safe-area-inset-top,44px) 20px 24px;
+  position:relative;overflow:hidden;
+}
+.page-header::before{content:'';position:absolute;top:-40px;right:-30px;width:120px;height:120px;background:rgba(255,255,255,0.06);border-radius:50%}
+.ph-row{display:flex;align-items:center;gap:14px;padding-top:8px;position:relative;z-index:1}
+.back-btn{width:38px;height:38px;border-radius:50%;background:rgba(255,255,255,0.15);border:none;color:#fff;font-size:20px;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;-webkit-tap-highlight-color:transparent}
+.page-title{font-size:18px;font-weight:700;color:#fff;flex:1}
+.ph-action{width:38px;height:38px;border-radius:50%;background:rgba(255,255,255,0.15);border:none;color:#fff;font-size:18px;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0}
+
+/* CONTENT */
+.content{padding:20px 16px}
+
+/* CARDS */
+.card{background:var(--surface);border-radius:var(--radius);padding:18px;box-shadow:var(--shadow);margin-bottom:14px}
+.card-dark{background:linear-gradient(135deg,#1E1B4B,#312E81);color:#fff}
+.card-purple{background:linear-gradient(135deg,#4F46E5,#7C3AED);color:#fff}
+.card-title{font-size:15px;font-weight:700;color:var(--text);margin-bottom:4px}
+.card-dark .card-title,.card-purple .card-title{color:#fff}
+.card-sub{font-size:12px;color:var(--text2);margin-bottom:14px}
+.card-dark .card-sub,.card-purple .card-sub{color:rgba(255,255,255,0.6)}
+.card-header-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px}
+
+/* FORMS */
+.form-group{margin-bottom:14px}
+.form-label{font-size:11px;font-weight:700;color:var(--text2);margin-bottom:6px;display:block;text-transform:uppercase;letter-spacing:0.05em}
+.form-input{width:100%;padding:14px 16px;border:1.5px solid #E5E7EB;border-radius:var(--radius-sm);font-size:15px;font-family:var(--f);background:var(--surface2);color:var(--text);outline:none;transition:all 0.2s;-webkit-appearance:none}
+.form-input:focus{border-color:var(--purple);background:#fff;box-shadow:0 0 0 4px rgba(79,70,229,0.1)}
+select.form-input{cursor:pointer}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+
+/* BUTTONS */
+.btn-primary{width:100%;padding:16px;background:linear-gradient(135deg,#4F46E5,#7C3AED);color:#fff;font-size:15px;font-weight:700;font-family:var(--f);border:none;border-radius:var(--radius-sm);cursor:pointer;box-shadow:0 4px 16px rgba(79,70,229,0.35);transition:all 0.2s;margin-top:6px}
+.btn-primary:active{transform:scale(0.98)}
+.btn-ghost{width:100%;padding:14px;background:transparent;border:1.5px solid #E5E7EB;color:var(--text2);font-size:14px;font-weight:600;font-family:var(--f);border-radius:var(--radius-sm);cursor:pointer;margin-top:8px}
+.btn-sm{padding:9px 18px;border-radius:100px;font-size:13px;font-weight:700;font-family:var(--f);border:none;cursor:pointer;display:inline-flex;align-items:center;gap:6px;-webkit-tap-highlight-color:transparent;transition:all 0.2s}
+.btn-sm:active{transform:scale(0.95)}
+.btn-sm-purple{background:var(--purple);color:#fff;box-shadow:0 3px 10px rgba(79,70,229,0.3)}
+.btn-sm-ghost{background:var(--purple-dim);color:var(--purple);border:1px solid rgba(79,70,229,0.2)}
+.btn-sm-red{background:var(--red-bg);color:var(--red)}
+
+/* PILLS */
+.pill{display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:700;padding:4px 10px;border-radius:100px;font-family:var(--f)}
+.pill-paid{background:var(--green-bg);color:var(--green)}
+.pill-pending{background:var(--amber-bg);color:var(--amber)}
+.pill-active{background:var(--green-bg);color:var(--green)}
+.pill-inactive{background:#F3F4F6;color:var(--text2)}
+.pill-shared{background:var(--purple-dim);color:var(--purple)}
+.pill-warning{background:var(--amber-bg);color:var(--amber)}
+.pill-critical{background:var(--red-bg);color:var(--red)}
+
+/* LIST ITEMS */
+.list-item{display:flex;align-items:center;gap:14px;padding:14px 0;border-bottom:1px solid #F3F4F6}
+.list-item:last-child{border-bottom:none}
+.li-icon{width:44px;height:44px;border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0}
+.li-body{flex:1;min-width:0}
+.li-title{font-size:14px;font-weight:600;color:var(--text)}
+.li-sub{font-size:12px;color:var(--text2);margin-top:2px}
+.li-right{text-align:right;flex-shrink:0}
+.li-val{font-size:15px;font-weight:700;color:var(--text)}
+.li-badge{margin-top:4px}
+
+/* ICON COLORS */
+.ic-eneo{background:linear-gradient(135deg,#FEF08A,#EAB308)}
+.ic-camwater{background:linear-gradient(135deg,#BAE6FD,#0284C7)}
+.ic-camtel{background:linear-gradient(135deg,#DDD6FE,#7C3AED)}
+.ic-green{background:linear-gradient(135deg,#BBF7D0,#10B981)}
+.ic-red{background:var(--red-bg)}
+.ic-blue{background:var(--purple-dim)}
+.ic-amber{background:var(--amber-bg)}
+.ic-gray{background:#F3F4F6}
+.ic-purple{background:linear-gradient(135deg,#E0E7FF,#4F46E5)}
+
+/* AVATAR */
+.avatar{width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:14px;flex-shrink:0}
+.av-purple{background:var(--purple-dim);color:var(--purple)}
+.av-green{background:var(--green-bg);color:var(--green)}
+.av-amber{background:var(--amber-bg);color:var(--amber)}
+.av-blue{background:rgba(37,99,235,0.1);color:var(--blue)}
+
+/* SEARCH */
+.search-bar{display:flex;align-items:center;gap:10px;background:var(--surface);border:1.5px solid #E5E7EB;border-radius:var(--radius-sm);padding:12px 16px;margin-bottom:16px}
+.search-bar i{color:var(--text3);font-size:18px;flex-shrink:0}
+.search-bar input{flex:1;border:none;background:transparent;font-size:15px;font-family:var(--f);color:var(--text);outline:none}
+.search-bar input::placeholder{color:var(--text3)}
+
+/* FILTER CHIPS */
+.filter-row{display:flex;gap:8px;overflow-x:auto;padding-bottom:4px;margin-bottom:16px;-webkit-overflow-scrolling:touch;scrollbar-width:none}
+.filter-row::-webkit-scrollbar{display:none}
+.fchip{padding:8px 16px;border-radius:100px;font-size:12px;font-weight:600;border:1.5px solid #E5E7EB;background:var(--surface);color:var(--text2);cursor:pointer;white-space:nowrap;transition:all 0.15s;font-family:var(--f)}
+.fchip.active{border-color:var(--purple);background:var(--purple);color:#fff}
+
+/* EMPTY */
+.empty-state{text-align:center;padding:48px 24px}
+.empty-state .ei{font-size:48px;margin-bottom:14px;display:block}
+.empty-state h3{font-size:16px;font-weight:700;color:var(--text2);margin-bottom:6px}
+.empty-state p{font-size:13px;color:var(--text3);line-height:1.6}
+
+/* SKELETON */
+.skeleton{background:linear-gradient(90deg,#F3F4F6 25%,#E9EAEC 50%,#F3F4F6 75%);background-size:200% 100%;animation:shimmer 1.5s infinite;border-radius:10px}
+@keyframes shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}
+
+/* TOAST */
+.toast{position:fixed;top:calc(env(safe-area-inset-top,44px)+8px);left:16px;right:16px;background:#1E1B4B;color:#fff;padding:14px 18px;border-radius:14px;font-size:13px;font-weight:600;box-shadow:0 8px 32px rgba(0,0,0,0.2);transform:translateY(-80px);opacity:0;transition:all 0.3s;z-index:9999;display:flex;align-items:center;gap:10px}
+.toast.show{transform:translateY(0);opacity:1}
+.toast.success{border-left:4px solid var(--green)}
+.toast.error{border-left:4px solid var(--red)}
+
+/* MODAL */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.5);backdrop-filter:blur(6px);z-index:2000;display:flex;align-items:flex-end;opacity:0;pointer-events:none;transition:opacity 0.25s}
+.modal-overlay.open{opacity:1;pointer-events:all}
+.modal{background:var(--surface);border-radius:28px 28px 0 0;width:100%;padding:20px 20px 40px;transform:translateY(30px);transition:transform 0.3s;max-height:90vh;overflow-y:auto}
+.modal-overlay.open .modal{transform:translateY(0)}
+.modal-handle{width:40px;height:4px;background:#E5E7EB;border-radius:2px;margin:0 auto 20px}
+.modal-title{font-size:18px;font-weight:700;color:var(--text);margin-bottom:18px}
+
+/* BOTTOM NAV */
+.bottom-nav{position:fixed;bottom:0;left:0;right:0;max-width:430px;margin:0 auto;height:var(--nav-h);background:var(--white);border-top:1px solid rgba(0,0,0,0.06);display:flex;align-items:stretch;z-index:1000;padding-bottom:env(safe-area-inset-bottom,0px);box-shadow:0 -4px 24px rgba(0,0,0,0.08)}
+.bn-item{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;text-decoration:none;color:var(--text3);font-size:10px;font-weight:600;letter-spacing:0.02em;cursor:pointer;border:none;background:transparent;font-family:var(--f);-webkit-tap-highlight-color:transparent;transition:color 0.15s;position:relative}
+.bn-item.active{color:var(--purple)}
+.bn-item.active::before{content:'';position:absolute;top:0;left:20%;right:20%;height:3px;background:var(--purple);border-radius:0 0 4px 4px}
+.bn-item i{font-size:22px;transition:transform 0.15s}
+.bn-item.active i{transform:scale(1.1)}
+.bn-item:active i{transform:scale(0.9)}
+.bn-fab{flex:0 0 60px;position:relative}
+.bn-fab-circle{width:52px;height:52px;border-radius:50%;background:linear-gradient(135deg,#4F46E5,#7C3AED);display:flex;align-items:center;justify-content:center;box-shadow:0 4px 20px rgba(79,70,229,0.45);margin-bottom:2px;border:3px solid #fff;position:relative;top:-10px}
+.bn-fab-circle i{font-size:24px;color:#fff}
+.bn-fab::before{display:none!important}
+
+/* SUPABASE */
+
 </style>
 </head>
 <body>
-<div class="layout">
-  <aside class="sidebar">
-    <div class="sidebar-brand"><div class="sidebar-logo"><i class="ph ph-shield-check" style="font-size:18px;color:var(--lime)"></i></div><div class="sidebar-name">BillSafe</div></div>
-    <span class="sidebar-plan">Business</span>
-    <div class="nav-group-label">Principal</div>
-    <a class="nav-item" href="dashboard.html"><span class="ni"><i class="ph ph-chart-bar"></i></span> Tableau de bord</a>
-    <a class="nav-item" href="bills.html"><span class="ni"><i class="ph ph-file-text"></i></span> Mes factures</a>
-    <a class="nav-item active" href="upload.html"><span class="ni"><i class="ph ph-upload-simple"></i></span> Ajouter facture</a>
-    <div class="nav-group-label">Portail Business</div>
-    <a class="nav-item" href="landlord.html"><span class="ni"><i class="ph ph-buildings"></i></span> Mes propriétés</a>
-    <a class="nav-item" href="tenants.html"><span class="ni"><i class="ph ph-users"></i></span> Locataires</a>
-    <a class="nav-item" href="shared.html"><span class="ni"><i class="ph ph-share-network"></i></span> Factures partagées</a>
-    <div class="nav-group-label">Compte</div>
-    <a class="nav-item" href="settings.html"><span class="ni"><i class="ph ph-gear"></i></span> Paramètres</a>
-    <a class="nav-item" href="alerts.html"><span class="ni"><i class="ph ph-bell"></i></span> Alertes</a>
-    <div class="sidebar-bottom">
-      <div class="user-row">
-        <div class="user-avatar" id="user-avatar">?</div>
-        <div class="user-info"><div class="user-name" id="user-name">Chargement...</div><div class="user-role">Mon compte</div></div>
-        <button class="logout-btn" onclick="logout()">⏻</button>
-      </div>
+<div class="app">
+  <div class="page-header">
+    <div class="ph-row">
+      <button class="back-btn" onclick="history.back()"><i class="ph ph-arrow-left"></i></button>
+      <span class="page-title">Scanner une facture</span>
     </div>
-  </aside>
+  </div>
+  <div class="content">
 
-  <main class="main">
-    <div class="topbar">
-      <div class="topbar-left">
-        <h2>🤖 Scan Intelligent</h2>
-        <p>Prenez une photo — l'IA remplit les champs automatiquement</p>
+    <!-- SCAN ZONE -->
+    <div onclick="document.getElementById('cam-in').click()" style="background:linear-gradient(135deg,#1E1B4B,#312E81);border-radius:var(--radius);padding:32px 20px;text-align:center;margin-bottom:16px;cursor:pointer;position:relative;overflow:hidden">
+      <input type="file" id="cam-in" accept="image/*" capture="environment" style="display:none" onchange="handleFile(this.files[0])">
+      <input type="file" id="file-in" accept="image/*,.pdf" style="display:none" onchange="handleFile(this.files[0])">
+      <div style="width:72px;height:72px;border-radius:50%;background:rgba(255,255,255,0.1);display:flex;align-items:center;justify-content:center;margin:0 auto 16px;font-size:32px;border:2px dashed rgba(255,255,255,0.3)">
+        <i class="ph ph-scan" style="color:#fff"></i>
       </div>
-      <a href="dashboard.html" class="btn btn-ghost btn-sm">← Retour</a>
+      <div style="font-size:16px;font-weight:700;color:#fff;margin-bottom:6px">📸 Photographier le reçu</div>
+      <div style="font-size:13px;color:rgba(255,255,255,0.55)">L'IA lit automatiquement le montant,<br>la date et la référence</div>
+      <div id="file-name" style="margin-top:12px;font-size:13px;color:var(--purple-light,#818CF8);font-weight:600"></div>
     </div>
 
-    <div class="scan-wrap">
-      <div class="tip-row">
-        <div class="tip">💡 Bonne lumière</div>
-        <div class="tip">📄 Facture à plat</div>
-        <div class="tip">🔍 Texte lisible</div>
-        <div class="tip">📸 Photo nette</div>
-      </div>
-
-      <div class="camera-zone" id="camera-zone">
-        <div class="camera-placeholder" id="cam-placeholder">
-          <div class="cam-icon">📸</div>
-          <h3>Scannez votre facture</h3>
-          <p>Prenez une photo ou importez une image.<br>L'IA lira automatiquement le montant, la date et la référence.</p>
-          <div class="camera-btns">
-            <button class="btn btn-lime" onclick="document.getElementById('cam-input').click()">📷 Prendre une photo</button>
-            <button class="btn btn-ghost" style="color:#fff;border-color:#333" onclick="document.getElementById('file-input').click()">🖼 Importer</button>
-          </div>
-          <input type="file" id="cam-input" accept="image/*" capture="environment" style="display:none" onchange="handleImage(this.files[0])">
-          <input type="file" id="file-input" accept="image/*,.pdf" style="display:none" onchange="handleImage(this.files[0])">
-        </div>
-        <div class="preview-wrap" id="preview-wrap" style="display:none">
-          <img id="preview-img" class="preview-img" alt="Facture">
-          <div class="preview-overlay">
-            <button class="btn btn-ghost btn-sm" style="background:rgba(0,0,0,0.7);color:#fff;border-color:#555" onclick="retake()">🔄 Reprendre</button>
-            <button class="btn btn-lime btn-sm" id="scan-btn" onclick="runOCR()">🤖 Analyser</button>
-          </div>
-        </div>
-        <div class="scanning-overlay" id="scanning-overlay">
-          <div class="scan-line"></div>
-          <div class="scan-spinner"></div>
-          <p>L'IA analyse votre facture...</p>
-        </div>
-      </div>
-
-      <div class="ocr-result" id="ocr-result">
-        <div style="display:flex;align-items:center;gap:10px">
-          <span class="ocr-badge">✓ IA</span>
-          <span style="font-family:var(--font-h);font-weight:700;font-size:13px;color:var(--green)">Champs détectés — vérifiez et confirmez</span>
-        </div>
-        <div class="ocr-fields">
-          <div class="ocr-field"><div class="ocr-field-label">Société</div><div class="ocr-field-value" id="ocr-company">—</div></div>
-          <div class="ocr-field"><div class="ocr-field-label">Montant</div><div class="ocr-field-value" id="ocr-amount">—</div></div>
-          <div class="ocr-field"><div class="ocr-field-label">Référence</div><div class="ocr-field-value" id="ocr-ref">—</div></div>
-        </div>
-      </div>
-      <div class="ocr-fail" id="ocr-fail">⚠️ L'IA n'a pas pu lire tous les champs. Remplissez manuellement. Essayez avec une meilleure lumière.</div>
-
-      <div class="progress-bar" id="progress-bar"><div class="progress-fill" id="progress-fill"></div></div>
-      <div id="page-msg" class="msg" style="display:none"></div>
-
-      <div class="card">
-        <div class="form-section-label">
-          📋 Informations de la facture
-          <span id="ai-badge" style="display:none;background:var(--green-bg);color:var(--green);font-size:10px;padding:2px 10px;border-radius:20px;font-weight:700">✓ Auto-rempli par IA</span>
-        </div>
-        <div class="form-grid" style="margin-bottom:20px">
-          <div class="form-group">
-            <label class="form-label">Société *</label>
-            <select class="form-input" id="f-company">
-              <option value="ENEO">⚡ ENEO / SONEL</option>
-              <option value="CamWater">💧 CamWater</option>
-              <option value="Camtel">📡 Camtel</option>
-              <option value="SONODE">🏗 SONODE</option>
-              <option value="Autre">📌 Autre</option>
-            </select>
-          </div>
-          <div class="form-group">
-            <label class="form-label">Statut *</label>
-            <select class="form-input" id="f-status">
-              <option value="paid">✅ Payée</option>
-              <option value="pending">⏳ En attente</option>
-            </select>
-          </div>
-          <div class="form-group">
-            <label class="form-label">Mois de facturation *</label>
-            <input class="form-input" type="month" id="f-month">
-          </div>
-          <div class="form-group">
-            <label class="form-label">Montant (FCFA) *</label>
-            <input class="form-input" type="number" id="f-amount" placeholder="ex: 24500">
-          </div>
-          <div class="form-group">
-            <label class="form-label">Date de paiement</label>
-            <input class="form-input" type="date" id="f-date">
-          </div>
-          <div class="form-group">
-            <label class="form-label">Numéro de référence</label>
-            <input class="form-input" type="text" id="f-ref" placeholder="ex: ENE-2026-044">
-          </div>
-          <div class="form-group span-2">
-            <label class="form-label">Quartier / Ville</label>
-            <input class="form-input" type="text" id="f-location" placeholder="ex: Akwa, Douala">
-          </div>
-          <div class="form-group span-2">
-            <label class="form-label">Note (optionnel)</label>
-            <input class="form-input" type="text" id="f-note">
-          </div>
-        </div>
-        <button class="btn btn-lime" style="width:100%;justify-content:center;font-size:15px;padding:14px" id="save-btn" onclick="saveBill()">💾 Sauvegarder la facture</button>
-      </div>
+    <!-- TIPS -->
+    <div style="display:flex;gap:8px;margin-bottom:18px;flex-wrap:wrap">
+      <div style="background:var(--surface);border-radius:100px;padding:7px 14px;font-size:12px;color:var(--text2);display:flex;align-items:center;gap:6px"><i class="ph ph-sun" style="color:var(--amber)"></i>Bonne lumière</div>
+      <div style="background:var(--surface);border-radius:100px;padding:7px 14px;font-size:12px;color:var(--text2);display:flex;align-items:center;gap:6px"><i class="ph ph-align-center" style="color:var(--purple)"></i>Reçu à plat</div>
+      <div style="background:var(--surface);border-radius:100px;padding:7px 14px;font-size:12px;color:var(--text2);display:flex;align-items:center;gap:6px"><i class="ph ph-eye" style="color:var(--green)"></i>Texte lisible</div>
     </div>
-  </main>
+
+    <!-- AI STATUS -->
+    <div id="ai-status" style="display:none;background:var(--green-bg);border:1px solid rgba(16,185,129,0.3);border-radius:var(--radius-sm);padding:12px 16px;margin-bottom:16px;font-size:13px;color:var(--green);font-weight:600">
+      ✅ IA — champs remplis automatiquement! Vérifiez et confirmez.
+    </div>
+
+    <!-- FORM -->
+    <div class="card">
+      <div class="card-title" style="margin-bottom:16px">📋 Informations de la facture</div>
+      <div class="form-grid" style="margin-bottom:14px">
+        <div class="form-group" style="margin-bottom:0">
+          <label class="form-label">Société</label>
+          <select class="form-input" id="f-company">
+            <option value="ENEO">⚡ ENEO</option>
+            <option value="CamWater">💧 CamWater</option>
+            <option value="Camtel">📡 Camtel</option>
+            <option value="SONODE">🏗 SONODE</option>
+            <option value="Autre">📌 Autre</option>
+          </select>
+        </div>
+        <div class="form-group" style="margin-bottom:0">
+          <label class="form-label">Statut</label>
+          <select class="form-input" id="f-status">
+            <option value="paid">✅ Payée</option>
+            <option value="pending">⏳ En attente</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-grid" style="margin-bottom:14px">
+        <div class="form-group" style="margin-bottom:0">
+          <label class="form-label">Mois</label>
+          <input class="form-input" type="month" id="f-month">
+        </div>
+        <div class="form-group" style="margin-bottom:0">
+          <label class="form-label">Montant (FCFA)</label>
+          <input class="form-input" type="number" id="f-amount" placeholder="24500">
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Date de paiement</label>
+        <input class="form-input" type="date" id="f-date">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Référence</label>
+        <input class="form-input" type="text" id="f-ref" placeholder="ENE-2026-044">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Lieu</label>
+        <input class="form-input" type="text" id="f-location" placeholder="Akwa, Douala">
+      </div>
+      <div id="form-msg" style="font-size:13px;color:var(--red);margin-bottom:10px;display:none"></div>
+      <div id="prog-bar" style="height:4px;background:#E5E7EB;border-radius:10px;overflow:hidden;display:none;margin-bottom:12px">
+        <div id="prog-fill" style="height:100%;background:var(--purple);border-radius:10px;width:0%;transition:width 0.4s"></div>
+      </div>
+      <button class="btn-primary" id="save-btn" onclick="saveBill()">💾 Sauvegarder la facture</button>
+      <button class="btn-ghost" onclick="document.getElementById('file-in').click()">🖼 Importer depuis galerie</button>
+    </div>
+  </div>
 </div>
+
+<nav class="bottom-nav">
+  <a class="bn-item" href="dashboard.html"><i class="ph ph-house-simple"></i><span>Accueil</span></a>
+  <a class="bn-item" href="bills.html"><i class="ph ph-file-text"></i><span>Factures</span></a>
+  <a class="bn-item bn-fab active" href="upload.html"><div class="bn-fab-circle"><i class="ph ph-scan"></i></div><span>Scanner</span></a>
+  <a class="bn-item" href="meter-split.html"><i class="ph ph-lightning"></i><span>Partage</span></a>
+  <a class="bn-item" href="alerts.html"><i class="ph ph-bell"></i><span>Alertes</span></a>
+</nav>
 <div class="toast" id="toast"></div>
-
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="../js/portal.js"></script>
 <script>
-// ── IMPORTANT: Get your key at console.anthropic.com → API Keys ──
+
+const SUPA_URL  = 'https://rjnsnodvqwwhkxbznzqa.supabase.co';
+const SUPA_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJqbnNub2R2cXd3aGt4YnpuenFhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzgxODg1OTksImV4cCI6MjA5Mzc2NDU5OX0.gkV9ynTFdY8B72s2fnRpTkUH71FUz59ICIpQLZQDsIc';
+const db = supabase.createClient(SUPA_URL, SUPA_ANON);
+let ME=null;
+const $=id=>document.getElementById(id);
+const fmt=n=>Math.round(n||0).toLocaleString('fr-FR');
+const fmtA=n=>fmt(n)+' F';
+const fmtM=m=>m?new Date(m+'-01').toLocaleDateString('fr-FR',{month:'long',year:'numeric'}):'—';
+const fmtMs=m=>m?new Date(m+'-01').toLocaleDateString('fr-FR',{month:'short',year:'numeric'}):'—';
+const fmtD=d=>d?new Date(d).toLocaleDateString('fr-FR'):'—';
+const ini=n=>(n||'?').split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2);
+function toast(msg,type='success'){const t=$('toast');t.innerHTML=msg;t.className='toast '+type+' show';setTimeout(()=>t.classList.remove('show'),3000)}
+function openM(id){$(id).classList.add('open')}
+function closeM(id){$(id).classList.remove('open')}
+document.addEventListener('click',e=>{if(e.target.classList.contains('modal-overlay'))e.target.classList.remove('open')});
+async function initAuth(){
+  const {data:{session}}=await db.auth.getSession();
+  if(!session){window.location.href='auth.html';return null;}
+  ME=session.user;
+  return ME;
+}
+
+</script>
+
+<script>
 const ANTHROPIC_KEY = 'YOUR_ANTHROPIC_API_KEY';
-// ─────────────────────────────────────────────────────────────────
-
-let currentUser = null, selectedFile = null, imageBase64 = null;
-
-window.addEventListener('DOMContentLoaded', async () => {
-  currentUser = await requireAuth();
-  if (!currentUser) return;
-  renderSidebarUser(currentUser);
-  const today = new Date().toISOString().split('T')[0];
-  document.getElementById('f-date').value  = today;
-  document.getElementById('f-month').value = today.slice(0,7);
+let selectedFile=null;
+window.addEventListener('DOMContentLoaded',async()=>{
+  ME=await initAuth();if(!ME)return;
+  const today=new Date().toISOString().split('T')[0];
+  $('f-date').value=today;$('f-month').value=today.slice(0,7);
 });
-
-function handleImage(file) {
-  if (!file || file.size > 10*1024*1024) return;
-  selectedFile = file;
-  const r = new FileReader();
-  r.onload = e => {
-    imageBase64 = e.target.result;
-    document.getElementById('preview-img').src = imageBase64;
-    document.getElementById('cam-placeholder').style.display = 'none';
-    document.getElementById('preview-wrap').style.display = 'block';
+async function handleFile(file){
+  if(!file||file.size>10*1024*1024)return;
+  selectedFile=file;
+  $('file-name').textContent='✅ '+file.name;
+  if(ANTHROPIC_KEY==='YOUR_ANTHROPIC_API_KEY')return;
+  // OCR
+  const r=new FileReader();
+  r.onload=async e=>{
+    const b64=e.target.result.split(',')[1];
+    const mime=file.type||'image/jpeg';
+    try{
+      const res=await fetch('https://api.anthropic.com/v1/messages',{
+        method:'POST',
+        headers:{'Content-Type':'application/json','x-api-key':ANTHROPIC_KEY,'anthropic-version':'2023-06-01','anthropic-dangerous-client-side-api-key-access':'true'},
+        body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:512,messages:[{role:'user',content:[{type:'image',source:{type:'base64',media_type:mime,data:b64}},{type:'text',text:'Extract bill data as JSON only: {"company":"ENEO"|"CamWater"|"Camtel"|"Autre","amount":number,"billing_month":"YYYY-MM","payment_date":"YYYY-MM-DD"|null,"reference":string|null,"status":"paid"|"pending"}'}]}]})
+      });
+      const d=await res.json();
+      const j=JSON.parse(d.content[0].text.replace(/```json|```/g,'').trim());
+      if(j.company&&['ENEO','CamWater','Camtel'].includes(j.company))$('f-company').value=j.company;
+      if(j.amount){$('f-amount').value=j.amount;}
+      if(j.billing_month)$('f-month').value=j.billing_month;
+      if(j.payment_date)$('f-date').value=j.payment_date;
+      if(j.reference)$('f-ref').value=j.reference;
+      if(j.status)$('f-status').value=j.status;
+      $('ai-status').style.display='block';
+    }catch(e){console.error('OCR:',e);}
   };
   r.readAsDataURL(file);
 }
-
-function retake() {
-  selectedFile = null; imageBase64 = null;
-  document.getElementById('preview-wrap').style.display = 'none';
-  document.getElementById('cam-placeholder').style.display = 'block';
-  document.getElementById('ocr-result').style.display = 'none';
-  document.getElementById('ocr-fail').style.display   = 'none';
-  document.getElementById('ai-badge').style.display   = 'none';
-}
-
-async function runOCR() {
-  if (!imageBase64) return;
-  const overlay = document.getElementById('scanning-overlay');
-  overlay.style.display = 'flex';
-  document.getElementById('scan-btn').disabled = true;
-
-  try {
-    const base64Data = imageBase64.split(',')[1];
-    const mimeType   = imageBase64.split(';')[0].split(':')[1];
-
-    const res = await fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'x-api-key': ANTHROPIC_KEY,
-        'anthropic-version': '2023-06-01',
-        'anthropic-dangerous-client-side-api-key-access': 'true'
-      },
-      body: JSON.stringify({
-        model: 'claude-sonnet-4-6',
-        max_tokens: 512,
-        messages: [{
-          role: 'user',
-          content: [
-            { type:'image', source:{ type:'base64', media_type: mimeType, data: base64Data } },
-            { type:'text', text:`You are a bill OCR specialist for Cameroonian utility bills (ENEO, CamWater, Camtel, SONEL).
-Analyze this bill image and extract fields. Respond ONLY with valid JSON, no markdown:
-{
-  "company": "ENEO"|"CamWater"|"Camtel"|"SONODE"|"Autre",
-  "amount": number,
-  "billing_month": "YYYY-MM",
-  "payment_date": "YYYY-MM-DD"|null,
-  "reference": string|null,
-  "status": "paid"|"pending",
-  "confidence": "high"|"medium"|"low"
-}` }
-          ]
-        }]
-      })
-    });
-
-    const data = await res.json();
-    if (data.error) throw new Error(data.error.message);
-    const json = JSON.parse(data.content[0].text.replace(/```json|```/g,'').trim());
-    applyOCR(json);
-  } catch(e) {
-    console.error(e);
-    document.getElementById('ocr-fail').style.display = 'block';
-    document.getElementById('ocr-result').style.display = 'none';
-  } finally {
-    overlay.style.display = 'none';
-    document.getElementById('scan-btn').disabled = false;
-  }
-}
-
-function applyOCR(j) {
-  let any = false;
-  if (j.company) { const s=document.getElementById('f-company'); if([...s.options].find(o=>o.value===j.company)){s.value=j.company;any=true;} document.getElementById('ocr-company').textContent=j.company; }
-  if (j.amount)  { document.getElementById('f-amount').value=j.amount; document.getElementById('f-amount').classList.add('auto-filled'); document.getElementById('ocr-amount').textContent=Number(j.amount).toLocaleString('fr-FR')+' FCFA'; any=true; }
-  if (j.billing_month) { document.getElementById('f-month').value=j.billing_month; any=true; }
-  if (j.payment_date)  { document.getElementById('f-date').value=j.payment_date; }
-  if (j.reference) { document.getElementById('f-ref').value=j.reference; document.getElementById('f-ref').classList.add('auto-filled'); document.getElementById('ocr-ref').textContent=j.reference; any=true; }
-  if (j.status) { document.getElementById('f-status').value=j.status; }
-
-  if (any && j.confidence !== 'low') {
-    document.getElementById('ocr-result').style.display = 'block';
-    document.getElementById('ocr-fail').style.display   = 'none';
-    document.getElementById('ai-badge').style.display   = 'inline-block';
-    showToast('🤖 Champs remplis automatiquement!','success');
-  } else {
-    document.getElementById('ocr-fail').style.display   = 'block';
-    document.getElementById('ocr-result').style.display = 'none';
-  }
-}
-
-async function saveBill() {
-  const month = document.getElementById('f-month').value;
-  const amount = parseFloat(document.getElementById('f-amount').value);
-  if (!month || !amount) return showToast('Mois et montant obligatoires','error');
-
-  const btn = document.getElementById('save-btn');
-  btn.disabled = true; btn.textContent = 'Sauvegarde...';
-
-  let file_url=null, file_path=null;
-  if (selectedFile) {
-    const prog=document.getElementById('progress-bar'), fill=document.getElementById('progress-fill');
-    prog.style.display='block'; fill.style.width='40%';
+async function saveBill(){
+  const month=$('f-month').value,amount=parseFloat($('f-amount').value);
+  const msgEl=$('form-msg');
+  if(!month||!amount){msgEl.textContent='Mois et montant obligatoires';msgEl.style.display='block';return;}
+  const btn=$('save-btn');btn.disabled=true;btn.textContent='Sauvegarde...';
+  let file_url=null,file_path=null;
+  if(selectedFile){
+    const prog=$('prog-bar'),fill=$('prog-fill');
+    prog.style.display='block';fill.style.width='40%';
     const ext=selectedFile.name.split('.').pop();
-    const path=`${currentUser.id}/${Date.now()}.${ext}`;
-    const {data:up,error:ue} = await db.storage.from('bills').upload(path, selectedFile);
-    if (ue) { showToast('Erreur upload: '+ue.message,'error'); btn.disabled=false; btn.textContent='💾 Sauvegarder'; prog.style.display='none'; return; }
-    fill.style.width='100%';
-    file_path=up.path;
-    file_url=db.storage.from('bills').getPublicUrl(file_path).data.publicUrl;
-    setTimeout(()=>prog.style.display='none',600);
+    const {data:up,error:ue}=await db.storage.from('bills').upload(`${ME.id}/${Date.now()}.${ext}`,selectedFile);
+    if(!ue){fill.style.width='90%';file_path=up.path;file_url=db.storage.from('bills').getPublicUrl(file_path).data.publicUrl;}
+    fill.style.width='100%';setTimeout(()=>prog.style.display='none',600);
   }
-
-  const {error} = await db.from('bills').insert([{
-    user_id:currentUser.id, company:document.getElementById('f-company').value,
-    status:document.getElementById('f-status').value, billing_month:month,
-    amount:isNaN(amount)?null:amount,
-    payment_date:document.getElementById('f-date').value||null,
-    reference:document.getElementById('f-ref').value.trim()||null,
-    location:document.getElementById('f-location').value.trim()||null,
-    notes:document.getElementById('f-note').value.trim()||null,
-    file_url, file_path,
-  }]);
-
-  if (error) showToast('Erreur: '+error.message,'error');
-  else { showToast('✅ Facture sauvegardée!','success'); setTimeout(()=>window.location.href='dashboard.html',1200); }
-  btn.disabled=false; btn.textContent='💾 Sauvegarder la facture';
+  const {error}=await db.from('bills').insert([{user_id:ME.id,company:$('f-company').value,status:$('f-status').value,billing_month:month,amount:isNaN(amount)?null:amount,payment_date:$('f-date').value||null,reference:$('f-ref').value.trim()||null,location:$('f-location').value.trim()||null,file_url,file_path}]);
+  btn.disabled=false;btn.textContent='💾 Sauvegarder la facture';
+  if(error){msgEl.textContent='Erreur: '+error.message;msgEl.style.display='block';return;}
+  toast('✅ Facture sauvegardée!');
+  setTimeout(()=>window.location.href='dashboard.html',1000);
 }
-</script>
-<nav class="mobile-nav">
-  <a href="dashboard.html" class="mn-item">
-    <i class="ph ph-chart-bar"></i>
-    <span>Dashboard</span>
-  </a>
-  <a href="bills.html" class="mn-item">
-    <i class="ph ph-file-text"></i>
-    <span>Factures</span>
-  </a>
-  <a href="upload.html" class="mn-item mn-fab active">
-    <div class="mn-fab-circle"><i class="ph ph-scan"></i></div>
-    <span>Scanner</span>
-  </a>
-  <a href="meter-split.html" class="mn-item">
-    <i class="ph ph-lightning"></i>
-    <span>Partage</span>
-  </a>
-  <a href="alerts.html" class="mn-item">
-    <i class="ph ph-bell"></i>
-    <span>Alertes</span>
-  </a>
-</nav>
-</body>
-</html>
+</script></body></html>

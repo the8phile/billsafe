@@ -1,489 +1,248 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-  <!-- PWA + iPhone Home Screen -->
-  <link rel="manifest" href="/manifest.json">
-  <link rel="apple-touch-icon" href="/icons/icon-180.png">
-  <link rel="apple-touch-icon" sizes="120x120" href="/icons/icon-120.png">
-  <link rel="apple-touch-icon" sizes="152x152" href="/icons/icon-152.png">
-  <link rel="apple-touch-icon" sizes="167x167" href="/icons/icon-167.png">
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <meta name="apple-mobile-web-app-title" content="BillSafe">
-  <meta name="theme-color" content="#0052FF">
-  <meta name="mobile-web-app-capable" content="yes">
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>BillSafe — Portail Bailleur</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="BillSafe">
+<meta name="theme-color" content="#4F46E5">
+<link rel="apple-touch-icon" href="/icons/icon-180.png">
+<link rel="manifest" href="/manifest.json">
+<title>BillSafe — Mes Propriétés</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@phosphor-icons/web@2.1.1/src/regular/style.css">
-<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=DM+Sans:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@phosphor-icons/web@2.1.1/src/fill/style.css">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-:root{--lime:#CAFF40;--dark:#0D0D0D;--white:#fff;--bg:#F4F4F0;--gray:#888;--green:#2a7a50;--green-bg:#f0fff5;--red:#e53935;--red-bg:#fff0f0;--blue:#185FA5;--blue-bg:#E6F1FB;--amber:#854F0B;--amber-bg:#FAEEDA;--purple:#534AB7;--purple-bg:#EEEDFE;--font-h:'Manrope',sans-serif;--font-b:'DM Sans',sans-serif;--r:20px;--rs:12px}
-body{font-family:var(--font-b);background:var(--bg);color:var(--dark)}
-.layout{display:flex;min-height:100vh}
-.sidebar{width:240px;flex-shrink:0;background:var(--dark);display:flex;flex-direction:column;padding:24px 16px;position:fixed;top:0;left:0;height:100vh;z-index:100}
-.sb-brand{display:flex;align-items:center;gap:10px;padding:4px 8px;margin-bottom:6px}
-.sb-logo{width:34px;height:34px;background:var(--lime);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
-.sb-name{font-family:var(--font-h);font-weight:800;font-size:16px;color:var(--white)}
-.sb-plan{display:inline-block;background:var(--purple-bg);color:var(--purple);font-size:10px;font-weight:700;padding:2px 8px;border-radius:20px;margin:0 8px 20px}
-.nav-group{font-size:10px;font-weight:700;letter-spacing:.08em;color:#444;text-transform:uppercase;padding:0 8px;margin-bottom:6px;margin-top:8px}
-.nav-item{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:10px;color:#666;font-size:14px;font-weight:500;cursor:pointer;transition:all .15s;text-decoration:none;margin-bottom:2px}
-.nav-item:hover{background:#1a1a1a;color:#aaa}
-.nav-item.active{background:#1a1a1a;color:var(--white)}
-.nav-item .ni{font-size:16px;width:20px;text-align:center}
-.sb-bottom{margin-top:auto;border-top:1px solid #1a1a1a;padding-top:16px}
-.user-row{display:flex;align-items:center;gap:10px;padding:10px 8px}
-.user-av{width:34px;height:34px;background:var(--lime);border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:var(--font-h);font-weight:800;font-size:13px;color:var(--dark);flex-shrink:0}
-.user-name{font-size:13px;font-weight:600;color:var(--white)}
-.user-email{font-size:11px;color:#555}
-.logout-btn{background:transparent;border:none;color:#555;font-size:16px;cursor:pointer;padding:4px;margin-left:auto}
-.logout-btn:hover{color:var(--red)}
-.main{margin-left:240px;flex:1;padding:32px}
-.topbar{display:flex;justify-content:space-between;align-items:center;margin-bottom:28px}
-.topbar h2{font-family:var(--font-h);font-weight:800;font-size:24px}
-.topbar p{font-size:13px;color:var(--gray);margin-top:2px}
-.btn{padding:10px 20px;border-radius:100px;font-family:var(--font-h);font-weight:700;font-size:13px;cursor:pointer;transition:all .2s;border:none;display:inline-flex;align-items:center;gap:7px}
-.btn-dark{background:var(--dark);color:var(--white)}
-.btn-dark:hover{background:#222}
-.btn-lime{background:var(--lime);color:var(--dark)}
-.btn-lime:hover{background:#b8e836}
-.btn-ghost{background:transparent;border:1.5px solid #e0e0e0;color:var(--gray)}
-.btn-ghost:hover{border-color:#ccc;color:var(--dark)}
-.btn-sm{padding:6px 14px;font-size:12px}
-.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:24px}
-.stat{background:var(--white);border-radius:var(--r);padding:20px}
-.stat.dark{background:var(--dark)}
-.stat.lime{background:var(--lime)}
-.stat-label{font-size:12px;font-weight:600;color:var(--gray);margin-bottom:8px;font-family:var(--font-h)}
-.stat.dark .stat-label{color:#555}
-.stat.lime .stat-label{color:#2a2a2a}
-.stat-val{font-family:var(--font-h);font-weight:800;font-size:26px;color:var(--dark)}
-.stat.dark .stat-val{color:var(--white)}
-.stat-sub{font-size:11px;color:var(--gray);margin-top:4px}
-.tabs{display:flex;gap:4px;background:#ededea;padding:4px;border-radius:14px;margin-bottom:24px;width:fit-content}
-.tab{padding:8px 18px;border-radius:10px;font-size:13px;font-weight:600;font-family:var(--font-h);cursor:pointer;border:none;background:transparent;color:var(--gray);transition:all .2s}
-.tab.active{background:var(--white);color:var(--dark);box-shadow:0 2px 8px rgba(0,0,0,.07)}
-.card{background:var(--white);border-radius:var(--r);padding:24px;margin-bottom:20px}
-.card-hd{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px}
-.card-title{font-family:var(--font-h);font-weight:700;font-size:15px;color:var(--dark)}
-.card-sub{font-size:12px;color:var(--gray);margin-top:2px}
-table{width:100%;border-collapse:collapse}
-th{text-align:left;font-size:11px;font-weight:700;color:var(--gray);letter-spacing:.05em;text-transform:uppercase;padding:0 14px 12px;border-bottom:1px solid #f0f0f0;font-family:var(--font-h)}
-td{padding:13px 14px;border-bottom:1px solid #f8f8f8;font-size:13px;color:var(--dark);vertical-align:middle}
-tr:last-child td{border-bottom:none}
-tr:hover td{background:#fafafa}
-.empty{text-align:center;padding:48px;color:var(--gray)}
-.empty-icon{font-size:36px;margin-bottom:10px}
-.empty h3{font-family:var(--font-h);font-size:15px;color:#666;margin-bottom:4px}
-.empty p{font-size:13px}
-.pill{display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:700;padding:4px 11px;border-radius:20px;font-family:var(--font-h)}
-.pill-green{background:var(--green-bg);color:var(--green)}
-.pill-red{background:var(--red-bg);color:var(--red)}
-.pill-gray{background:#f0f0f0;color:#666}
-.pill-blue{background:var(--blue-bg);color:var(--blue)}
-.pill-amber{background:var(--amber-bg);color:var(--amber)}
-.prop-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:14px}
-.prop-card{background:var(--white);border-radius:var(--r);padding:20px;border:1.5px solid #f0f0f0;transition:all .2s;cursor:pointer}
-.prop-card:hover{border-color:#ddd;transform:translateY(-2px);box-shadow:0 8px 24px rgba(0,0,0,.06)}
-.prop-card.selected{border-color:var(--dark);border-width:2px}
-.prop-icon{width:44px;height:44px;border-radius:12px;background:var(--purple-bg);display:flex;align-items:center;justify-content:center;font-size:22px;margin-bottom:14px}
-.prop-name{font-family:var(--font-h);font-weight:700;font-size:16px;margin-bottom:4px}
-.prop-addr{font-size:12px;color:var(--gray);margin-bottom:12px}
-.prop-stats{display:flex;gap:16px}
-.ps{text-align:center}
-.ps-val{font-family:var(--font-h);font-weight:700;font-size:18px;color:var(--dark)}
-.ps-lbl{font-size:10px;color:var(--gray)}
-.overlay{position:fixed;inset:0;background:rgba(13,13,13,.55);backdrop-filter:blur(4px);z-index:999;display:flex;align-items:center;justify-content:center;padding:20px;opacity:0;pointer-events:none;transition:opacity .25s}
-.overlay.open{opacity:1;pointer-events:all}
-.modal{background:var(--white);border-radius:24px;width:100%;max-width:500px;max-height:90vh;overflow-y:auto;padding:32px;transform:scale(.95) translateY(14px);transition:transform .25s}
-.overlay.open .modal{transform:scale(1) translateY(0)}
-.modal-hd{display:flex;justify-content:space-between;align-items:center;margin-bottom:24px}
-.modal-title{font-family:var(--font-h);font-weight:800;font-size:20px}
-.close-btn{width:32px;height:32px;border-radius:50%;border:1px solid #ececec;background:var(--white);cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center}
-.close-btn:hover{background:#f5f5f5}
-.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
-.span2{grid-column:span 2}
-.fg{display:flex;flex-direction:column;gap:6px}
-.fl{font-size:12px;font-weight:700;font-family:var(--font-h);color:var(--dark)}
-.fi{padding:11px 14px;border:1.5px solid #e8e8e8;border-radius:10px;font-size:14px;font-family:var(--font-b);background:#fafafa;color:var(--dark);outline:none;width:100%;transition:all .2s}
-.fi:focus{border-color:var(--dark);background:var(--white)}
-select.fi{cursor:pointer}
-.msg{padding:11px 14px;border-radius:10px;font-size:13px;margin-bottom:14px;display:none}
-.msg.error{background:var(--red-bg);color:var(--red);display:block}
-.msg.success{background:var(--green-bg);color:var(--green);display:block}
-.share-bill-item{display:flex;align-items:center;gap:12px;padding:10px;border:1.5px solid #f0f0f0;border-radius:12px;cursor:pointer;transition:all .2s;margin-bottom:8px}
-.share-bill-item:hover{border-color:#ccc}
-.share-bill-item.selected{border-color:var(--dark);background:#fafafa}
-.sbi-icon{width:34px;height:34px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0}
-.sbi-name{font-size:13px;font-weight:600;font-family:var(--font-h)}
-.sbi-detail{font-size:11px;color:var(--gray)}
-.share-link-box{display:flex;gap:8px;margin-top:12px}
-.share-link-input{flex:1;padding:10px 14px;border:1.5px solid #e8e8e8;border-radius:10px;font-size:12px;font-family:var(--font-b);background:#fafafa;color:var(--dark);outline:none}
-.copy-btn{padding:10px 16px;background:var(--dark);color:var(--white);border:none;border-radius:10px;font-size:12px;font-weight:700;font-family:var(--font-h);cursor:pointer;white-space:nowrap}
-.copy-btn:hover{background:#222}
-.toast{position:fixed;bottom:24px;right:24px;background:var(--dark);color:var(--white);padding:14px 20px;border-radius:14px;font-size:13px;font-weight:600;font-family:var(--font-h);box-shadow:0 8px 32px rgba(0,0,0,.15);transform:translateY(80px);opacity:0;transition:all .3s;z-index:9999}
+:root{
+  --purple:#4F46E5;--purple-dark:#3730A3;--purple-dim:rgba(79,70,229,0.1);
+  --violet:#7C3AED;--blue:#2563EB;
+  --bg:#F5F5FA;--surface:#FFFFFF;--surface2:#F8F8FF;
+  --dark:#1E1B4B;--dark2:#312E81;
+  --text:#1E1B4B;--text2:#6B7280;--text3:#9CA3AF;
+  --green:#10B981;--green-bg:rgba(16,185,129,0.1);
+  --red:#EF4444;--red-bg:rgba(239,68,68,0.1);
+  --amber:#F59E0B;--amber-bg:rgba(245,158,11,0.1);
+  --white:#FFFFFF;--nav-h:72px;
+  --radius:20px;--radius-sm:14px;
+  --shadow:0 2px 12px rgba(79,70,229,0.08);
+  --f:'Inter',sans-serif;
+}
+html,body{height:100%;overflow-x:hidden}
+body{font-family:var(--f);background:var(--bg);color:var(--text);-webkit-font-smoothing:antialiased;padding-bottom:var(--nav-h)}
+.app{min-height:100vh;max-width:430px;margin:0 auto}
+@media(min-width:769px){.app{box-shadow:0 0 40px rgba(0,0,0,0.12)}}
+.page-header{background:linear-gradient(145deg,#4F46E5 0%,#7C3AED 100%);padding:env(safe-area-inset-top,44px) 20px 28px;position:relative;overflow:hidden}
+.page-header::before{content:'';position:absolute;top:-40px;right:-30px;width:120px;height:120px;background:rgba(255,255,255,0.06);border-radius:50%}
+.ph-row{display:flex;align-items:center;gap:14px;padding-top:8px;position:relative;z-index:1}
+.back-btn{width:38px;height:38px;border-radius:50%;background:rgba(255,255,255,0.15);border:none;color:#fff;font-size:20px;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0}
+.page-title{font-size:18px;font-weight:700;color:#fff;flex:1}
+.ph-action{width:38px;height:38px;border-radius:50%;background:rgba(255,255,255,0.15);border:none;color:#fff;font-size:18px;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0}
+.ph-sub{font-size:13px;color:rgba(255,255,255,0.6);margin-top:4px;padding-left:52px;position:relative;z-index:1}
+.content{padding:20px 16px}
+.card{background:var(--surface);border-radius:var(--radius);padding:18px;box-shadow:var(--shadow);margin-bottom:14px}
+.card-dark{background:linear-gradient(135deg,#1E1B4B,#312E81);color:#fff}
+.card-purple{background:linear-gradient(135deg,#4F46E5,#7C3AED);color:#fff}
+.card-title{font-size:15px;font-weight:700;color:var(--text);margin-bottom:14px}
+.card-dark .card-title,.card-purple .card-title{color:#fff}
+.card-header-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px}
+.form-group{margin-bottom:14px}
+.form-label{font-size:11px;font-weight:700;color:var(--text2);margin-bottom:6px;display:block;text-transform:uppercase;letter-spacing:0.05em}
+.form-input{width:100%;padding:14px 16px;border:1.5px solid #E5E7EB;border-radius:var(--radius-sm);font-size:15px;font-family:var(--f);background:var(--surface2);color:var(--text);outline:none;transition:all 0.2s;-webkit-appearance:none}
+.form-input:focus{border-color:var(--purple);background:#fff;box-shadow:0 0 0 4px rgba(79,70,229,0.1)}
+select.form-input{cursor:pointer}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.btn-primary{width:100%;padding:16px;background:linear-gradient(135deg,#4F46E5,#7C3AED);color:#fff;font-size:15px;font-weight:700;font-family:var(--f);border:none;border-radius:var(--radius-sm);cursor:pointer;box-shadow:0 4px 16px rgba(79,70,229,0.35);transition:all 0.2s;margin-top:6px}
+.btn-primary:active{transform:scale(0.98)}
+.btn-ghost{width:100%;padding:14px;background:transparent;border:1.5px solid #E5E7EB;color:var(--text2);font-size:14px;font-weight:600;font-family:var(--f);border-radius:var(--radius-sm);cursor:pointer;margin-top:8px}
+.btn-sm{padding:9px 18px;border-radius:100px;font-size:13px;font-weight:700;font-family:var(--f);border:none;cursor:pointer;display:inline-flex;align-items:center;gap:6px;-webkit-tap-highlight-color:transparent;transition:all 0.2s}
+.btn-sm:active{transform:scale(0.95)}
+.btn-sm-purple{background:var(--purple);color:#fff;box-shadow:0 3px 10px rgba(79,70,229,0.3)}
+.btn-sm-ghost{background:var(--purple-dim);color:var(--purple)}
+.btn-sm-red{background:var(--red-bg);color:var(--red)}
+.pill{display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:700;padding:4px 10px;border-radius:100px}
+.pill-paid{background:var(--green-bg);color:var(--green)}
+.pill-pending{background:var(--amber-bg);color:var(--amber)}
+.pill-active{background:var(--green-bg);color:var(--green)}
+.pill-inactive{background:#F3F4F6;color:var(--text2)}
+.li-icon{width:44px;height:44px;border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0}
+.ic-eneo{background:linear-gradient(135deg,#FEF08A,#EAB308)}
+.ic-camwater{background:linear-gradient(135deg,#BAE6FD,#0284C7)}
+.ic-camtel{background:linear-gradient(135deg,#DDD6FE,#7C3AED)}
+.ic-green{background:linear-gradient(135deg,#BBF7D0,#10B981)}
+.ic-purple{background:linear-gradient(135deg,#E0E7FF,#4F46E5)}
+.ic-amber{background:var(--amber-bg)}
+.ic-gray{background:#F3F4F6}
+.avatar{width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:14px;flex-shrink:0}
+.av-purple{background:var(--purple-dim);color:var(--purple)}
+.av-green{background:var(--green-bg);color:var(--green)}
+.av-amber{background:var(--amber-bg);color:var(--amber)}
+.empty-state{text-align:center;padding:48px 24px}
+.empty-state .ei{font-size:48px;margin-bottom:14px;display:block}
+.empty-state h3{font-size:16px;font-weight:700;color:var(--text2);margin-bottom:6px}
+.empty-state p{font-size:13px;color:var(--text3);line-height:1.6}
+.skeleton{background:linear-gradient(90deg,#F3F4F6 25%,#E9EAEC 50%,#F3F4F6 75%);background-size:200% 100%;animation:shimmer 1.5s infinite;border-radius:10px}
+@keyframes shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}
+.toast{position:fixed;top:calc(env(safe-area-inset-top,44px)+8px);left:16px;right:16px;background:#1E1B4B;color:#fff;padding:14px 18px;border-radius:14px;font-size:13px;font-weight:600;box-shadow:0 8px 32px rgba(0,0,0,0.2);transform:translateY(-80px);opacity:0;transition:all 0.3s;z-index:9999;display:flex;align-items:center;gap:10px}
 .toast.show{transform:translateY(0);opacity:1}
-.toast.success{border-left:4px solid var(--lime)}
+.toast.success{border-left:4px solid var(--green)}
 .toast.error{border-left:4px solid var(--red)}
-</style>
-</head>
-<body>
-<div class="layout">
-<aside class="sidebar">
-  <div class="sb-brand"><div class="sb-logo"><i class="ph ph-shield-check" style="font-size:20px;color:var(--dark)"></i></div><div class="sb-name">BillSafe</div></div>
-  <div class="sb-plan">Business</div>
-  <div class="nav-group">Menu</div>
-  <a class="nav-item" href="dashboard.html"><span class="ni"><i class="ph ph-chart-bar"></i></span> Tableau de bord</a>
-  <a class="nav-item" href="bills.html"><span class="ni"><i class="ph ph-file-text"></i></span> Mes factures</a>
-  <a class="nav-item active" href="landlord.html"><span class="ni"><i class="ph ph-buildings"></i></span> Portail Bailleur</a>
-  <a class="nav-item" href="settings.html"><span class="ni"><i class="ph ph-gear"></i></span> Paramètres</a>
-  <div class="sb-bottom">
-    <div class="user-row">
-      <div class="user-av" id="user-av">?</div>
-      <div><div class="user-name" id="user-name">...</div><div class="user-email" id="user-email"></div></div>
-      <button class="logout-btn" onclick="logout()">⏻</button>
-    </div>
-  </div>
-</aside>
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.5);backdrop-filter:blur(6px);z-index:2000;display:flex;align-items:flex-end;opacity:0;pointer-events:none;transition:opacity 0.25s}
+.modal-overlay.open{opacity:1;pointer-events:all}
+.modal{background:var(--surface);border-radius:28px 28px 0 0;width:100%;padding:20px 20px 40px;transform:translateY(30px);transition:transform 0.3s;max-height:90vh;overflow-y:auto}
+.modal-overlay.open .modal{transform:translateY(0)}
+.modal-handle{width:40px;height:4px;background:#E5E7EB;border-radius:2px;margin:0 auto 20px}
+.modal-title{font-size:18px;font-weight:700;color:var(--text);margin-bottom:18px}
+.bottom-nav{position:fixed;bottom:0;left:0;right:0;max-width:430px;margin:0 auto;height:var(--nav-h);background:var(--white);border-top:1px solid rgba(0,0,0,0.06);display:flex;align-items:stretch;z-index:1000;padding-bottom:env(safe-area-inset-bottom,0px);box-shadow:0 -4px 24px rgba(0,0,0,0.08)}
+.bn-item{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;text-decoration:none;color:var(--text3);font-size:10px;font-weight:600;cursor:pointer;border:none;background:transparent;font-family:var(--f);-webkit-tap-highlight-color:transparent;transition:color 0.15s;position:relative}
+.bn-item.active{color:var(--purple)}
+.bn-item.active::before{content:'';position:absolute;top:0;left:20%;right:20%;height:3px;background:var(--purple);border-radius:0 0 4px 4px}
+.bn-item i{font-size:22px;transition:transform 0.15s}
+.bn-item.active i{transform:scale(1.1)}
+.bn-fab{flex:0 0 60px}
+.bn-fab-circle{width:52px;height:52px;border-radius:50%;background:linear-gradient(135deg,#4F46E5,#7C3AED);display:flex;align-items:center;justify-content:center;box-shadow:0 4px 20px rgba(79,70,229,0.45);border:3px solid #fff;position:relative;top:-10px}
+.bn-fab-circle i{font-size:24px;color:#fff}
+.bn-fab::before{display:none!important}
 
-<main class="main">
-  <div class="topbar">
-    <div><h2>Portail Bailleur</h2><p>Propriétés, locataires et partage de factures</p></div>
-    <div style="display:flex;gap:10px">
-      <button class="btn btn-ghost btn-sm" onclick="openModal('tenant-modal')">+ Locataire</button>
-      <button class="btn btn-dark" onclick="openModal('property-modal')">+ Propriété</button>
-    </div>
+</style></head><body>
+<div class="app">
+<div class="page-header">
+  <div class="ph-row">
+    <button class="back-btn" onclick="history.back()"><i class="ph ph-arrow-left"></i></button>
+    <span class="page-title">🏢 Mes Propriétés</span>
+    <button class="ph-action" onclick="openM('modal-prop')"><i class="ph ph-plus"></i></button>
   </div>
-
-  <div class="stats">
-    <div class="stat dark"><div class="stat-label">Propriétés</div><div class="stat-val" id="s-props">0</div><div class="stat-sub">enregistrées</div></div>
-    <div class="stat"><div class="stat-label">Unités</div><div class="stat-val" id="s-units">0</div><div class="stat-sub">au total</div></div>
-    <div class="stat lime"><div class="stat-label">Locataires actifs</div><div class="stat-val" id="s-tenants">0</div><div class="stat-sub">en cours</div></div>
-    <div class="stat"><div class="stat-label">Factures partagées</div><div class="stat-val" id="s-shared">0</div><div class="stat-sub">ce mois</div></div>
-  </div>
-
-  <div class="tabs">
-    <button class="tab active" onclick="showTab('properties',this)">🏢 Propriétés</button>
-    <button class="tab" onclick="showTab('tenants',this)">👤 Locataires</button>
-    <button class="tab" onclick="showTab('shared',this)">📤 Partagées</button>
-  </div>
-
-  <div id="tab-properties">
-    <div id="props-grid" class="prop-grid"></div>
-    <div id="units-section" style="display:none;margin-top:20px">
-      <div class="card">
-        <div class="card-hd">
-          <div><div class="card-title" id="units-title">Unités</div><div class="card-sub">Appartements dans cette propriété</div></div>
-          <button class="btn btn-ghost btn-sm" onclick="openModal('unit-modal')">+ Unité</button>
-        </div>
-        <div id="units-table-wrap"></div>
-      </div>
-    </div>
-  </div>
-
-  <div id="tab-tenants" style="display:none">
-    <div class="card">
-      <div class="card-hd">
-        <div><div class="card-title">Tous les locataires</div><div class="card-sub">Gérez et partagez des factures</div></div>
-        <button class="btn btn-dark btn-sm" onclick="openModal('tenant-modal')">+ Locataire</button>
-      </div>
-      <div id="tenants-table-wrap"></div>
-    </div>
-  </div>
-
-  <div id="tab-shared" style="display:none">
-    <div class="card">
-      <div class="card-hd"><div><div class="card-title">Factures partagées</div><div class="card-sub">Historique d'envoi aux locataires</div></div></div>
-      <div id="shared-table-wrap"></div>
-    </div>
-  </div>
-</main>
+  <div class="ph-sub">Gérez vos propriétés et partagez des factures</div>
 </div>
-
-<!-- PROPERTY MODAL -->
-<div class="overlay" id="property-modal">
-<div class="modal">
-  <div class="modal-hd"><div class="modal-title">🏢 Nouvelle propriété</div><button class="close-btn" onclick="closeModal('property-modal')">✕</button></div>
-  <div class="msg" id="prop-msg"></div>
-  <div class="form-grid">
-    <div class="fg span2"><label class="fl">Nom de la propriété</label><input class="fi" id="p-name" placeholder="ex: Immeuble Akwa Centre"></div>
-    <div class="fg span2"><label class="fl">Adresse</label><input class="fi" id="p-addr" placeholder="ex: Rue de la Joie, Akwa"></div>
-    <div class="fg"><label class="fl">Ville</label><input class="fi" id="p-city" placeholder="Douala"></div>
-    <div class="fg"><label class="fl">Type</label>
-      <select class="fi" id="p-type">
-        <option value="apartment">Appartements</option>
-        <option value="house">Maison individuelle</option>
-        <option value="commercial">Local commercial</option>
-        <option value="mixed">Mixte</option>
-      </select>
-    </div>
+<div class="content">
+  <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:16px">
+    <div class="card" style="padding:14px;text-align:center"><div style="font-size:22px;font-weight:800;color:var(--purple)" id="s-props">—</div><div style="font-size:10px;color:var(--text2);margin-top:4px;text-transform:uppercase;letter-spacing:0.04em">Propriétés</div></div>
+    <div class="card" style="padding:14px;text-align:center"><div style="font-size:22px;font-weight:800;color:var(--green)" id="s-tenants">—</div><div style="font-size:10px;color:var(--text2);margin-top:4px;text-transform:uppercase;letter-spacing:0.04em">Locataires</div></div>
+    <div class="card" style="padding:14px;text-align:center"><div style="font-size:22px;font-weight:800;color:var(--amber)" id="s-shared">—</div><div style="font-size:10px;color:var(--text2);margin-top:4px;text-transform:uppercase;letter-spacing:0.04em">Partagées</div></div>
   </div>
-  <button class="btn btn-lime" style="width:100%;justify-content:center;margin-top:8px" onclick="saveProperty()">💾 Enregistrer</button>
+  <div id="props-list"><div class="skeleton" style="height:80px;margin-bottom:10px"></div><div class="skeleton" style="height:80px"></div></div>
+
+  <!-- TENANTS -->
+  <div style="font-size:15px;font-weight:700;color:var(--text);margin:16px 0 12px;display:flex;justify-content:space-between;align-items:center">
+    Locataires
+    <button class="btn-sm btn-sm-purple" onclick="openM('modal-tenant')">+ Ajouter</button>
+  </div>
+  <div id="tenants-list"><div class="skeleton" style="height:64px;margin-bottom:8px"></div><div class="skeleton" style="height:64px"></div></div>
+
+  <button class="btn-primary" onclick="window.location.href='shared.html'" style="margin-top:6px">🔗 Gérer les factures partagées</button>
 </div>
 </div>
-
-<!-- UNIT MODAL -->
-<div class="overlay" id="unit-modal">
-<div class="modal">
-  <div class="modal-hd"><div class="modal-title">🚪 Nouvelle unité</div><button class="close-btn" onclick="closeModal('unit-modal')">✕</button></div>
-  <div class="msg" id="unit-msg"></div>
-  <div class="form-grid">
-    <div class="fg span2"><label class="fl">Nom de l'unité</label><input class="fi" id="u-name" placeholder="ex: Appartement 3B"></div>
-    <div class="fg"><label class="fl">Étage</label><input class="fi" id="u-floor" placeholder="ex: 2ème"></div>
-    <div class="fg"><label class="fl">Loyer (FCFA/mois)</label><input class="fi" type="number" id="u-rent" placeholder="75000"></div>
-  </div>
-  <button class="btn btn-lime" style="width:100%;justify-content:center;margin-top:8px" onclick="saveUnit()">💾 Enregistrer</button>
-</div>
-</div>
-
-<!-- TENANT MODAL -->
-<div class="overlay" id="tenant-modal">
-<div class="modal">
-  <div class="modal-hd"><div class="modal-title">👤 Nouveau locataire</div><button class="close-btn" onclick="closeModal('tenant-modal')">✕</button></div>
-  <div class="msg" id="ten-msg"></div>
-  <div class="form-grid">
-    <div class="fg span2"><label class="fl">Nom complet</label><input class="fi" id="t-name" placeholder="ex: Marie Kamga"></div>
-    <div class="fg"><label class="fl">Téléphone</label><input class="fi" id="t-phone" placeholder="+237 6XX XX XX XX"></div>
-    <div class="fg"><label class="fl">Email</label><input class="fi" type="email" id="t-email" placeholder="marie@email.com"></div>
-    <div class="fg"><label class="fl">Propriété</label><select class="fi" id="t-property" onchange="loadUnitsForSelect()"></select></div>
-    <div class="fg"><label class="fl">Unité</label><select class="fi" id="t-unit"><option value="">Sélectionner...</option></select></div>
-    <div class="fg"><label class="fl">Date d'entrée</label><input class="fi" type="date" id="t-movein"></div>
-    <div class="fg"><label class="fl">Statut</label><select class="fi" id="t-status"><option value="active">Actif</option><option value="inactive">Inactif</option></select></div>
-  </div>
-  <button class="btn btn-lime" style="width:100%;justify-content:center;margin-top:8px" onclick="saveTenant()">💾 Enregistrer</button>
-</div>
-</div>
-
-<!-- SHARE MODAL -->
-<div class="overlay" id="share-modal">
-<div class="modal">
-  <div class="modal-hd"><div class="modal-title">📤 Partager une facture</div><button class="close-btn" onclick="closeModal('share-modal')">✕</button></div>
-  <div class="msg" id="share-msg"></div>
-  <p style="font-size:13px;color:var(--gray);margin-bottom:16px">Facture pour <strong id="share-tenant-name" style="color:var(--dark)"></strong></p>
-  <div style="max-height:240px;overflow-y:auto;margin-bottom:16px" id="share-bills-list"></div>
-  <div class="fg" style="margin-bottom:16px">
-    <label class="fl">Message (optionnel)</label>
-    <input class="fi" id="share-message" placeholder="ex: Facture ENEO Avril — bien payée">
-  </div>
-  <button class="btn btn-lime" style="width:100%;justify-content:center" onclick="doShareBill()">📤 Créer le lien de partage</button>
-  <div id="share-result" style="display:none;margin-top:20px;padding:16px;background:#f8f8f8;border-radius:12px">
-    <p style="font-size:13px;font-weight:600;color:var(--green);margin-bottom:6px">✅ Lien de partage créé!</p>
-    <p style="font-size:12px;color:var(--gray);margin-bottom:8px">Envoyez ce lien à votre locataire par WhatsApp ou SMS:</p>
-    <div class="share-link-box"><input class="share-link-input" id="share-link-val" readonly><button class="copy-btn" onclick="copyLink()">Copier</button></div>
-  </div>
-</div>
-</div>
-
+<nav class="bottom-nav"><a class="bn-item" href="dashboard.html"><i class="ph ph-house-simple"></i><span>Accueil</span></a><a class="bn-item" href="bills.html"><i class="ph ph-file-text"></i><span>Factures</span></a><a class="bn-item bn-fab" href="upload.html"><div class="bn-fab-circle"><i class="ph ph-scan"></i></div><span>Scanner</span></a><a class="bn-item" href="meter-split.html"><i class="ph ph-lightning"></i><span>Partage</span></a><a class="bn-item" href="alerts.html"><i class="ph ph-bell"></i><span>Alertes</span></a></nav>
 <div class="toast" id="toast"></div>
 
+<div class="modal-overlay" id="modal-prop">
+<div class="modal"><div class="modal-handle"></div><div class="modal-title">🏢 Nouvelle propriété</div>
+  <div class="form-group"><label class="form-label">Nom</label><input class="form-input" id="p-name" placeholder="Immeuble Akwa Nord"></div>
+  <div class="form-grid" style="margin-bottom:14px">
+    <div class="form-group" style="margin-bottom:0"><label class="form-label">Ville</label><input class="form-input" id="p-city" value="Douala"></div>
+    <div class="form-group" style="margin-bottom:0"><label class="form-label">Type</label>
+      <select class="form-input" id="p-type"><option value="apartment">Appartement</option><option value="house">Maison</option><option value="commercial">Commercial</option></select>
+    </div>
+  </div>
+  <div class="form-group"><label class="form-label">Adresse</label><input class="form-input" id="p-addr" placeholder="Rue Joss, Akwa"></div>
+  <button class="btn-primary" onclick="saveProp()">💾 Créer</button>
+</div></div>
+
+<div class="modal-overlay" id="modal-tenant">
+<div class="modal"><div class="modal-handle"></div><div class="modal-title">👤 Nouveau locataire</div>
+  <div class="form-group"><label class="form-label">Nom complet</label><input class="form-input" id="t-name" placeholder="Marie Nkemdirim"></div>
+  <div class="form-grid" style="margin-bottom:14px">
+    <div class="form-group" style="margin-bottom:0"><label class="form-label">Téléphone</label><input class="form-input" id="t-phone" placeholder="+237 6XX XX XX XX"></div>
+    <div class="form-group" style="margin-bottom:0"><label class="form-label">Date d'entrée</label><input class="form-input" type="date" id="t-date"></div>
+  </div>
+  <button class="btn-primary" onclick="saveTenant()">💾 Ajouter</button>
+</div></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
-const SUPABASE_URL='https://rjnsnodvqwwhkxbznzqa.supabase.co';
-const SUPABASE_ANON='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJqbnNub2R2cXd3aGt4YnpuenFhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzgxODg1OTksImV4cCI6MjA5Mzc2NDU5OX0.gkV9ynTFdY8B72s2fnRpTkUH71FUz59ICIpQLZQDsIc';
-const{createClient}=supabase;
-const db=createClient(SUPABASE_URL,SUPABASE_ANON);
-let user=null,properties=[],units=[],tenants=[],sharedBills=[],bills=[];
-let selectedPropId=null,shareTenantId=null,selectedBillId=null;
+
+const SUPA_URL='https://rjnsnodvqwwhkxbznzqa.supabase.co';
+const SUPA_ANON='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJqbnNub2R2cXd3aGt4YnpuenFhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzgxODg1OTksImV4cCI6MjA5Mzc2NDU5OX0.gkV9ynTFdY8B72s2fnRpTkUH71FUz59ICIpQLZQDsIc';
+const db=supabase.createClient(SUPA_URL,SUPA_ANON);
+let ME=null;
+const $=id=>document.getElementById(id);
+const fmt=n=>Math.round(n||0).toLocaleString('fr-FR');
+const fmtA=n=>fmt(n)+' F';
+const fmtM=m=>m?new Date(m+'-01').toLocaleDateString('fr-FR',{month:'long',year:'numeric'}):'—';
+const fmtMs=m=>m?new Date(m+'-01').toLocaleDateString('fr-FR',{month:'short',year:'numeric'}):'—';
+const fmtD=d=>d?new Date(d).toLocaleDateString('fr-FR'):'—';
+const ini=n=>(n||'?').split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2);
+const avCol=['av-purple','av-green','av-amber'];
+function toast(msg,type='success'){const t=$('toast');t.innerHTML=msg;t.className='toast '+type+' show';setTimeout(()=>t.classList.remove('show'),3000)}
+function openM(id){$(id).classList.add('open')}
+function closeM(id){$(id).classList.remove('open')}
+document.addEventListener('click',e=>{if(e.target.classList.contains('modal-overlay'))e.target.classList.remove('open')});
+async function initAuth(){const {data:{session}}=await db.auth.getSession();if(!session){window.location.href='auth.html';return null;}ME=session.user;return ME;}
+
+let props=[],tenants=[],shared=[];
 
 window.addEventListener('DOMContentLoaded',async()=>{
-  const{data:{session}}=await db.auth.getSession();
-  if(!session)return window.location.href='auth.html';
-  user=session.user;
-  const name=user.user_metadata?.full_name||user.email||'Bailleur';
-  const ini=name.split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2);
-  document.getElementById('user-av').textContent=ini;
-  document.getElementById('user-name').textContent=name;
-  document.getElementById('user-email').textContent=user.email||'';
-  await loadAll();
+  ME=await initAuth();if(!ME)return;
+  $('t-date').value=new Date().toISOString().split('T')[0];
+  await load();
 });
 
-async function loadAll(){
-  const[pR,uR,tR,sR,bR]=await Promise.all([
-    db.from('properties').select('*').eq('landlord_id',user.id).order('created_at'),
-    db.from('units').select('*').eq('landlord_id',user.id).order('created_at'),
-    db.from('tenants').select('*').eq('landlord_id',user.id).order('created_at'),
-    db.from('shared_bills').select('*').eq('landlord_id',user.id).order('created_at',{ascending:false}),
-    db.from('bills').select('*').eq('user_id',user.id).eq('status','paid').order('created_at',{ascending:false})
+async function load(){
+  const [pRes,tRes,sRes]=await Promise.all([
+    db.from('properties').select('*').eq('landlord_id',ME.id).order('created_at',{ascending:false}),
+    db.from('tenants').select('*').eq('landlord_id',ME.id).order('created_at',{ascending:false}),
+    db.from('shared_bills').select('*').eq('landlord_id',ME.id)
   ]);
-  properties=pR.data||[];units=uR.data||[];tenants=tR.data||[];sharedBills=sR.data||[];bills=bR.data||[];
-  document.getElementById('s-props').textContent=properties.length;
-  document.getElementById('s-units').textContent=units.length;
-  document.getElementById('s-tenants').textContent=tenants.filter(t=>t.status==='active').length;
-  const now=new Date(),m=`${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}`;
-  document.getElementById('s-shared').textContent=sharedBills.filter(s=>s.created_at?.startsWith(m)).length;
-  renderProperties();renderTenants();renderSharedBills();populatePropertySelect();
+  props=pRes.data||[];tenants=tRes.data||[];shared=sRes.data||[];
+  $('s-props').textContent=props.length;
+  $('s-tenants').textContent=tenants.filter(t=>t.status==='active').length;
+  $('s-shared').textContent=shared.length;
+  renderProps();renderTenants();
 }
 
-function showTab(id,btn){
-  ['properties','tenants','shared'].forEach(t=>{document.getElementById('tab-'+t).style.display=t===id?'block':'none'});
-  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
-  btn.classList.add('active');
-}
-
-function renderProperties(){
-  const el=document.getElementById('props-grid');
-  if(!properties.length){el.innerHTML=`<div class="empty"><div class="empty-icon">🏢</div><h3>Aucune propriété</h3><p>Cliquez sur "+ Propriété" pour commencer.</p></div>`;return}
-  const ti={apartment:'🏢',house:'🏠',commercial:'🏬',mixed:'🏗'};
-  el.innerHTML=properties.map(p=>{
-    const pu=units.filter(u=>u.property_id===p.id);
-    const pt=tenants.filter(t=>pu.some(u=>u.id===t.unit_id)&&t.status==='active');
-    return`<div class="prop-card${selectedPropId===p.id?' selected':''}" onclick="selectProperty('${p.id}','${p.name.replace(/'/g,"\\'")}')">
-      <div class="prop-icon">${ti[p.type]||'🏢'}</div>
-      <div class="prop-name">${p.name}</div>
-      <div class="prop-addr">📍 ${p.address||''} ${p.city||''}</div>
-      <div class="prop-stats">
-        <div class="ps"><div class="ps-val">${pu.length}</div><div class="ps-lbl">Unités</div></div>
-        <div class="ps"><div class="ps-val">${pt.length}</div><div class="ps-lbl">Locataires</div></div>
+function renderProps(){
+  const el=$('props-list');
+  const icons={apartment:'🏢',house:'🏠',commercial:'🏪',villa:'🏡'};
+  if(!props.length){el.innerHTML=`<div class="empty-state"><span class="ei">🏢</span><h3>Aucune propriété</h3><p>Ajoutez votre première propriété</p><button class="btn-sm btn-sm-purple" onclick="openM('modal-prop')" style="margin-top:14px">+ Ajouter</button></div>`;return;}
+  el.innerHTML=props.map(p=>`
+    <div class="card" style="padding:14px;margin-bottom:10px;display:flex;align-items:center;gap:12px">
+      <div class="li-icon ic-purple" style="font-size:22px">${icons[p.type]||'🏢'}</div>
+      <div style="flex:1">
+        <div style="font-size:14px;font-weight:600;color:var(--text)">${p.name}</div>
+        <div style="font-size:12px;color:var(--text2);margin-top:2px">${p.address||''}${p.city?', '+p.city:''}</div>
       </div>
-    </div>`;
-  }).join('');
-}
-
-function selectProperty(id,name){
-  selectedPropId=id;renderProperties();
-  document.getElementById('units-title').textContent=`Unités — ${name}`;
-  const pu=units.filter(u=>u.property_id===id);
-  const wrap=document.getElementById('units-table-wrap');
-  if(!pu.length){wrap.innerHTML=`<div class="empty"><div class="empty-icon">🚪</div><h3>Aucune unité</h3><p>Ajoutez une unité à cette propriété.</p></div>`}
-  else{wrap.innerHTML=`<table><thead><tr><th>Unité</th><th>Étage</th><th>Loyer</th><th>Locataire</th><th>Statut</th></tr></thead><tbody>${pu.map(u=>{
-    const t=tenants.find(t=>t.unit_id===u.id&&t.status==='active');
-    return`<tr><td style="font-weight:600">${u.name}</td><td style="color:var(--gray)">${u.floor||'—'}</td><td style="font-family:var(--font-h);font-weight:700">${u.rent_amount?u.rent_amount.toLocaleString('fr-FR')+' F':'—'}</td><td>${t?`<span style="font-weight:600">${t.full_name}</span>`:'<span style="color:var(--gray)">Libre</span>'}</td><td><span class="pill ${t?'pill-green':'pill-gray'}">${t?'Occupé':'Libre'}</span></td></tr>`;
-  }).join('')}</tbody></table>`}
-  document.getElementById('units-section').style.display='block';
+      <i class="ph ph-caret-right" style="color:var(--text3)"></i>
+    </div>`).join('');
 }
 
 function renderTenants(){
-  const wrap=document.getElementById('tenants-table-wrap');
-  if(!tenants.length){wrap.innerHTML=`<div class="empty"><div class="empty-icon">👤</div><h3>Aucun locataire</h3><p>Ajoutez votre premier locataire.</p></div>`;return}
-  wrap.innerHTML=`<table><thead><tr><th>Nom</th><th>Contact</th><th>Unité</th><th>Entrée</th><th>Statut</th><th>Actions</th></tr></thead><tbody>${tenants.map(t=>{
-    const unit=units.find(u=>u.id===t.unit_id);
-    const prop=unit?properties.find(p=>p.id===unit.property_id):null;
-    const mi=t.move_in_date?new Date(t.move_in_date).toLocaleDateString('fr-FR'):'—';
-    return`<tr><td><div style="font-weight:600;font-family:var(--font-h)">${t.full_name}</div></td><td><div style="font-size:12px;color:var(--gray)">${t.phone||''}</div><div style="font-size:11px;color:var(--gray)">${t.email||''}</div></td><td><div style="font-size:12px">${unit?unit.name:'—'}</div><div style="font-size:11px;color:var(--gray)">${prop?prop.name:''}</div></td><td style="font-size:12px;color:var(--gray)">${mi}</td><td><span class="pill ${t.status==='active'?'pill-green':'pill-gray'}">${t.status==='active'?'Actif':'Inactif'}</span></td><td><button class="btn btn-ghost btn-sm" onclick="openShareModal('${t.id}','${t.full_name.replace(/'/g,"\\'")}')">📤 Partager</button></td></tr>`;
-  }).join('')}</tbody></table>`;
+  const el=$('tenants-list');
+  if(!tenants.length){el.innerHTML=`<div class="empty-state"><span class="ei">👥</span><h3>Aucun locataire</h3><p>Ajoutez vos locataires</p></div>`;return;}
+  const avCols=['av-purple','av-green','av-amber'];
+  el.innerHTML=tenants.map((t,i)=>`
+    <div class="card" style="padding:14px;margin-bottom:8px;display:flex;align-items:center;gap:12px">
+      <div class="avatar ${avCols[i%3]}">${ini(t.full_name)}</div>
+      <div style="flex:1">
+        <div style="font-size:14px;font-weight:600;color:var(--text)">${t.full_name}</div>
+        <div style="font-size:12px;color:var(--text2);margin-top:2px">${t.phone||'—'}</div>
+      </div>
+      <span class="pill ${t.status==='active'?'pill-active':'pill-inactive'}">${t.status==='active'?'✓ Actif':'Parti'}</span>
+    </div>`).join('');
 }
 
-function renderSharedBills(){
-  const wrap=document.getElementById('shared-table-wrap');
-  if(!sharedBills.length){wrap.innerHTML=`<div class="empty"><div class="empty-icon">📤</div><h3>Aucune facture partagée</h3><p>Allez dans l'onglet Locataires et cliquez "Partager".</p></div>`;return}
-  wrap.innerHTML=`<table><thead><tr><th>Locataire</th><th>Facture</th><th>Partagé le</th><th>Vue</th><th>Lien</th></tr></thead><tbody>${sharedBills.map(s=>{
-    const ten=tenants.find(t=>t.id===s.tenant_id);
-    const bill=bills.find(b=>b.id===s.bill_id);
-    const d=new Date(s.created_at).toLocaleDateString('fr-FR');
-    return`<tr><td style="font-weight:600;font-family:var(--font-h)">${ten?.full_name||'—'}</td><td>${bill?`<span style="font-weight:600">${bill.company}</span><span style="font-size:11px;color:var(--gray);margin-left:6px">${bill.billing_month||''}</span>`:'—'}</td><td style="font-size:12px;color:var(--gray)">${d}</td><td><span class="pill ${s.viewed_at?'pill-green':'pill-amber'}">${s.viewed_at?'✓ Lue':'En attente'}</span></td><td><button class="btn btn-ghost btn-sm" onclick="copyShareLink('${s.share_token}')">🔗 Copier</button></td></tr>`;
-  }).join('')}</tbody></table>`;
-}
-
-async function saveProperty(){
-  const name=document.getElementById('p-name').value.trim();
-  if(!name)return showModalMsg('prop-msg','Le nom est obligatoire.');
-  const{error}=await db.from('properties').insert([{landlord_id:user.id,name,address:document.getElementById('p-addr').value.trim()||null,city:document.getElementById('p-city').value.trim()||null,type:document.getElementById('p-type').value}]);
-  if(error)return showModalMsg('prop-msg',error.message);
-  closeModal('property-modal');showToast('✅ Propriété ajoutée!','success');await loadAll();
-}
-
-async function saveUnit(){
-  if(!selectedPropId)return showModalMsg('unit-msg','Sélectionnez une propriété d\'abord.');
-  const name=document.getElementById('u-name').value.trim();
-  if(!name)return showModalMsg('unit-msg','Le nom de l\'unité est obligatoire.');
-  const rent=parseFloat(document.getElementById('u-rent').value);
-  const{error}=await db.from('units').insert([{property_id:selectedPropId,landlord_id:user.id,name,floor:document.getElementById('u-floor').value.trim()||null,rent_amount:isNaN(rent)?null:rent}]);
-  if(error)return showModalMsg('unit-msg',error.message);
-  closeModal('unit-modal');showToast('✅ Unité ajoutée!','success');await loadAll();
-  const prop=properties.find(p=>p.id===selectedPropId);if(prop)selectProperty(selectedPropId,prop.name);
+async function saveProp(){
+  const name=$('p-name').value.trim();if(!name)return toast('Le nom est obligatoire','error');
+  const {error}=await db.from('properties').insert([{landlord_id:ME.id,name,city:$('p-city').value.trim()||'Douala',type:$('p-type').value,address:$('p-addr').value.trim()||null}]);
+  if(error)return toast('Erreur: '+error.message,'error');
+  closeM('modal-prop');toast('🏢 Propriété créée!');await load();
 }
 
 async function saveTenant(){
-  const name=document.getElementById('t-name').value.trim();
-  if(!name)return showModalMsg('ten-msg','Le nom est obligatoire.');
-  const unitId=document.getElementById('t-unit').value;
-  const{error}=await db.from('tenants').insert([{landlord_id:user.id,full_name:name,phone:document.getElementById('t-phone').value.trim()||null,email:document.getElementById('t-email').value.trim()||null,unit_id:unitId||null,move_in_date:document.getElementById('t-movein').value||null,status:document.getElementById('t-status').value}]);
-  if(error)return showModalMsg('ten-msg',error.message);
-  closeModal('tenant-modal');showToast('✅ Locataire ajouté!','success');await loadAll();
+  const name=$('t-name').value.trim();if(!name)return toast('Le nom est obligatoire','error');
+  const {error}=await db.from('tenants').insert([{landlord_id:ME.id,full_name:name,phone:$('t-phone').value.trim()||null,move_in_date:$('t-date').value||null,status:'active'}]);
+  if(error)return toast('Erreur: '+error.message,'error');
+  closeM('modal-tenant');toast('👤 Locataire ajouté!');await load();
 }
-
-function populatePropertySelect(){
-  const sel=document.getElementById('t-property');
-  sel.innerHTML='<option value="">Choisir propriété...</option>'+properties.map(p=>`<option value="${p.id}">${p.name}</option>`).join('');
-}
-
-function loadUnitsForSelect(){
-  const propId=document.getElementById('t-property').value;
-  const pu=units.filter(u=>u.property_id===propId);
-  document.getElementById('t-unit').innerHTML='<option value="">Sélectionner unité...</option>'+pu.map(u=>`<option value="${u.id}">${u.name}</option>`).join('');
-}
-
-function openShareModal(tenantId,tenantName){
-  shareTenantId=tenantId;selectedBillId=null;
-  document.getElementById('share-tenant-name').textContent=tenantName;
-  document.getElementById('share-result').style.display='none';
-  document.getElementById('share-msg').className='msg';
-  document.getElementById('share-message').value='';
-  const listEl=document.getElementById('share-bills-list');
-  const iconMap={ENEO:'⚡',CamWater:'💧',Camtel:'📡'};
-  const bgMap={ENEO:'background:#CAFF4020',CamWater:'background:#60C8FF20',Camtel:'background:#B39DFF20'};
-  if(!bills.length){listEl.innerHTML='<p style="font-size:13px;color:var(--gray);text-align:center;padding:20px">Aucune facture payée disponible.</p>'}
-  else{listEl.innerHTML=bills.slice(0,10).map(b=>{
-    const month=b.billing_month?new Date(b.billing_month+'-01').toLocaleDateString('fr-FR',{month:'long',year:'numeric'}):'—';
-    return`<div class="share-bill-item" id="sbi-${b.id}" onclick="selectBill('${b.id}')">
-      <div class="sbi-icon" style="${bgMap[b.company]||'background:#f0f0f0'}">${iconMap[b.company]||'📌'}</div>
-      <div style="flex:1"><div class="sbi-name">${b.company} — ${month}</div><div class="sbi-detail">${b.amount?b.amount.toLocaleString('fr-FR')+' FCFA':''}</div></div>
-      <span class="pill pill-green" style="font-size:10px">✓ Payée</span>
-    </div>`;
-  }).join('')}
-  openModal('share-modal');
-}
-
-function selectBill(billId){
-  selectedBillId=billId;
-  document.querySelectorAll('.share-bill-item').forEach(el=>el.classList.remove('selected'));
-  document.getElementById('sbi-'+billId)?.classList.add('selected');
-}
-
-async function doShareBill(){
-  if(!selectedBillId)return showModalMsg('share-msg','Sélectionnez une facture à partager.');
-  const tenant=tenants.find(t=>t.id===shareTenantId);
-  const{data,error}=await db.from('shared_bills').insert([{bill_id:selectedBillId,tenant_id:shareTenantId,landlord_id:user.id,unit_id:tenant?.unit_id||null,message:document.getElementById('share-message').value.trim()||null}]).select().single();
-  if(error)return showModalMsg('share-msg',error.message);
-  const link=`${window.location.origin}/pages/tenant-view.html?token=${data.share_token}`;
-  document.getElementById('share-link-val').value=link;
-  document.getElementById('share-result').style.display='block';
-  showToast('✅ Facture partagée!','success');await loadAll();
-}
-
-function copyShareLink(token){
-  navigator.clipboard.writeText(`${window.location.origin}/pages/tenant-view.html?token=${token}`).then(()=>showToast('🔗 Lien copié!','success'));
-}
-function copyLink(){navigator.clipboard.writeText(document.getElementById('share-link-val').value).then(()=>showToast('🔗 Lien copié!','success'))}
-function openModal(id){document.getElementById(id).classList.add('open')}
-function closeModal(id){document.getElementById(id).classList.remove('open')}
-function showModalMsg(id,text){const el=document.getElementById(id);el.textContent=text;el.className='msg error'}
-document.querySelectorAll('.overlay').forEach(el=>{el.addEventListener('click',function(e){if(e.target===this)closeModal(this.id)})});
-function showToast(msg,type='success'){const t=document.getElementById('toast');t.textContent=msg;t.className='toast '+type+' show';setTimeout(()=>t.classList.remove('show'),3000)}
-async function logout(){await db.auth.signOut();window.location.href='auth.html'}
-</script>
-<nav class="mobile-nav">
-  <a href="dashboard.html" class="mn-item">
-    <i class="ph ph-chart-bar"></i>
-    <span>Dashboard</span>
-  </a>
-  <a href="bills.html" class="mn-item">
-    <i class="ph ph-file-text"></i>
-    <span>Factures</span>
-  </a>
-  <a href="upload.html" class="mn-item mn-fab">
-    <div class="mn-fab-circle"><i class="ph ph-scan"></i></div>
-    <span>Scanner</span>
-  </a>
-  <a href="meter-split.html" class="mn-item  active">
-    <i class="ph ph-lightning"></i>
-    <span>Partage</span>
-  </a>
-  <a href="alerts.html" class="mn-item">
-    <i class="ph ph-bell"></i>
-    <span>Alertes</span>
-  </a>
-</nav>
-</body>
-</html>
+</script></body></html>

@@ -1,248 +1,302 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-  <!-- PWA + iPhone Home Screen -->
-  <link rel="manifest" href="/manifest.json">
-  <link rel="apple-touch-icon" href="/icons/icon-180.png">
-  <link rel="apple-touch-icon" sizes="120x120" href="/icons/icon-120.png">
-  <link rel="apple-touch-icon" sizes="152x152" href="/icons/icon-152.png">
-  <link rel="apple-touch-icon" sizes="167x167" href="/icons/icon-167.png">
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <meta name="apple-mobile-web-app-title" content="BillSafe">
-  <meta name="theme-color" content="#0052FF">
-  <meta name="mobile-web-app-capable" content="yes">
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="BillSafe">
+<meta name="theme-color" content="#4F46E5">
+<link rel="apple-touch-icon" href="/icons/icon-180.png">
+<link rel="manifest" href="/manifest.json">
 <title>BillSafe — Mes Factures</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@phosphor-icons/web@2.1.1/src/regular/style.css">
-<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=DM+Sans:wght@400;500&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="../css/portal.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@phosphor-icons/web@2.1.1/src/fill/style.css">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
-  .search-bar { display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; }
-  .search-input { flex: 1; min-width: 200px; padding: 10px 16px; border: 1.5px solid #e8e8e8; border-radius: 100px; font-size: 14px; font-family: var(--font-b); background: var(--white); outline: none; transition: border-color 0.2s; }
-  .search-input:focus { border-color: var(--dark); }
-  .filter-row { display: flex; gap: 6px; flex-wrap: wrap; }
-  .filter-btn { padding: 7px 16px; border-radius: 100px; font-size: 12px; font-weight: 600; font-family: var(--font-h); border: 1.5px solid #e8e8e8; background: var(--white); color: var(--gray); cursor: pointer; transition: all 0.2s; white-space: nowrap; }
-  .filter-btn.active { border-color: var(--dark); color: var(--dark); background: #f5f5f5; }
-  .company-cell { display: flex; align-items: center; gap: 10px; }
-  .company-icon { width: 32px; height: 32px; border-radius: 9px; display: flex; align-items: center; justify-content: center; font-size: 15px; flex-shrink: 0; }
-  .ci-eneo     { background: rgba(202,255,64,0.2); }
-  .ci-camwater { background: rgba(96,200,255,0.15); }
-  .ci-camtel   { background: rgba(179,157,255,0.15); }
-  .ci-other    { background: #f0f0f0; }
-  .amount-cell { font-family: var(--font-h); font-weight: 700; font-size: 14px; }
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --purple:#4F46E5;--purple-dark:#3730A3;--purple-light:#6366F1;
+  --purple-dim:rgba(79,70,229,0.1);--purple-glow:rgba(79,70,229,0.2);
+  --violet:#7C3AED;--blue:#2563EB;
+  --bg:#F5F5FA;--surface:#FFFFFF;--surface2:#F8F8FF;
+  --dark:#1E1B4B;--dark2:#312E81;
+  --text:#1E1B4B;--text2:#6B7280;--text3:#9CA3AF;
+  --green:#10B981;--green-bg:rgba(16,185,129,0.1);
+  --red:#EF4444;--red-bg:rgba(239,68,68,0.1);
+  --amber:#F59E0B;--amber-bg:rgba(245,158,11,0.1);
+  --white:#FFFFFF;
+  --nav-h:72px;--header-h:64px;
+  --radius:20px;--radius-sm:14px;--radius-xs:10px;
+  --shadow:0 2px 12px rgba(79,70,229,0.08);
+  --shadow-md:0 8px 32px rgba(79,70,229,0.12);
+  --f:'Inter',sans-serif;
+}
+html,body{height:100%;overflow-x:hidden}
+body{font-family:var(--f);background:var(--bg);color:var(--text);-webkit-font-smoothing:antialiased;padding-bottom:var(--nav-h)}
+.app{min-height:100vh;max-width:430px;margin:0 auto}
+@media(min-width:769px){.app{box-shadow:0 0 40px rgba(0,0,0,0.12)}}
+
+/* PAGE HEADER */
+.page-header{
+  background:linear-gradient(145deg,#4F46E5 0%,#7C3AED 100%);
+  padding:env(safe-area-inset-top,44px) 20px 24px;
+  position:relative;overflow:hidden;
+}
+.page-header::before{content:'';position:absolute;top:-40px;right:-30px;width:120px;height:120px;background:rgba(255,255,255,0.06);border-radius:50%}
+.ph-row{display:flex;align-items:center;gap:14px;padding-top:8px;position:relative;z-index:1}
+.back-btn{width:38px;height:38px;border-radius:50%;background:rgba(255,255,255,0.15);border:none;color:#fff;font-size:20px;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;-webkit-tap-highlight-color:transparent}
+.page-title{font-size:18px;font-weight:700;color:#fff;flex:1}
+.ph-action{width:38px;height:38px;border-radius:50%;background:rgba(255,255,255,0.15);border:none;color:#fff;font-size:18px;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0}
+
+/* CONTENT */
+.content{padding:20px 16px}
+
+/* CARDS */
+.card{background:var(--surface);border-radius:var(--radius);padding:18px;box-shadow:var(--shadow);margin-bottom:14px}
+.card-dark{background:linear-gradient(135deg,#1E1B4B,#312E81);color:#fff}
+.card-purple{background:linear-gradient(135deg,#4F46E5,#7C3AED);color:#fff}
+.card-title{font-size:15px;font-weight:700;color:var(--text);margin-bottom:4px}
+.card-dark .card-title,.card-purple .card-title{color:#fff}
+.card-sub{font-size:12px;color:var(--text2);margin-bottom:14px}
+.card-dark .card-sub,.card-purple .card-sub{color:rgba(255,255,255,0.6)}
+.card-header-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px}
+
+/* FORMS */
+.form-group{margin-bottom:14px}
+.form-label{font-size:11px;font-weight:700;color:var(--text2);margin-bottom:6px;display:block;text-transform:uppercase;letter-spacing:0.05em}
+.form-input{width:100%;padding:14px 16px;border:1.5px solid #E5E7EB;border-radius:var(--radius-sm);font-size:15px;font-family:var(--f);background:var(--surface2);color:var(--text);outline:none;transition:all 0.2s;-webkit-appearance:none}
+.form-input:focus{border-color:var(--purple);background:#fff;box-shadow:0 0 0 4px rgba(79,70,229,0.1)}
+select.form-input{cursor:pointer}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+
+/* BUTTONS */
+.btn-primary{width:100%;padding:16px;background:linear-gradient(135deg,#4F46E5,#7C3AED);color:#fff;font-size:15px;font-weight:700;font-family:var(--f);border:none;border-radius:var(--radius-sm);cursor:pointer;box-shadow:0 4px 16px rgba(79,70,229,0.35);transition:all 0.2s;margin-top:6px}
+.btn-primary:active{transform:scale(0.98)}
+.btn-ghost{width:100%;padding:14px;background:transparent;border:1.5px solid #E5E7EB;color:var(--text2);font-size:14px;font-weight:600;font-family:var(--f);border-radius:var(--radius-sm);cursor:pointer;margin-top:8px}
+.btn-sm{padding:9px 18px;border-radius:100px;font-size:13px;font-weight:700;font-family:var(--f);border:none;cursor:pointer;display:inline-flex;align-items:center;gap:6px;-webkit-tap-highlight-color:transparent;transition:all 0.2s}
+.btn-sm:active{transform:scale(0.95)}
+.btn-sm-purple{background:var(--purple);color:#fff;box-shadow:0 3px 10px rgba(79,70,229,0.3)}
+.btn-sm-ghost{background:var(--purple-dim);color:var(--purple);border:1px solid rgba(79,70,229,0.2)}
+.btn-sm-red{background:var(--red-bg);color:var(--red)}
+
+/* PILLS */
+.pill{display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:700;padding:4px 10px;border-radius:100px;font-family:var(--f)}
+.pill-paid{background:var(--green-bg);color:var(--green)}
+.pill-pending{background:var(--amber-bg);color:var(--amber)}
+.pill-active{background:var(--green-bg);color:var(--green)}
+.pill-inactive{background:#F3F4F6;color:var(--text2)}
+.pill-shared{background:var(--purple-dim);color:var(--purple)}
+.pill-warning{background:var(--amber-bg);color:var(--amber)}
+.pill-critical{background:var(--red-bg);color:var(--red)}
+
+/* LIST ITEMS */
+.list-item{display:flex;align-items:center;gap:14px;padding:14px 0;border-bottom:1px solid #F3F4F6}
+.list-item:last-child{border-bottom:none}
+.li-icon{width:44px;height:44px;border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0}
+.li-body{flex:1;min-width:0}
+.li-title{font-size:14px;font-weight:600;color:var(--text)}
+.li-sub{font-size:12px;color:var(--text2);margin-top:2px}
+.li-right{text-align:right;flex-shrink:0}
+.li-val{font-size:15px;font-weight:700;color:var(--text)}
+.li-badge{margin-top:4px}
+
+/* ICON COLORS */
+.ic-eneo{background:linear-gradient(135deg,#FEF08A,#EAB308)}
+.ic-camwater{background:linear-gradient(135deg,#BAE6FD,#0284C7)}
+.ic-camtel{background:linear-gradient(135deg,#DDD6FE,#7C3AED)}
+.ic-green{background:linear-gradient(135deg,#BBF7D0,#10B981)}
+.ic-red{background:var(--red-bg)}
+.ic-blue{background:var(--purple-dim)}
+.ic-amber{background:var(--amber-bg)}
+.ic-gray{background:#F3F4F6}
+.ic-purple{background:linear-gradient(135deg,#E0E7FF,#4F46E5)}
+
+/* AVATAR */
+.avatar{width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:14px;flex-shrink:0}
+.av-purple{background:var(--purple-dim);color:var(--purple)}
+.av-green{background:var(--green-bg);color:var(--green)}
+.av-amber{background:var(--amber-bg);color:var(--amber)}
+.av-blue{background:rgba(37,99,235,0.1);color:var(--blue)}
+
+/* SEARCH */
+.search-bar{display:flex;align-items:center;gap:10px;background:var(--surface);border:1.5px solid #E5E7EB;border-radius:var(--radius-sm);padding:12px 16px;margin-bottom:16px}
+.search-bar i{color:var(--text3);font-size:18px;flex-shrink:0}
+.search-bar input{flex:1;border:none;background:transparent;font-size:15px;font-family:var(--f);color:var(--text);outline:none}
+.search-bar input::placeholder{color:var(--text3)}
+
+/* FILTER CHIPS */
+.filter-row{display:flex;gap:8px;overflow-x:auto;padding-bottom:4px;margin-bottom:16px;-webkit-overflow-scrolling:touch;scrollbar-width:none}
+.filter-row::-webkit-scrollbar{display:none}
+.fchip{padding:8px 16px;border-radius:100px;font-size:12px;font-weight:600;border:1.5px solid #E5E7EB;background:var(--surface);color:var(--text2);cursor:pointer;white-space:nowrap;transition:all 0.15s;font-family:var(--f)}
+.fchip.active{border-color:var(--purple);background:var(--purple);color:#fff}
+
+/* EMPTY */
+.empty-state{text-align:center;padding:48px 24px}
+.empty-state .ei{font-size:48px;margin-bottom:14px;display:block}
+.empty-state h3{font-size:16px;font-weight:700;color:var(--text2);margin-bottom:6px}
+.empty-state p{font-size:13px;color:var(--text3);line-height:1.6}
+
+/* SKELETON */
+.skeleton{background:linear-gradient(90deg,#F3F4F6 25%,#E9EAEC 50%,#F3F4F6 75%);background-size:200% 100%;animation:shimmer 1.5s infinite;border-radius:10px}
+@keyframes shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}
+
+/* TOAST */
+.toast{position:fixed;top:calc(env(safe-area-inset-top,44px)+8px);left:16px;right:16px;background:#1E1B4B;color:#fff;padding:14px 18px;border-radius:14px;font-size:13px;font-weight:600;box-shadow:0 8px 32px rgba(0,0,0,0.2);transform:translateY(-80px);opacity:0;transition:all 0.3s;z-index:9999;display:flex;align-items:center;gap:10px}
+.toast.show{transform:translateY(0);opacity:1}
+.toast.success{border-left:4px solid var(--green)}
+.toast.error{border-left:4px solid var(--red)}
+
+/* MODAL */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.5);backdrop-filter:blur(6px);z-index:2000;display:flex;align-items:flex-end;opacity:0;pointer-events:none;transition:opacity 0.25s}
+.modal-overlay.open{opacity:1;pointer-events:all}
+.modal{background:var(--surface);border-radius:28px 28px 0 0;width:100%;padding:20px 20px 40px;transform:translateY(30px);transition:transform 0.3s;max-height:90vh;overflow-y:auto}
+.modal-overlay.open .modal{transform:translateY(0)}
+.modal-handle{width:40px;height:4px;background:#E5E7EB;border-radius:2px;margin:0 auto 20px}
+.modal-title{font-size:18px;font-weight:700;color:var(--text);margin-bottom:18px}
+
+/* BOTTOM NAV */
+.bottom-nav{position:fixed;bottom:0;left:0;right:0;max-width:430px;margin:0 auto;height:var(--nav-h);background:var(--white);border-top:1px solid rgba(0,0,0,0.06);display:flex;align-items:stretch;z-index:1000;padding-bottom:env(safe-area-inset-bottom,0px);box-shadow:0 -4px 24px rgba(0,0,0,0.08)}
+.bn-item{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;text-decoration:none;color:var(--text3);font-size:10px;font-weight:600;letter-spacing:0.02em;cursor:pointer;border:none;background:transparent;font-family:var(--f);-webkit-tap-highlight-color:transparent;transition:color 0.15s;position:relative}
+.bn-item.active{color:var(--purple)}
+.bn-item.active::before{content:'';position:absolute;top:0;left:20%;right:20%;height:3px;background:var(--purple);border-radius:0 0 4px 4px}
+.bn-item i{font-size:22px;transition:transform 0.15s}
+.bn-item.active i{transform:scale(1.1)}
+.bn-item:active i{transform:scale(0.9)}
+.bn-fab{flex:0 0 60px;position:relative}
+.bn-fab-circle{width:52px;height:52px;border-radius:50%;background:linear-gradient(135deg,#4F46E5,#7C3AED);display:flex;align-items:center;justify-content:center;box-shadow:0 4px 20px rgba(79,70,229,0.45);margin-bottom:2px;border:3px solid #fff;position:relative;top:-10px}
+.bn-fab-circle i{font-size:24px;color:#fff}
+.bn-fab::before{display:none!important}
+
+/* SUPABASE */
+
 </style>
 </head>
 <body>
-<div class="layout">
-  <aside class="sidebar">
-    <div class="sidebar-brand">
-      <div class="sidebar-logo"><i class="ph ph-shield-check" style="font-size:18px;color:var(--lime)"></i></div>
-      <div class="sidebar-name">BillSafe</div>
+<div class="app">
+  <div class="page-header">
+    <div class="ph-row">
+      <button class="back-btn" onclick="history.back()"><i class="ph ph-arrow-left"></i></button>
+      <span class="page-title">Mes Factures</span>
+      <button class="ph-action" onclick="window.location.href='upload.html'"><i class="ph ph-plus"></i></button>
     </div>
-    <span class="sidebar-plan">Business</span>
-    <div class="nav-group-label">Principal</div>
-    <a class="nav-item" href="dashboard.html"><span class="ni"><i class="ph ph-chart-bar"></i></span> Tableau de bord</a>
-    <a class="nav-item active" href="bills.html"><span class="ni"><i class="ph ph-file-text"></i></span> Mes factures</a>
-    <a class="nav-item" href="upload.html"><span class="ni"><i class="ph ph-upload-simple"></i></span> Ajouter facture</a>
-    <div class="nav-group-label">Portail Business</div>
-    <a class="nav-item" href="landlord.html"><span class="ni"><i class="ph ph-buildings"></i></span> Mes propriétés</a>
-    <a class="nav-item" href="tenants.html"><span class="ni"><i class="ph ph-users"></i></span> Locataires</a>
-    <a class="nav-item" href="shared.html"><span class="ni"><i class="ph ph-share-network"></i></span> Factures partagées</a>
-    <div class="nav-group-label">Compte</div>
-    <a class="nav-item" href="settings.html"><span class="ni"><i class="ph ph-gear"></i></span> Paramètres</a>
-    <a class="nav-item" href="alerts.html"><span class="ni"><i class="ph ph-bell"></i></span> Alertes</a>
-    <div class="sidebar-bottom">
-      <div class="user-row">
-        <div class="user-avatar" id="user-avatar">?</div>
-        <div class="user-info">
-          <div class="user-name" id="user-name">Chargement...</div>
-          <div class="user-role">Mon compte</div>
-        </div>
-        <button class="logout-btn" onclick="logout()" title="Déconnexion">⏻</button>
+  </div>
+  <div class="content">
+    <!-- STATS ROW -->
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:18px">
+      <div class="card" style="padding:14px;text-align:center">
+        <div style="font-size:22px;font-weight:800;color:var(--purple)" id="s-total">—</div>
+        <div style="font-size:10px;color:var(--text2);font-weight:600;text-transform:uppercase;letter-spacing:0.04em;margin-top:4px">Total</div>
+      </div>
+      <div class="card" style="padding:14px;text-align:center">
+        <div style="font-size:22px;font-weight:800;color:var(--green)" id="s-paid">—</div>
+        <div style="font-size:10px;color:var(--text2);font-weight:600;text-transform:uppercase;letter-spacing:0.04em;margin-top:4px">Payées</div>
+      </div>
+      <div class="card" style="padding:14px;text-align:center">
+        <div style="font-size:22px;font-weight:800;color:var(--amber)" id="s-pending">—</div>
+        <div style="font-size:10px;color:var(--text2);font-weight:600;text-transform:uppercase;letter-spacing:0.04em;margin-top:4px">Attente</div>
       </div>
     </div>
-  </aside>
-
-  <main class="main">
-    <div class="topbar">
-      <div class="topbar-left">
-        <h2>📄 Mes Factures</h2>
-        <p id="bills-count-label">Chargement...</p>
-      </div>
-      <a href="upload.html" class="btn btn-dark">+ Ajouter une facture</a>
+    <!-- SEARCH -->
+    <div class="search-bar">
+      <i class="ph ph-magnifying-glass"></i>
+      <input type="text" id="search" placeholder="Rechercher une facture..." oninput="filterBills()">
     </div>
-
-    <!-- STATS -->
-    <div class="stats-grid" style="margin-bottom:20px">
-      <div class="stat-card dark">
-        <div class="stat-label">Total sauvegardé</div>
-        <div class="stat-value" id="s-total">—</div>
-        <div class="stat-sub">FCFA cumulé</div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-label">Factures</div>
-        <div class="stat-value" id="s-count">—</div>
-        <div class="stat-sub">enregistrées</div>
-      </div>
-      <div class="stat-card lime">
-        <div class="stat-label">Payées</div>
-        <div class="stat-value" id="s-paid">—</div>
-        <div class="stat-sub">confirmées</div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-label">En attente</div>
-        <div class="stat-value" id="s-pending">—</div>
-        <div class="stat-sub">à régler</div>
-      </div>
+    <!-- FILTERS -->
+    <div class="filter-row">
+      <div class="fchip active" onclick="setFilter('all',this)">Toutes</div>
+      <div class="fchip" onclick="setFilter('paid',this)">✅ Payées</div>
+      <div class="fchip" onclick="setFilter('pending',this)">⏳ En attente</div>
+      <div class="fchip" onclick="setFilter('ENEO',this)">⚡ ENEO</div>
+      <div class="fchip" onclick="setFilter('CamWater',this)">💧 CamWater</div>
+      <div class="fchip" onclick="setFilter('Camtel',this)">📡 Camtel</div>
     </div>
-
-    <div class="card">
-      <!-- SEARCH + FILTER -->
-      <div class="search-bar">
-        <input class="search-input" id="search" placeholder="🔍 Rechercher par société, référence..." oninput="applyFilters()">
-      </div>
-      <div class="filter-row" style="margin-bottom:20px">
-        <button class="filter-btn active" onclick="setFilter('all',this)">Toutes</button>
-        <button class="filter-btn" onclick="setFilter('paid',this)">✅ Payées</button>
-        <button class="filter-btn" onclick="setFilter('pending',this)">⏳ En attente</button>
-        <button class="filter-btn" onclick="setFilter('ENEO',this)">⚡ ENEO</button>
-        <button class="filter-btn" onclick="setFilter('CamWater',this)">💧 CamWater</button>
-        <button class="filter-btn" onclick="setFilter('Camtel',this)">📡 Camtel</button>
-      </div>
-
-      <div class="table-wrap">
-        <table>
-          <thead><tr>
-            <th>Société</th><th>Mois</th><th>Montant</th><th>Statut</th><th>Date paiement</th><th>Localisation</th><th>Actions</th>
-          </tr></thead>
-          <tbody id="bills-tbody">
-            <tr><td colspan="7" style="text-align:center;padding:40px;color:var(--gray)">Chargement...</td></tr>
-          </tbody>
-        </table>
-      </div>
+    <!-- LIST -->
+    <div id="bills-list">
+      <div class="skeleton" style="height:72px;margin-bottom:10px"></div>
+      <div class="skeleton" style="height:72px;margin-bottom:10px"></div>
+      <div class="skeleton" style="height:72px"></div>
     </div>
-  </main>
+  </div>
 </div>
+
+<nav class="bottom-nav">
+  <a class="bn-item" href="dashboard.html"><i class="ph ph-house-simple"></i><span>Accueil</span></a>
+  <a class="bn-item active" href="bills.html"><i class="ph ph-file-text"></i><span>Factures</span></a>
+  <a class="bn-item bn-fab" href="upload.html"><div class="bn-fab-circle"><i class="ph ph-scan"></i></div><span>Scanner</span></a>
+  <a class="bn-item" href="meter-split.html"><i class="ph ph-lightning"></i><span>Partage</span></a>
+  <a class="bn-item" href="alerts.html"><i class="ph ph-bell"></i><span>Alertes</span></a>
+</nav>
 <div class="toast" id="toast"></div>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="../js/portal.js"></script>
 <script>
-let currentUser = null;
-let allBills = [];
-let activeFilter = 'all';
 
-const iconMap = {
-  ENEO:     { icon:'⚡', cls:'ci-eneo' },
-  CamWater: { icon:'💧', cls:'ci-camwater' },
-  Camtel:   { icon:'📡', cls:'ci-camtel' },
-};
-
-window.addEventListener('DOMContentLoaded', async () => {
-  currentUser = await requireAuth();
-  if (!currentUser) return;
-  renderSidebarUser(currentUser);
-  await loadBills();
-});
-
-async function loadBills() {
-  const { data, error } = await db.from('bills').select('*').eq('user_id', currentUser.id).order('created_at', { ascending: false });
-  if (error) return showToast('Erreur chargement', 'error');
-  allBills = data || [];
-  renderStats();
-  applyFilters();
+const SUPA_URL  = 'https://rjnsnodvqwwhkxbznzqa.supabase.co';
+const SUPA_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJqbnNub2R2cXd3aGt4YnpuenFhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzgxODg1OTksImV4cCI6MjA5Mzc2NDU5OX0.gkV9ynTFdY8B72s2fnRpTkUH71FUz59ICIpQLZQDsIc';
+const db = supabase.createClient(SUPA_URL, SUPA_ANON);
+let ME=null;
+const $=id=>document.getElementById(id);
+const fmt=n=>Math.round(n||0).toLocaleString('fr-FR');
+const fmtA=n=>fmt(n)+' F';
+const fmtM=m=>m?new Date(m+'-01').toLocaleDateString('fr-FR',{month:'long',year:'numeric'}):'—';
+const fmtMs=m=>m?new Date(m+'-01').toLocaleDateString('fr-FR',{month:'short',year:'numeric'}):'—';
+const fmtD=d=>d?new Date(d).toLocaleDateString('fr-FR'):'—';
+const ini=n=>(n||'?').split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2);
+function toast(msg,type='success'){const t=$('toast');t.innerHTML=msg;t.className='toast '+type+' show';setTimeout(()=>t.classList.remove('show'),3000)}
+function openM(id){$(id).classList.add('open')}
+function closeM(id){$(id).classList.remove('open')}
+document.addEventListener('click',e=>{if(e.target.classList.contains('modal-overlay'))e.target.classList.remove('open')});
+async function initAuth(){
+  const {data:{session}}=await db.auth.getSession();
+  if(!session){window.location.href='auth.html';return null;}
+  ME=session.user;
+  return ME;
 }
 
-function renderStats() {
-  const total   = allBills.reduce((s,b) => s+(b.amount||0), 0);
-  const paid    = allBills.filter(b => b.status==='paid').length;
-  const pending = allBills.filter(b => b.status==='pending').length;
-  document.getElementById('s-total').textContent   = total.toLocaleString('fr-FR');
-  document.getElementById('s-count').textContent   = allBills.length;
-  document.getElementById('s-paid').textContent    = paid;
-  document.getElementById('s-pending').textContent = pending;
-  document.getElementById('bills-count-label').textContent = `${allBills.length} facture${allBills.length!==1?'s':''} sauvegardée${allBills.length!==1?'s':''}`;
-}
-
-function setFilter(f, btn) {
-  activeFilter = f;
-  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
-  btn.classList.add('active');
-  applyFilters();
-}
-
-function applyFilters() {
-  const q = document.getElementById('search').value.toLowerCase();
-  let filtered = allBills;
-  if (activeFilter === 'paid' || activeFilter === 'pending') filtered = filtered.filter(b => b.status === activeFilter);
-  else if (['ENEO','CamWater','Camtel'].includes(activeFilter)) filtered = filtered.filter(b => b.company === activeFilter);
-  if (q) filtered = filtered.filter(b => (b.company+b.reference+b.location+b.notes).toLowerCase().includes(q));
-  renderTable(filtered);
-}
-
-function renderTable(bills) {
-  const tbody = document.getElementById('bills-tbody');
-  if (!bills.length) {
-    tbody.innerHTML = `<tr><td colspan="7"><div class="empty"><div class="empty-icon">📂</div><h3>Aucune facture trouvée</h3><p>Modifiez les filtres ou ajoutez une nouvelle facture.</p></div></td></tr>`;
-    return;
-  }
-  tbody.innerHTML = bills.map(b => {
-    const ic = iconMap[b.company] || { icon:'📌', cls:'ci-other' };
-    const statusPill = b.status === 'paid'
-      ? `<span class="pill pill-paid">✓ Payée</span>`
-      : `<span class="pill pill-pending">⏳ En attente</span>`;
-    return `<tr>
-      <td><div class="company-cell">
-        <div class="company-icon ${ic.cls}">${ic.icon}</div>
-        <div>
-          <div style="font-weight:600;font-family:var(--font-h);font-size:13px">${b.company}</div>
-          <div style="font-size:11px;color:var(--gray)">${b.reference||'—'}</div>
-        </div>
-      </div></td>
-      <td style="font-size:13px">${fmtMonth(b.billing_month)}</td>
-      <td class="amount-cell">${fmtAmount(b.amount)}</td>
-      <td>${statusPill}</td>
-      <td style="font-size:12px;color:var(--gray)">${fmtDate(b.payment_date)}</td>
-      <td style="font-size:12px;color:var(--gray)">${b.location||'—'}</td>
-      <td><div class="icon-btns">
-        ${b.file_url ? `<button class="icon-btn" onclick="window.open('${b.file_url}')" title="Voir fichier">👁</button>` : ''}
-        <button class="icon-btn" onclick="deleteBill('${b.id}')" title="Supprimer">🗑</button>
-      </div></td>
-    </tr>`;
-  }).join('');
-}
-
-async function deleteBill(id) {
-  if (!confirm('Supprimer cette facture définitivement?')) return;
-  const { error } = await db.from('bills').delete().eq('id',id).eq('user_id',currentUser.id);
-  if (error) return showToast('Erreur suppression','error');
-  showToast('Facture supprimée','success');
-  await loadBills();
-}
 </script>
-<nav class="mobile-nav">
-  <a href="dashboard.html" class="mn-item">
-    <i class="ph ph-chart-bar"></i>
-    <span>Dashboard</span>
-  </a>
-  <a href="bills.html" class="mn-item  active">
-    <i class="ph ph-file-text"></i>
-    <span>Factures</span>
-  </a>
-  <a href="upload.html" class="mn-item mn-fab">
-    <div class="mn-fab-circle"><i class="ph ph-scan"></i></div>
-    <span>Scanner</span>
-  </a>
-  <a href="meter-split.html" class="mn-item">
-    <i class="ph ph-lightning"></i>
-    <span>Partage</span>
-  </a>
-  <a href="alerts.html" class="mn-item">
-    <i class="ph ph-bell"></i>
-    <span>Alertes</span>
-  </a>
-</nav>
-</body>
-</html>
+
+<script>
+let allBills=[],activeFilter='all';
+const icons={ENEO:'ic-eneo',CamWater:'ic-camwater',Camtel:'ic-camtel'};
+const emojis={ENEO:'⚡',CamWater:'💧',Camtel:'📡'};
+window.addEventListener('DOMContentLoaded',async()=>{
+  ME=await initAuth();if(!ME)return;
+  const {data}=await db.from('bills').select('*').eq('user_id',ME.id).order('created_at',{ascending:false});
+  allBills=data||[];
+  $('s-total').textContent=allBills.length;
+  $('s-paid').textContent=allBills.filter(b=>b.status==='paid').length;
+  $('s-pending').textContent=allBills.filter(b=>b.status==='pending').length;
+  render(allBills);
+});
+function setFilter(f,btn){
+  activeFilter=f;
+  document.querySelectorAll('.fchip').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');filterBills();
+}
+function filterBills(){
+  const q=$('search').value.toLowerCase();
+  let list=allBills;
+  if(activeFilter==='paid'||activeFilter==='pending') list=list.filter(b=>b.status===activeFilter);
+  else if(['ENEO','CamWater','Camtel'].includes(activeFilter)) list=list.filter(b=>b.company===activeFilter);
+  if(q) list=list.filter(b=>(b.company+b.reference+b.location+'').toLowerCase().includes(q));
+  render(list);
+}
+function render(bills){
+  const el=$('bills-list');
+  if(!bills.length){el.innerHTML=`<div class="empty-state"><span class="ei">📂</span><h3>Aucune facture</h3><p>Ajoutez votre première facture</p></div>`;return;}
+  el.innerHTML=bills.map(b=>`
+    <div class="card" style="padding:14px;margin-bottom:10px;display:flex;align-items:center;gap:14px">
+      <div class="li-icon ${icons[b.company]||'ic-gray'}">${emojis[b.company]||'📌'}</div>
+      <div style="flex:1;min-width:0">
+        <div style="font-size:14px;font-weight:600;color:var(--text)">${b.company}</div>
+        <div style="font-size:12px;color:var(--text2);margin-top:2px">${fmtMs(b.billing_month)} · ${b.reference||'—'}</div>
+      </div>
+      <div style="text-align:right">
+        <div style="font-size:15px;font-weight:700;color:var(--text);margin-bottom:4px">${fmtA(b.amount)}</div>
+        <span class="pill ${b.status==='paid'?'pill-paid':'pill-pending'}">${b.status==='paid'?'✓ Payée':'⏳'}</span>
+      </div>
+      ${b.file_url?`<button onclick="window.open('${b.file_url}')" style="background:var(--purple-dim);border:none;color:var(--purple);width:32px;height:32px;border-radius:50%;font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center"><i class="ph ph-eye"></i></button>`:''}
+    </div>`).join('');
+}
+</script></body></html>

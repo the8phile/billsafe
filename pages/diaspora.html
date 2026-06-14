@@ -1,710 +1,305 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-  <!-- PWA + iPhone Home Screen -->
-  <link rel="manifest" href="/manifest.json">
-  <link rel="apple-touch-icon" href="/icons/icon-180.png">
-  <link rel="apple-touch-icon" sizes="120x120" href="/icons/icon-120.png">
-  <link rel="apple-touch-icon" sizes="152x152" href="/icons/icon-152.png">
-  <link rel="apple-touch-icon" sizes="167x167" href="/icons/icon-167.png">
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <meta name="apple-mobile-web-app-title" content="BillSafe">
-  <meta name="theme-color" content="#0052FF">
-  <meta name="mobile-web-app-capable" content="yes">
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>BillSafe — Diaspora Dashboard</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="BillSafe">
+<meta name="theme-color" content="#4F46E5">
+<link rel="apple-touch-icon" href="/icons/icon-180.png">
+<link rel="manifest" href="/manifest.json">
+<title>BillSafe — Diaspora</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@phosphor-icons/web@2.1.1/src/regular/style.css">
-<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=DM+Sans:wght@400;500&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="../css/portal.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@phosphor-icons/web@2.1.1/src/fill/style.css">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
-.diaspora-hero{background:var(--dark);border-radius:var(--radius);padding:28px 32px;margin-bottom:24px;display:flex;align-items:center;justify-content:space-between;gap:20px;flex-wrap:wrap;position:relative;overflow:hidden}
-.diaspora-hero::after{content:'🌍';position:absolute;right:28px;top:50%;transform:translateY(-50%);font-size:80px;opacity:0.06;pointer-events:none}
-.hero-left h2{font-family:var(--font-h);font-weight:800;font-size:22px;color:var(--white);margin-bottom:6px}
-.hero-left p{font-size:13px;color:#666;line-height:1.7;max-width:500px}
-.flag-row{display:flex;align-items:center;gap:8px;margin-top:12px}
-.flag-chip{display:flex;align-items:center;gap:6px;background:#1a1a1a;border-radius:20px;padding:5px 12px;font-size:12px;color:#aaa;font-family:var(--font-h);font-weight:600}
-.hh-card{background:var(--white);border-radius:var(--radius);overflow:hidden;border:1.5px solid #f0f0f0;margin-bottom:20px}
-.hh-head{background:var(--dark);padding:20px 24px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px}
-.hh-name{font-family:var(--font-h);font-weight:800;font-size:18px;color:var(--white);margin-bottom:3px}
-.hh-loc{font-size:12px;color:#666;display:flex;align-items:center;gap:6px}
-.live-dot{width:8px;height:8px;background:var(--lime);border-radius:50%;display:inline-block;animation:pulse 2s infinite}
-@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.3}}
-.hh-stats{display:flex;gap:20px}
-.hh-sv{font-family:var(--font-h);font-weight:800;font-size:22px;color:var(--white)}
-.hh-sl{font-size:10px;color:#555;margin-top:2px}
-.members-row{display:flex;gap:8px;padding:14px 22px;border-bottom:1px solid #f5f5f5;flex-wrap:wrap;align-items:center}
-.m-chip{display:flex;align-items:center;gap:8px;background:#f5f5f5;border-radius:100px;padding:5px 14px 5px 5px}
-.m-av{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:var(--font-h);font-weight:800;font-size:11px;flex-shrink:0}
-.m-name{font-size:13px;font-weight:600;font-family:var(--font-h);color:var(--dark)}
-.m-role{font-size:10px;color:var(--gray)}
-.add-m{display:flex;align-items:center;gap:6px;background:transparent;border:1.5px dashed #e0e0e0;border-radius:100px;padding:6px 14px;font-size:12px;font-weight:600;font-family:var(--font-h);color:var(--gray);cursor:pointer;transition:all 0.15s}
-.add-m:hover{border-color:var(--dark);color:var(--dark)}
-.invite-section{padding:14px 22px}
-.invite-label{font-size:11px;font-weight:700;font-family:var(--font-h);color:var(--gray);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:8px}
-.invite-box{display:flex;align-items:center;gap:8px;background:#f5f5f5;border-radius:10px;padding:10px 14px}
-.invite-link{flex:1;font-size:12px;color:var(--gray);font-family:monospace;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.feed-grid{display:grid;grid-template-columns:1fr 300px;gap:20px}
-.feed-item{display:flex;align-items:flex-start;gap:14px;padding:14px 0;border-bottom:1px solid #f5f5f5}
-.feed-item:last-child{border-bottom:none}
-.fi-icon{width:42px;height:42px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0}
-.fi-eneo{background:rgba(202,255,64,0.15)}
-.fi-camwater{background:rgba(96,200,255,0.12)}
-.fi-camtel{background:rgba(179,157,255,0.12)}
-.fi-other{background:#f0f0f0}
-.feed-body{flex:1}
-.feed-title{font-family:var(--font-h);font-weight:700;font-size:14px;color:var(--dark);margin-bottom:3px}
-.feed-meta{font-size:12px;color:var(--gray);margin-bottom:5px}
-.feed-amount{font-family:var(--font-h);font-weight:800;font-size:18px;color:var(--dark)}
-.feed-time{font-size:11px;color:var(--gray);flex-shrink:0;padding-top:2px}
-.feed-new{background:#f0f8ff;border-left:3px solid #185FA5;padding-left:11px;border-radius:0 8px 8px 0}
-.pr-card{background:var(--white);border-radius:var(--radius-sm);border:1.5px solid #e8e8e8;padding:14px;margin-bottom:10px}
-.pr-card.pending{border-color:#fde68a;background:#fffbeb}
-.pr-co{font-family:var(--font-h);font-weight:700;font-size:13px;color:var(--dark);margin-bottom:3px}
-.pr-amt{font-family:var(--font-h);font-weight:800;font-size:18px;color:var(--dark);margin-bottom:5px}
-.pr-msg{font-size:12px;color:#92400e;line-height:1.5;margin-bottom:8px}
-.curr-row{display:flex;align-items:center;gap:10px;background:#f5f5f5;border-radius:10px;padding:12px 14px;margin-bottom:8px}
-.curr-val{font-family:var(--font-h);font-weight:800;font-size:16px;color:var(--dark)}
-.curr-lbl{font-size:11px;color:var(--gray)}
-.toggle-row{display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid #f5f5f5}
-.toggle-row:last-child{border-bottom:none}
-.toggle-info h4{font-family:var(--font-h);font-weight:600;font-size:13px;color:var(--dark);margin-bottom:2px}
-.toggle-info p{font-size:12px;color:var(--gray)}
-.sw{position:relative;width:44px;height:24px;flex-shrink:0}
-.sw input{opacity:0;width:0;height:0}
-.sl{position:absolute;inset:0;background:#e0e0e0;border-radius:24px;cursor:pointer;transition:.3s}
-.sl::before{content:'';position:absolute;width:18px;height:18px;left:3px;top:3px;background:var(--white);border-radius:50%;transition:.3s}
-.sw input:checked+.sl{background:var(--dark)}
-.sw input:checked+.sl::before{transform:translateX(20px)}
-.setup-card{background:var(--white);border-radius:var(--radius);padding:32px;text-align:center;max-width:520px;margin:0 auto}
-.setup-card h2{font-family:var(--font-h);font-weight:800;font-size:22px;color:var(--dark);margin-bottom:8px}
-.setup-card p{font-size:14px;color:var(--gray);line-height:1.7;margin-bottom:24px}
-.steps{display:flex;flex-direction:column;gap:12px;text-align:left;margin-bottom:28px}
-.step{display:flex;align-items:center;gap:14px;background:#f8f8f8;border-radius:12px;padding:14px 16px}
-.step-num{width:34px;height:34px;background:var(--dark);border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:var(--font-h);font-weight:800;font-size:13px;color:var(--lime);flex-shrink:0}
-.step h4{font-family:var(--font-h);font-weight:700;font-size:13px;color:var(--dark);margin-bottom:3px}
-.step p{font-size:12px;color:var(--gray)}
-/* Loading spinner */
-.spinner{width:40px;height:40px;border:3px solid #f0f0f0;border-top-color:var(--dark);border-radius:50%;animation:spin 0.8s linear infinite;margin:60px auto}
-@keyframes spin{to{transform:rotate(360deg)}}
-</style>
-</head>
-<body>
-<div class="layout">
-  <!-- SIDEBAR -->
-  <aside class="sidebar">
-    <div class="sidebar-brand"><div class="sidebar-logo"><i class="ph ph-shield-check" style="font-size:18px;color:var(--lime)"></i></div><div class="sidebar-name">BillSafe</div></div>
-    <span class="sidebar-plan">Business</span>
-    <div class="nav-group-label">Principal</div>
-    <a class="nav-item" href="dashboard.html"><span class="ni"><i class="ph ph-chart-bar"></i></span> Tableau de bord</a>
-    <a class="nav-item" href="bills.html"><span class="ni"><i class="ph ph-file-text"></i></span> Mes factures</a>
-    <a class="nav-item" href="upload.html"><span class="ni"><i class="ph ph-upload-simple"></i></span> Ajouter facture</a>
-    <div class="nav-group-label" style="color:#185FA5">🌍 Diaspora</div>
-    <a class="nav-item active" href="diaspora.html"><span class="ni"><i class="ph ph-house"></i></span> Ma famille au pays</a>
-    <div class="nav-group-label" style="color:#ff5f5f">⚖️ Bouclier Fiscal</div>
-    <a class="nav-item" href="fiscal.html"><span class="ni"><i class="ph ph-bank"></i></span> E-Facturation DGI</a>
-    <div class="nav-group-label">Portail Business</div>
-    <a class="nav-item" href="landlord.html"><span class="ni"><i class="ph ph-buildings"></i></span> Mes propriétés</a>
-    <a class="nav-item" href="tenants.html"><span class="ni"><i class="ph ph-users"></i></span> Locataires</a>
-    <div class="nav-group-label">Compte</div>
-    <a class="nav-item" href="settings.html"><span class="ni"><i class="ph ph-gear"></i></span> Paramètres</a>
-    <a class="nav-item" href="alerts.html"><span class="ni"><i class="ph ph-bell"></i></span> Alertes</a>
-    <div class="sidebar-bottom">
-      <div class="user-row">
-        <div class="user-avatar" id="user-avatar">?</div>
-        <div class="user-info">
-          <div class="user-name" id="user-name">Chargement...</div>
-          <div class="user-role">🌍 Diaspora</div>
-        </div>
-        <button class="logout-btn" id="logout-btn" title="Déconnexion">⏻</button>
-      </div>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --purple:#4F46E5;--purple-dark:#3730A3;--purple-dim:rgba(79,70,229,0.1);
+  --violet:#7C3AED;--blue:#2563EB;
+  --bg:#F5F5FA;--surface:#FFFFFF;--surface2:#F8F8FF;
+  --dark:#1E1B4B;--dark2:#312E81;
+  --text:#1E1B4B;--text2:#6B7280;--text3:#9CA3AF;
+  --green:#10B981;--green-bg:rgba(16,185,129,0.1);
+  --red:#EF4444;--red-bg:rgba(239,68,68,0.1);
+  --amber:#F59E0B;--amber-bg:rgba(245,158,11,0.1);
+  --white:#FFFFFF;--nav-h:72px;
+  --radius:20px;--radius-sm:14px;
+  --shadow:0 2px 12px rgba(79,70,229,0.08);
+  --f:'Inter',sans-serif;
+}
+html,body{height:100%;overflow-x:hidden}
+body{font-family:var(--f);background:var(--bg);color:var(--text);-webkit-font-smoothing:antialiased;padding-bottom:var(--nav-h)}
+.app{min-height:100vh;max-width:430px;margin:0 auto}
+@media(min-width:769px){.app{box-shadow:0 0 40px rgba(0,0,0,0.12)}}
+.page-header{background:linear-gradient(145deg,#4F46E5 0%,#7C3AED 100%);padding:env(safe-area-inset-top,44px) 20px 28px;position:relative;overflow:hidden}
+.page-header::before{content:'';position:absolute;top:-40px;right:-30px;width:120px;height:120px;background:rgba(255,255,255,0.06);border-radius:50%}
+.ph-row{display:flex;align-items:center;gap:14px;padding-top:8px;position:relative;z-index:1}
+.back-btn{width:38px;height:38px;border-radius:50%;background:rgba(255,255,255,0.15);border:none;color:#fff;font-size:20px;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0}
+.page-title{font-size:18px;font-weight:700;color:#fff;flex:1}
+.ph-action{width:38px;height:38px;border-radius:50%;background:rgba(255,255,255,0.15);border:none;color:#fff;font-size:18px;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0}
+.ph-sub{font-size:13px;color:rgba(255,255,255,0.6);margin-top:4px;padding-left:52px;position:relative;z-index:1}
+.content{padding:20px 16px}
+.card{background:var(--surface);border-radius:var(--radius);padding:18px;box-shadow:var(--shadow);margin-bottom:14px}
+.card-dark{background:linear-gradient(135deg,#1E1B4B,#312E81);color:#fff}
+.card-purple{background:linear-gradient(135deg,#4F46E5,#7C3AED);color:#fff}
+.card-title{font-size:15px;font-weight:700;color:var(--text);margin-bottom:14px}
+.card-dark .card-title,.card-purple .card-title{color:#fff}
+.card-header-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px}
+.form-group{margin-bottom:14px}
+.form-label{font-size:11px;font-weight:700;color:var(--text2);margin-bottom:6px;display:block;text-transform:uppercase;letter-spacing:0.05em}
+.form-input{width:100%;padding:14px 16px;border:1.5px solid #E5E7EB;border-radius:var(--radius-sm);font-size:15px;font-family:var(--f);background:var(--surface2);color:var(--text);outline:none;transition:all 0.2s;-webkit-appearance:none}
+.form-input:focus{border-color:var(--purple);background:#fff;box-shadow:0 0 0 4px rgba(79,70,229,0.1)}
+select.form-input{cursor:pointer}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.btn-primary{width:100%;padding:16px;background:linear-gradient(135deg,#4F46E5,#7C3AED);color:#fff;font-size:15px;font-weight:700;font-family:var(--f);border:none;border-radius:var(--radius-sm);cursor:pointer;box-shadow:0 4px 16px rgba(79,70,229,0.35);transition:all 0.2s;margin-top:6px}
+.btn-primary:active{transform:scale(0.98)}
+.btn-ghost{width:100%;padding:14px;background:transparent;border:1.5px solid #E5E7EB;color:var(--text2);font-size:14px;font-weight:600;font-family:var(--f);border-radius:var(--radius-sm);cursor:pointer;margin-top:8px}
+.btn-sm{padding:9px 18px;border-radius:100px;font-size:13px;font-weight:700;font-family:var(--f);border:none;cursor:pointer;display:inline-flex;align-items:center;gap:6px;-webkit-tap-highlight-color:transparent;transition:all 0.2s}
+.btn-sm:active{transform:scale(0.95)}
+.btn-sm-purple{background:var(--purple);color:#fff;box-shadow:0 3px 10px rgba(79,70,229,0.3)}
+.btn-sm-ghost{background:var(--purple-dim);color:var(--purple)}
+.btn-sm-red{background:var(--red-bg);color:var(--red)}
+.pill{display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:700;padding:4px 10px;border-radius:100px}
+.pill-paid{background:var(--green-bg);color:var(--green)}
+.pill-pending{background:var(--amber-bg);color:var(--amber)}
+.pill-active{background:var(--green-bg);color:var(--green)}
+.pill-inactive{background:#F3F4F6;color:var(--text2)}
+.li-icon{width:44px;height:44px;border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0}
+.ic-eneo{background:linear-gradient(135deg,#FEF08A,#EAB308)}
+.ic-camwater{background:linear-gradient(135deg,#BAE6FD,#0284C7)}
+.ic-camtel{background:linear-gradient(135deg,#DDD6FE,#7C3AED)}
+.ic-green{background:linear-gradient(135deg,#BBF7D0,#10B981)}
+.ic-purple{background:linear-gradient(135deg,#E0E7FF,#4F46E5)}
+.ic-amber{background:var(--amber-bg)}
+.ic-gray{background:#F3F4F6}
+.avatar{width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:14px;flex-shrink:0}
+.av-purple{background:var(--purple-dim);color:var(--purple)}
+.av-green{background:var(--green-bg);color:var(--green)}
+.av-amber{background:var(--amber-bg);color:var(--amber)}
+.empty-state{text-align:center;padding:48px 24px}
+.empty-state .ei{font-size:48px;margin-bottom:14px;display:block}
+.empty-state h3{font-size:16px;font-weight:700;color:var(--text2);margin-bottom:6px}
+.empty-state p{font-size:13px;color:var(--text3);line-height:1.6}
+.skeleton{background:linear-gradient(90deg,#F3F4F6 25%,#E9EAEC 50%,#F3F4F6 75%);background-size:200% 100%;animation:shimmer 1.5s infinite;border-radius:10px}
+@keyframes shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}
+.toast{position:fixed;top:calc(env(safe-area-inset-top,44px)+8px);left:16px;right:16px;background:#1E1B4B;color:#fff;padding:14px 18px;border-radius:14px;font-size:13px;font-weight:600;box-shadow:0 8px 32px rgba(0,0,0,0.2);transform:translateY(-80px);opacity:0;transition:all 0.3s;z-index:9999;display:flex;align-items:center;gap:10px}
+.toast.show{transform:translateY(0);opacity:1}
+.toast.success{border-left:4px solid var(--green)}
+.toast.error{border-left:4px solid var(--red)}
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.5);backdrop-filter:blur(6px);z-index:2000;display:flex;align-items:flex-end;opacity:0;pointer-events:none;transition:opacity 0.25s}
+.modal-overlay.open{opacity:1;pointer-events:all}
+.modal{background:var(--surface);border-radius:28px 28px 0 0;width:100%;padding:20px 20px 40px;transform:translateY(30px);transition:transform 0.3s;max-height:90vh;overflow-y:auto}
+.modal-overlay.open .modal{transform:translateY(0)}
+.modal-handle{width:40px;height:4px;background:#E5E7EB;border-radius:2px;margin:0 auto 20px}
+.modal-title{font-size:18px;font-weight:700;color:var(--text);margin-bottom:18px}
+.bottom-nav{position:fixed;bottom:0;left:0;right:0;max-width:430px;margin:0 auto;height:var(--nav-h);background:var(--white);border-top:1px solid rgba(0,0,0,0.06);display:flex;align-items:stretch;z-index:1000;padding-bottom:env(safe-area-inset-bottom,0px);box-shadow:0 -4px 24px rgba(0,0,0,0.08)}
+.bn-item{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;text-decoration:none;color:var(--text3);font-size:10px;font-weight:600;cursor:pointer;border:none;background:transparent;font-family:var(--f);-webkit-tap-highlight-color:transparent;transition:color 0.15s;position:relative}
+.bn-item.active{color:var(--purple)}
+.bn-item.active::before{content:'';position:absolute;top:0;left:20%;right:20%;height:3px;background:var(--purple);border-radius:0 0 4px 4px}
+.bn-item i{font-size:22px;transition:transform 0.15s}
+.bn-item.active i{transform:scale(1.1)}
+.bn-fab{flex:0 0 60px}
+.bn-fab-circle{width:52px;height:52px;border-radius:50%;background:linear-gradient(135deg,#4F46E5,#7C3AED);display:flex;align-items:center;justify-content:center;box-shadow:0 4px 20px rgba(79,70,229,0.45);border:3px solid #fff;position:relative;top:-10px}
+.bn-fab-circle i{font-size:24px;color:#fff}
+.bn-fab::before{display:none!important}
+
+</style></head><body>
+<div class="app">
+<div class="page-header">
+  <div class="ph-row">
+    <button class="back-btn" onclick="history.back()"><i class="ph ph-arrow-left"></i></button>
+    <span class="page-title">🌍 Ma Famille au Pays</span>
+    <button class="ph-action" onclick="openM('modal-hh')"><i class="ph ph-plus"></i></button>
+  </div>
+  <div class="ph-sub">Surveillez les factures depuis l'étranger</div>
+</div>
+<div class="content">
+
+  <!-- SETUP (no household) -->
+  <div id="view-setup" style="display:none">
+    <div class="card card-dark" style="text-align:center;padding:32px 20px">
+      <div style="font-size:52px;margin-bottom:16px">🏠</div>
+      <div style="font-size:17px;font-weight:700;color:#fff;margin-bottom:8px">Connectez votre famille</div>
+      <div style="font-size:13px;color:rgba(255,255,255,0.55);margin-bottom:20px;line-height:1.6">Invitez vos parents au Cameroun. Dès qu'ils ajoutent un reçu, vous le voyez ici en temps réel.</div>
+      <button class="btn-sm btn-sm-purple" onclick="openM('modal-hh')" style="margin:0 auto">🏠 Créer le foyer</button>
     </div>
-  </aside>
-
-  <!-- MAIN -->
-  <main class="main">
-    <!-- HERO -->
-    <div class="diaspora-hero">
-      <div class="hero-left">
-        <h2>🌍 Tableau de bord Diaspora</h2>
-        <p>Surveillez les factures de votre famille au Cameroun depuis n'importe où. Recevez les reçus en temps réel, demandez des paiements, restez connecté.</p>
-        <div class="flag-row">
-          <span class="flag-chip">🇫🇷 Étranger</span>
-          <span style="font-size:18px;color:#333">→</span>
-          <span class="flag-chip">🇨🇲 Douala</span>
-          <span style="font-size:12px;color:#555;margin-left:4px">En temps réel</span>
-        </div>
-      </div>
-      <button class="btn btn-lime" id="hero-btn" style="flex-shrink:0">+ Configurer ma famille</button>
+    <div class="card" style="margin-top:4px">
+      <div class="card-title">Comment ça marche</div>
+      <div style="display:flex;gap:14px;padding:12px 0;border-bottom:1px solid #F3F4F6"><div style="width:34px;height:34px;border-radius:50%;background:linear-gradient(135deg,#4F46E5,#7C3AED);display:flex;align-items:center;justify-content:center;font-weight:800;font-size:14px;color:#fff;flex-shrink:0">1</div><div><div style="font-size:14px;font-weight:600;color:var(--text);margin-bottom:3px">Créez le foyer</div><div style="font-size:12px;color:var(--text2);line-height:1.5">Donnez un nom à la maison de votre famille au Cameroun.</div></div></div><div style="display:flex;gap:14px;padding:12px 0;border-bottom:1px solid #F3F4F6"><div style="width:34px;height:34px;border-radius:50%;background:linear-gradient(135deg,#4F46E5,#7C3AED);display:flex;align-items:center;justify-content:center;font-weight:800;font-size:14px;color:#fff;flex-shrink:0">2</div><div><div style="font-size:14px;font-weight:600;color:var(--text);margin-bottom:3px">Envoyez le lien WhatsApp</div><div style="font-size:12px;color:var(--text2);line-height:1.5">Vos parents reçoivent un lien et peuvent ajouter des reçus sans créer de compte.</div></div></div><div style="display:flex;gap:14px;padding:12px 0;border-bottom:1px solid #F3F4F6"><div style="width:34px;height:34px;border-radius:50%;background:linear-gradient(135deg,#4F46E5,#7C3AED);display:flex;align-items:center;justify-content:center;font-weight:800;font-size:14px;color:#fff;flex-shrink:0">3</div><div><div style="font-size:14px;font-weight:600;color:var(--text);margin-bottom:3px">Recevez les reçus en temps réel</div><div style="font-size:12px;color:var(--text2);line-height:1.5">Chaque facture payée apparaît ici avec la photo du reçu.</div></div></div>
     </div>
+  </div>
 
-    <!-- LOADING -->
-    <div id="view-loading"><div class="spinner"></div></div>
-
-    <!-- SETUP VIEW -->
-    <div id="view-setup" style="display:none">
-      <div class="setup-card">
-        <div style="font-size:48px;margin-bottom:16px">🏠</div>
-        <h2>Connectez votre famille au Cameroun</h2>
-        <p>En 2 minutes, votre famille peut vous envoyer leurs reçus directement depuis leur téléphone.</p>
-        <div class="steps">
-          <div class="step">
-            <div class="step-num">1</div>
-            <div><h4>Créez le profil du foyer</h4><p>Donnez un nom à la maison de vos parents à Douala.</p></div>
-          </div>
-          <div class="step">
-            <div class="step-num">2</div>
-            <div><h4>Envoyez le lien WhatsApp</h4><p>Vos parents reçoivent un lien et peuvent ajouter des reçus sans créer de compte.</p></div>
-          </div>
-          <div class="step">
-            <div class="step-num">3</div>
-            <div><h4>Recevez les reçus en temps réel</h4><p>Chaque facture payée apparaît ici immédiatement avec la photo du reçu.</p></div>
-          </div>
-        </div>
-        <button class="btn btn-dark" id="start-btn" style="max-width:280px;margin:0 auto">🏠 Commencer maintenant</button>
-      </div>
-    </div>
-
-    <!-- DASHBOARD VIEW -->
-    <div id="view-dashboard" style="display:none">
-      <!-- STATS -->
-      <div class="stats-grid" style="margin-bottom:20px">
-        <div class="stat-card dark">
-          <div class="stat-label">Factures reçues</div>
-          <div class="stat-value" id="s-bills">0</div>
-          <div class="stat-sub">ce mois</div>
-        </div>
-        <div class="stat-card lime">
-          <div class="stat-label">Total payé</div>
-          <div class="stat-value" id="s-total">0</div>
-          <div class="stat-sub">FCFA ce mois</div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-label">Non vues</div>
-          <div class="stat-value" id="s-unseen" style="color:#185FA5">0</div>
-          <div class="stat-sub">nouvelles</div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-label">Demandes</div>
-          <div class="stat-value" id="s-reqs">0</div>
-          <div class="stat-sub">en attente</div>
-        </div>
-      </div>
-
-      <!-- HOUSEHOLD CARD -->
-      <div class="hh-card">
-        <div class="hh-head">
-          <div>
-            <div class="hh-name" id="hh-name">—</div>
-            <div class="hh-loc"><span class="live-dot"></span><span id="hh-loc">—</span></div>
-          </div>
-          <div class="hh-stats">
-            <div><div class="hh-sv" id="hh-m-count">0</div><div class="hh-sl">Membres</div></div>
-            <div><div class="hh-sv" id="hh-b-count">0</div><div class="hh-sl">Factures</div></div>
-          </div>
-        </div>
-        <div class="members-row" id="members-row">
-          <button class="add-m" id="add-member-btn">+ Inviter un membre</button>
-        </div>
-        <div class="invite-section">
-          <div class="invite-label">🔗 Lien WhatsApp pour la famille au pays</div>
-          <div class="invite-box">
-            <span class="invite-link" id="invite-link-text">—</span>
-            <button class="btn btn-dark btn-sm" id="copy-btn">📋 Copier</button>
-            <button class="btn btn-ghost btn-sm" id="whatsapp-btn">💬 WhatsApp</button>
-          </div>
-          <p style="font-size:11px;color:var(--gray);margin-top:6px">La famille clique sur ce lien, prend une photo du reçu et vous le voyez ici immédiatement. Sans créer de compte.</p>
-        </div>
-      </div>
-
-      <!-- FEED + RIGHT PANEL -->
-      <div class="feed-grid">
-        <!-- BILL FEED -->
-        <div class="card">
-          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px">
-            <div>
-              <div class="card-title">📡 Factures reçues du pays</div>
-              <div class="card-sub" style="margin-bottom:0">En temps réel depuis le Cameroun</div>
-            </div>
-            <button class="btn btn-ghost btn-sm" id="refresh-btn">🔄</button>
-          </div>
-          <div id="feed-list"></div>
-        </div>
-
-        <!-- RIGHT PANEL -->
+  <!-- DASHBOARD (has household) -->
+  <div id="view-dash" style="display:none">
+    <!-- HOUSEHOLD CARD -->
+    <div class="card card-dark" style="margin-bottom:14px">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
         <div>
-          <!-- PAYMENT REQUESTS -->
-          <div class="card" style="margin-bottom:16px">
-            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
-              <div class="card-title" style="margin-bottom:0">📨 Demandes</div>
-              <button class="btn btn-dark btn-sm" id="new-req-btn">+ Demander</button>
-            </div>
-            <div id="req-list"><div style="font-size:13px;color:var(--gray);text-align:center;padding:16px">Aucune demande</div></div>
+          <div style="font-size:16px;font-weight:700;color:#fff" id="hh-name">—</div>
+          <div style="font-size:12px;color:rgba(255,255,255,0.5);margin-top:3px;display:flex;align-items:center;gap:6px">
+            <span style="width:7px;height:7px;border-radius:50%;background:#10B981;display:inline-block"></span>
+            <span id="hh-loc">En ligne</span>
           </div>
-
-          <!-- CURRENCY -->
-          <div class="card" style="margin-bottom:16px">
-            <div class="card-title" style="margin-bottom:14px">💱 Convertisseur</div>
-            <div class="curr-row">
-              <span style="font-size:22px">🇨🇲</span>
-              <div><div class="curr-val" id="fcfa-display">10 000 FCFA</div><div class="curr-lbl">Franc CFA</div></div>
-            </div>
-            <div style="text-align:center;font-size:16px;color:var(--gray);margin:4px 0">⇅</div>
-            <div class="curr-row" style="background:var(--green-bg)">
-              <span style="font-size:22px" id="curr-flag">🇪🇺</span>
-              <div><div class="curr-val" id="conv-display">≈ 15.24 EUR</div><div class="curr-lbl" id="curr-label">Euro</div></div>
-            </div>
-            <div style="display:flex;gap:8px;margin-top:10px">
-              <input class="form-input" type="number" id="conv-input" value="10000" style="flex:1">
-              <select class="form-input" id="curr-select" style="width:90px">
-                <option value="EUR" data-rate="0.001524" data-flag="🇪🇺" data-label="Euro">EUR</option>
-                <option value="USD" data-rate="0.001648" data-flag="🇺🇸" data-label="Dollar US">USD</option>
-                <option value="GBP" data-rate="0.001312" data-flag="🇬🇧" data-label="Livre">GBP</option>
-                <option value="CNY" data-rate="0.01188" data-flag="🇨🇳" data-label="Yuan">CNY</option>
-                <option value="CAD" data-rate="0.002278" data-flag="🇨🇦" data-label="CAD">CAD</option>
-              </select>
-            </div>
-          </div>
-
-          <!-- ALERTS -->
-          <div class="card">
-            <div class="card-title" style="margin-bottom:14px">🔔 Mes alertes</div>
-            <div class="toggle-row"><div class="toggle-info"><h4>Facture payée</h4><p>Dès qu'un reçu est envoyé</p></div><label class="sw"><input type="checkbox" checked><span class="sl"></span></label></div>
-            <div class="toggle-row"><div class="toggle-info"><h4>Facture en retard</h4><p>Si rien n'est payé après 5 jours</p></div><label class="sw"><input type="checkbox" checked><span class="sl"></span></label></div>
-            <div class="toggle-row"><div class="toggle-info"><h4>Anomalie détectée</h4><p>Montant +30% au-dessus de la normale</p></div><label class="sw"><input type="checkbox" checked><span class="sl"></span></label></div>
-          </div>
+        </div>
+        <div style="text-align:center">
+          <div style="font-size:24px;font-weight:800;color:#818CF8" id="hh-bills">—</div>
+          <div style="font-size:10px;color:rgba(255,255,255,0.4)">factures</div>
+        </div>
+      </div>
+      <!-- INVITE LINK -->
+      <div style="background:rgba(255,255,255,0.08);border-radius:12px;padding:12px 14px">
+        <div style="font-size:10px;color:rgba(255,255,255,0.4);margin-bottom:6px;text-transform:uppercase;letter-spacing:0.06em">🔗 Lien d'invitation</div>
+        <div style="font-size:12px;color:rgba(255,255,255,0.65);font-family:monospace;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin-bottom:10px" id="invite-link">—</div>
+        <div style="display:flex;gap:8px">
+          <button class="btn-sm" onclick="copyLink()" style="flex:1;justify-content:center;background:rgba(255,255,255,0.15);color:#fff;border:1px solid rgba(255,255,255,0.2)">📋 Copier</button>
+          <button class="btn-sm" onclick="shareWA()" style="flex:1;justify-content:center;background:rgba(79,70,229,0.4);color:#818CF8">💬 WhatsApp</button>
         </div>
       </div>
     </div>
-  </main>
-</div>
 
-<!-- MODAL: Household -->
-<div class="modal-overlay" id="modal-hh">
-  <div class="modal">
-    <div class="modal-header">
-      <div class="modal-title">🏠 Créer le foyer</div>
-      <button class="modal-close" id="close-hh">✕</button>
-    </div>
-    <p style="font-size:13px;color:var(--gray);margin-bottom:20px">Décrivez la maison de votre famille au Cameroun.</p>
-    <div class="form-grid" style="margin-bottom:20px">
-      <div class="form-group span-2">
-        <label class="form-label">Nom du foyer *</label>
-        <input class="form-input" id="hh-name-in" placeholder="ex: Famille Ndoumbe — Douala">
-      </div>
-      <div class="form-group span-2">
-        <label class="form-label">Adresse</label>
-        <input class="form-input" id="hh-addr-in" placeholder="ex: Quartier Makepe, Douala">
-      </div>
-      <div class="form-group">
-        <label class="form-label">Ville</label>
-        <input class="form-input" id="hh-city-in" value="Douala">
-      </div>
-      <div class="form-group">
-        <label class="form-label">Votre pays</label>
-        <select class="form-input" id="hh-country-in">
-          <option>🇫🇷 France</option><option>🇩🇪 Allemagne</option>
-          <option>🇬🇧 Royaume-Uni</option><option>🇺🇸 États-Unis</option>
-          <option>🇨🇳 Chine</option><option>🇧🇪 Belgique</option>
-          <option>🇨🇦 Canada</option><option>Autre</option>
-        </select>
+    <!-- CURRENCY CONVERTER -->
+    <div class="card" style="margin-bottom:14px">
+      <div style="font-size:15px;font-weight:700;color:var(--text);margin-bottom:14px">💱 Convertisseur</div>
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px">
+        <div style="flex:1">
+          <div style="font-size:11px;color:var(--text2);margin-bottom:4px;text-transform:uppercase;letter-spacing:0.04em">FCFA</div>
+          <input type="number" id="conv-in" value="10000" oninput="convert()" style="width:100%;padding:12px 14px;border:1.5px solid #E5E7EB;border-radius:12px;font-size:16px;font-weight:700;font-family:var(--f);color:var(--text);outline:none;background:var(--surface2)">
+        </div>
+        <div style="width:36px;height:36px;border-radius:50%;background:var(--purple-dim);display:flex;align-items:center;justify-content:center;color:var(--purple);font-size:18px;flex-shrink:0">⇄</div>
+        <div style="flex:1">
+          <div style="font-size:11px;color:var(--text2);margin-bottom:4px;text-transform:uppercase;letter-spacing:0.04em"><select id="curr-sel" onchange="convert()" style="border:none;background:transparent;font-size:11px;font-weight:700;color:var(--text2);font-family:var(--f);cursor:pointer"><option value="EUR" data-rate="0.001524">EUR 🇪🇺</option><option value="USD" data-rate="0.001648">USD 🇺🇸</option><option value="GBP" data-rate="0.001312">GBP 🇬🇧</option><option value="CNY" data-rate="0.01188">CNY 🇨🇳</option><option value="CAD" data-rate="0.002278">CAD 🇨🇦</option></select></div>
+          <div style="padding:12px 14px;border:1.5px solid var(--purple);border-radius:12px;font-size:16px;font-weight:700;color:var(--purple);background:var(--purple-dim)" id="conv-out">≈ 15.24</div>
+        </div>
       </div>
     </div>
-    <div id="hh-err" style="display:none;color:var(--red);font-size:13px;margin-bottom:12px"></div>
-    <button class="btn btn-lime" id="save-hh-btn" style="width:100%;justify-content:center">🏠 Créer le foyer</button>
+
+    <!-- BILL FEED -->
+    <div style="font-size:15px;font-weight:700;color:var(--text);margin-bottom:12px">📡 Reçus reçus du pays</div>
+    <div id="feed-list"><div class="skeleton" style="height:72px;margin-bottom:8px"></div><div class="skeleton" style="height:72px"></div></div>
+
+    <!-- REQUEST PAYMENT -->
+    <button class="btn-primary" onclick="openM('modal-req')" style="margin-top:6px">📨 Demander un paiement</button>
   </div>
 </div>
-
-<!-- MODAL: Member -->
-<div class="modal-overlay" id="modal-member">
-  <div class="modal">
-    <div class="modal-header">
-      <div class="modal-title">👤 Inviter un membre</div>
-      <button class="modal-close" id="close-member">✕</button>
-    </div>
-    <p style="font-size:13px;color:var(--gray);margin-bottom:20px">La personne au Cameroun qui ajoutera les factures.</p>
-    <div class="form-grid" style="margin-bottom:20px">
-      <div class="form-group span-2">
-        <label class="form-label">Nom complet *</label>
-        <input class="form-input" id="m-name-in" placeholder="ex: Maman Marie">
-      </div>
-      <div class="form-group">
-        <label class="form-label">Téléphone WhatsApp</label>
-        <input class="form-input" id="m-phone-in" placeholder="+237 6XX XX XX XX">
-      </div>
-      <div class="form-group">
-        <label class="form-label">Lien de parenté</label>
-        <select class="form-input" id="m-rel-in">
-          <option value="parent">👨‍👩‍👧 Parent</option>
-          <option value="sibling">👫 Frère/Sœur</option>
-          <option value="spouse">💑 Conjoint(e)</option>
-          <option value="other">👤 Autre</option>
-        </select>
-      </div>
-    </div>
-    <button class="btn btn-lime" id="save-member-btn" style="width:100%;justify-content:center">💾 Ajouter</button>
-  </div>
 </div>
-
-<!-- MODAL: Payment Request -->
-<div class="modal-overlay" id="modal-req">
-  <div class="modal">
-    <div class="modal-header">
-      <div class="modal-title">📨 Demander un paiement</div>
-      <button class="modal-close" id="close-req">✕</button>
-    </div>
-    <p style="font-size:13px;color:var(--gray);margin-bottom:20px">Demandez à votre famille de payer et d'envoyer le reçu.</p>
-    <div class="form-grid" style="margin-bottom:20px">
-      <div class="form-group">
-        <label class="form-label">Société *</label>
-        <select class="form-input" id="req-co">
-          <option value="ENEO">⚡ ENEO</option>
-          <option value="CamWater">💧 CamWater</option>
-          <option value="Camtel">📡 Camtel</option>
-          <option value="Autre">📌 Autre</option>
-        </select>
-      </div>
-      <div class="form-group">
-        <label class="form-label">Mois</label>
-        <input class="form-input" type="month" id="req-month">
-      </div>
-      <div class="form-group span-2">
-        <label class="form-label">Montant estimé (FCFA)</label>
-        <input class="form-input" type="number" id="req-amount" placeholder="ex: 24500">
-      </div>
-      <div class="form-group span-2">
-        <label class="form-label">Message</label>
-        <input class="form-input" id="req-msg" placeholder="ex: Maman, merci de payer ENEO avant le 15">
-      </div>
-    </div>
-    <button class="btn btn-lime" id="save-req-btn" style="width:100%;justify-content:center">📨 Envoyer la demande</button>
-  </div>
-</div>
-
+<nav class="bottom-nav"><a class="bn-item" href="dashboard.html"><i class="ph ph-house-simple"></i><span>Accueil</span></a><a class="bn-item" href="bills.html"><i class="ph ph-file-text"></i><span>Factures</span></a><a class="bn-item bn-fab" href="upload.html"><div class="bn-fab-circle"><i class="ph ph-scan"></i></div><span>Scanner</span></a><a class="bn-item" href="meter-split.html"><i class="ph ph-lightning"></i><span>Partage</span></a><a class="bn-item" href="alerts.html"><i class="ph ph-bell"></i><span>Alertes</span></a></nav>
 <div class="toast" id="toast"></div>
 
-<!-- Load Supabase FIRST then init everything -->
+<div class="modal-overlay" id="modal-hh">
+<div class="modal"><div class="modal-handle"></div><div class="modal-title">🏠 Créer le foyer</div>
+  <div class="form-group"><label class="form-label">Nom du foyer</label><input class="form-input" id="hh-name-in" placeholder="Famille Ndoumbe — Douala"></div>
+  <div class="form-grid" style="margin-bottom:14px">
+    <div class="form-group" style="margin-bottom:0"><label class="form-label">Ville</label><input class="form-input" id="hh-city" value="Douala"></div>
+    <div class="form-group" style="margin-bottom:0"><label class="form-label">Votre pays</label>
+      <select class="form-input" id="hh-country"><option>🇫🇷 France</option><option>🇩🇪 Allemagne</option><option>🇬🇧 UK</option><option>🇺🇸 USA</option><option>🇨🇳 Chine</option><option>Autre</option></select>
+    </div>
+  </div>
+  <button class="btn-primary" onclick="saveHH()">🏠 Créer</button>
+</div></div>
+
+<div class="modal-overlay" id="modal-req">
+<div class="modal"><div class="modal-handle"></div><div class="modal-title">📨 Demander un paiement</div>
+  <div class="form-group"><label class="form-label">Société</label>
+    <select class="form-input" id="req-co"><option value="ENEO">⚡ ENEO</option><option value="CamWater">💧 CamWater</option><option value="Camtel">📡 Camtel</option></select>
+  </div>
+  <div class="form-grid" style="margin-bottom:14px">
+    <div class="form-group" style="margin-bottom:0"><label class="form-label">Mois</label><input class="form-input" type="month" id="req-month"></div>
+    <div class="form-group" style="margin-bottom:0"><label class="form-label">Montant estimé</label><input class="form-input" type="number" id="req-amount" placeholder="24500"></div>
+  </div>
+  <div class="form-group"><label class="form-label">Message</label><input class="form-input" id="req-msg" placeholder="Maman, merci de payer ENEO avant le 15"></div>
+  <button class="btn-primary" onclick="sendRequest()">📨 Envoyer + WhatsApp</button>
+</div></div>
+
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
-// ── SUPABASE SETUP ────────────────────────────────────
-const SUPA_URL  = 'https://rjnsnodvqwwhkxbznzqa.supabase.co';
-const SUPA_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJqbnNub2R2cXd3aGt4YnpuenFhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzgxODg1OTksImV4cCI6MjA5Mzc2NDU5OX0.gkV9ynTFdY8B72s2fnRpTkUH71FUz59ICIpQLZQDsIc';
-const db = supabase.createClient(SUPA_URL, SUPA_ANON);
 
-// ── STATE ─────────────────────────────────────────────
-let ME = null, HH = null, MEMBERS = [], FEED = [], REQS = [];
+const SUPA_URL='https://rjnsnodvqwwhkxbznzqa.supabase.co';
+const SUPA_ANON='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJqbnNub2R2cXd3aGt4YnpuenFhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzgxODg1OTksImV4cCI6MjA5Mzc2NDU5OX0.gkV9ynTFdY8B72s2fnRpTkUH71FUz59ICIpQLZQDsIc';
+const db=supabase.createClient(SUPA_URL,SUPA_ANON);
+let ME=null;
+const $=id=>document.getElementById(id);
+const fmt=n=>Math.round(n||0).toLocaleString('fr-FR');
+const fmtA=n=>fmt(n)+' F';
+const fmtM=m=>m?new Date(m+'-01').toLocaleDateString('fr-FR',{month:'long',year:'numeric'}):'—';
+const fmtMs=m=>m?new Date(m+'-01').toLocaleDateString('fr-FR',{month:'short',year:'numeric'}):'—';
+const fmtD=d=>d?new Date(d).toLocaleDateString('fr-FR'):'—';
+const ini=n=>(n||'?').split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2);
+const avCol=['av-purple','av-green','av-amber'];
+function toast(msg,type='success'){const t=$('toast');t.innerHTML=msg;t.className='toast '+type+' show';setTimeout(()=>t.classList.remove('show'),3000)}
+function openM(id){$(id).classList.add('open')}
+function closeM(id){$(id).classList.remove('open')}
+document.addEventListener('click',e=>{if(e.target.classList.contains('modal-overlay'))e.target.classList.remove('open')});
+async function initAuth(){const {data:{session}}=await db.auth.getSession();if(!session){window.location.href='auth.html';return null;}ME=session.user;return ME;}
 
-const $ = id => document.getElementById(id);
-const companyIcon  = { ENEO:'⚡', CamWater:'💧', Camtel:'📡' };
-const companyClass = { ENEO:'fi-eneo', CamWater:'fi-camwater', Camtel:'fi-camtel' };
-const relLabel     = { parent:'Parent', sibling:'Frère/Sœur', spouse:'Conjoint(e)', other:'Autre' };
-const avColors     = ['av-green','av-blue','av-purple','av-amber'];
+let HH=null,feed=[];
 
-// ── HELPERS ───────────────────────────────────────────
-function fmt(n)  { return n ? Math.round(n).toLocaleString('fr-FR') : '0'; }
-function fmtA(n) { return fmt(n) + ' FCFA'; }
-function fmtM(m) { return m ? new Date(m+'-01').toLocaleDateString('fr-FR',{month:'long',year:'numeric'}) : '—'; }
-function fmtD(d) { return d ? new Date(d).toLocaleDateString('fr-FR') : '—'; }
-function ini(n)  { return (n||'?').split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2); }
-
-function toast(msg, type='success') {
-  const t = $('toast');
-  t.textContent = msg;
-  t.className = 'toast '+type+' show';
-  setTimeout(()=>t.classList.remove('show'), 3200);
-}
-
-function showView(name) {
-  ['loading','setup','dashboard'].forEach(v => $('view-'+v).style.display = v===name ? (name==='loading'?'block':'block') : 'none');
-}
-
-// ── MODAL HELPERS — self-contained, no portal.js dependency ──
-function openM(id)  { $(id).classList.add('open'); }
-function closeM(id) { $(id).classList.remove('open'); }
-document.addEventListener('click', e => {
-  if (e.target.classList.contains('modal-overlay')) e.target.classList.remove('open');
+window.addEventListener('DOMContentLoaded',async()=>{
+  ME=await initAuth();if(!ME)return;
+  $('req-month').value=new Date().toISOString().slice(0,7);
+  await loadHH();
+  convert();
 });
 
-// ── INIT ──────────────────────────────────────────────
-window.addEventListener('DOMContentLoaded', async () => {
-  showView('loading');
-
-  // Wire ALL buttons here — no inline onclick except modal close
-  $('logout-btn').onclick   = doLogout;
-  $('hero-btn').onclick     = () => openM('modal-hh');
-  $('start-btn').onclick    = () => openM('modal-hh');
-  $('close-hh').onclick     = () => closeM('modal-hh');
-  $('save-hh-btn').onclick  = saveHousehold;
-  $('close-member').onclick = () => closeM('modal-member');
-  $('save-member-btn').onclick = saveMember;
-  $('close-req').onclick    = () => closeM('modal-req');
-  $('save-req-btn').onclick = saveRequest;
-  $('conv-input').oninput   = convertCurrency;
-  $('curr-select').onchange = convertCurrency;
-
-  $('req-month').value = new Date().toISOString().slice(0,7);
-
-  // Check auth
-  const { data: { session } } = await db.auth.getSession();
-  if (!session) { window.location.href = 'auth.html'; return; }
-  ME = session.user;
-
-  // Render user in sidebar
-  const name = ME.user_metadata?.full_name || ME.email || 'Utilisateur';
-  const inits = name.split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2);
-  $('user-avatar').textContent = inits;
-  $('user-name').textContent   = name;
-
-  await loadHousehold();
-});
-
-// ── AUTH ──────────────────────────────────────────────
-async function doLogout() {
-  await db.auth.signOut();
-  window.location.href = 'auth.html';
-}
-
-// ── HOUSEHOLD ─────────────────────────────────────────
-async function loadHousehold() {
-  // Use limit(1) + order to avoid crash when multiple rows exist
-  const { data, error } = await db.from('households')
-    .select('*')
-    .eq('diaspora_id', ME.id)
-    .order('created_at', { ascending: false })
-    .limit(1);
-  HH = (data && data.length > 0) ? data[0] : null;
-  if (error) console.error('Household load error:', error);
-  if (!HH) { showView('setup'); return; }
-  try {
-    await Promise.all([loadMembers(), loadFeed(), loadReqs()]);
-    renderDashboard();
-    showView('dashboard');
-  } catch(e) {
-    console.error('Dashboard render error:', e);
-    showView('dashboard'); // still show even if feed fails
-    renderDashboard();
-  }
-  convertCurrency();
-}
-
-async function saveHousehold() {
-  const name = $('hh-name-in').value.trim();
-  if (!name) { $('hh-err').textContent='Le nom est obligatoire'; $('hh-err').style.display='block'; return; }
-  $('hh-err').style.display = 'none';
-  $('save-hh-btn').textContent = 'Sauvegarde...';
-  $('save-hh-btn').disabled = true;
-
-  const payload = {
-    diaspora_id: ME.id,
-    name,
-    address: $('hh-addr-in').value.trim() || null,
-    city:    $('hh-city-in').value.trim() || 'Douala',
-  };
-  // Always check fresh from DB before deciding insert vs update
-  const { data: existing } = await db.from('households')
-    .select('id').eq('diaspora_id', ME.id).limit(1);
-  const existingHH = existing && existing.length > 0 ? existing[0] : null;
-  const { error } = existingHH
-    ? await db.from('households').update(payload).eq('id', existingHH.id)
-    : await db.from('households').insert([payload]);
-
-  $('save-hh-btn').textContent = '🏠 Créer le foyer';
-  $('save-hh-btn').disabled = false;
-
-  if (error) { $('hh-err').textContent='Erreur: '+error.message; $('hh-err').style.display='block'; return; }
-  closeM('modal-hh');
-  toast('🏠 Foyer créé!');
-  await loadHousehold();
-}
-
-// ── MEMBERS ───────────────────────────────────────────
-async function loadMembers() {
-  const { data } = await db.from('home_members').select('*').eq('household_id', HH.id);
-  MEMBERS = data || [];
-}
-
-async function saveMember() {
-  const name = $('m-name-in').value.trim();
-  if (!name) return toast('Le nom est obligatoire','error');
-  $('save-member-btn').disabled = true;
-  const { error } = await db.from('home_members').insert([{
-    household_id: HH.id, diaspora_id: ME.id,
-    full_name: name,
-    phone:     $('m-phone-in').value.trim() || null,
-    relationship: $('m-rel-in').value,
-    status: 'invited',
-  }]);
-  $('save-member-btn').disabled = false;
-  if (error) return toast('Erreur: '+error.message,'error');
-  closeM('modal-member');
-  toast('👤 Membre ajouté!');
-  $('m-name-in').value = ''; $('m-phone-in').value = '';
-  await loadMembers();
-  renderDashboard();
-}
-
-// ── FEED ──────────────────────────────────────────────
-async function loadFeed() {
-  const { data } = await db.from('diaspora_bills').select('*')
-    .eq('diaspora_id', ME.id).order('created_at',{ascending:false});
-  FEED = data || [];
-  // Mark unseen as seen
-  const ids = FEED.filter(b=>!b.seen_by_diaspora).map(b=>b.id);
-  if (ids.length) await db.from('diaspora_bills').update({seen_by_diaspora:true}).in('id',ids);
-}
-
-// ── REQUESTS ──────────────────────────────────────────
-async function loadReqs() {
-  const { data } = await db.from('payment_requests').select('*')
-    .eq('diaspora_id', ME.id).order('created_at',{ascending:false});
-  REQS = data || [];
-}
-
-async function saveRequest() {
-  if (!HH) return toast('Créez d\'abord un foyer','error');
-  const company = $('req-co').value;
-  $('save-req-btn').disabled = true;
-  const { error } = await db.from('payment_requests').insert([{
-    household_id: HH.id, diaspora_id: ME.id, company,
-    billing_month:    $('req-month').value || null,
-    estimated_amount: parseFloat($('req-amount').value) || null,
-    message:          $('req-msg').value.trim() || null,
-  }]);
-  $('save-req-btn').disabled = false;
-  if (error) return toast('Erreur: '+error.message,'error');
-  closeM('modal-req');
-  toast('📨 Demande envoyée!');
-  $('req-msg').value=''; $('req-amount').value='';
-  await loadReqs();
-  renderDashboard();
-  // Open WhatsApp with the request
-  const msg = encodeURIComponent(`🛡 BillSafe — Demande de paiement\n\n📌 ${company}\n\n${$('req-msg').value||''}\n\nMerci d'ajouter le reçu ici:\n${window.location.origin}/pages/home-member.html?token=${HH.invite_token}`);
-  setTimeout(()=>window.open('https://wa.me/?text='+msg,'_blank'),500);
-}
-
-// ── RENDER DASHBOARD ──────────────────────────────────
-function renderDashboard() {
-  // Household info
-  $('hh-name').textContent = HH.name;
-  $('hh-loc').textContent  = [HH.address, HH.city, 'Cameroun'].filter(Boolean).join(', ');
-  $('hh-m-count').textContent = MEMBERS.length;
-  $('hh-b-count').textContent = FEED.length;
-
-  // Invite link
-  const link = `${window.location.origin}/pages/home-member.html?token=${HH.invite_token}`;
-  $('invite-link-text').textContent = link;
-  $('copy-btn').onclick = () => { navigator.clipboard.writeText(link); toast('📋 Lien copié!'); };
-  $('whatsapp-btn').onclick = () => {
-    const m = encodeURIComponent(`🛡 *BillSafe — Invitation familiale*\n\nBonjour! Je surveille nos factures depuis l'étranger avec BillSafe.\nMerci d'ajouter vos reçus ENEO, CamWater et Camtel ici:\n${link}`);
-    window.open('https://wa.me/?text='+m,'_blank');
-  };
-  $('add-member-btn').onclick = () => openM('modal-member');
-  $('new-req-btn').onclick    = () => openM('modal-req');
-  $('refresh-btn').onclick    = async () => { await Promise.all([loadFeed(),loadReqs()]); renderDashboard(); toast('🔄 Actualisé'); };
-
-  // Members
-  const row = $('members-row');
-  row.innerHTML = MEMBERS.map((m,i) => `
-    <div class="m-chip">
-      <div class="m-av ${avColors[i%4]}">${ini(m.full_name)}</div>
-      <div><div class="m-name">${m.full_name}</div><div class="m-role">${relLabel[m.relationship]||m.relationship}</div></div>
-    </div>`).join('') +
-    `<button class="add-m" onclick="openM('modal-member')">+ Inviter</button>`;
-
-  // Stats
-  const now = new Date();
-  const mo  = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}`;
-  const moBills = FEED.filter(b=>b.billing_month?.startsWith(mo));
-  const total   = moBills.reduce((s,b)=>s+(b.amount||0),0);
-  const unseen  = FEED.filter(b=>!b.seen_by_diaspora).length;
-  const pending = REQS.filter(r=>r.status==='pending').length;
-  $('s-bills').textContent  = moBills.length;
-  $('s-total').textContent  = fmt(total);
-  $('s-unseen').textContent = unseen;
-  $('s-reqs').textContent   = pending;
-
-  // Feed
+async function loadHH(){
+  const {data}=await db.from('households').select('*').eq('diaspora_id',ME.id).order('created_at',{ascending:false}).limit(1);
+  HH=data?.[0]||null;
+  if(!HH){$('view-setup').style.display='block';$('view-dash').style.display='none';return;}
+  $('view-setup').style.display='none';$('view-dash').style.display='block';
+  $('hh-name').textContent=HH.name;
+  $('hh-loc').textContent=(HH.address||'')+', '+(HH.city||'Cameroun');
+  const link=`${window.location.origin}/pages/home-member.html?token=${HH.invite_token}`;
+  $('invite-link').textContent=link;window._inviteLink=link;
+  const {data:fd}=await db.from('diaspora_bills').select('*').eq('diaspora_id',ME.id).order('created_at',{ascending:false});
+  feed=fd||[];$('hh-bills').textContent=feed.length;
   renderFeed();
-  renderReqs();
 }
 
-function renderFeed() {
-  const el = $('feed-list');
-  if (!FEED.length) {
-    el.innerHTML = `<div style="text-align:center;padding:48px;color:var(--gray)">
-      <div style="font-size:40px;margin-bottom:12px">📡</div>
-      <div style="font-family:var(--font-h);font-weight:700;color:#555;margin-bottom:6px">En attente de reçus</div>
-      <div style="font-size:13px">Envoyez le lien WhatsApp à votre famille.<br>Leurs reçus apparaîtront ici immédiatement.</div>
-    </div>`;
-    return;
-  }
-  const now = Date.now();
-  el.innerHTML = FEED.map(b => {
-    const icon = companyIcon[b.company]||'📌';
-    const cls  = companyClass[b.company]||'fi-other';
-    const diff = Math.round((now - new Date(b.created_at)) / 3600000);
-    const time = diff < 1 ? 'À l\'instant' : diff < 24 ? `Il y a ${diff}h` : fmtD(b.created_at);
-    const isNew = !b.seen_by_diaspora;
-    return `<div class="feed-item ${isNew?'feed-new':''}">
-      <div class="fi-icon ${cls}">${icon}</div>
-      <div class="feed-body">
-        <div class="feed-title">${b.company} — ${fmtM(b.billing_month)}</div>
-        <div class="feed-meta">Par ${b.added_by||'Famille'} · ${b.status==='paid'?'✅ Payée':'⏳ En attente'}</div>
-        <div class="feed-amount">${fmtA(b.amount)}</div>
-        ${b.notes?`<div style="font-size:12px;color:var(--gray);margin-top:4px">💬 ${b.notes}</div>`:''}
-        ${b.file_url?`<a href="${b.file_url}" target="_blank" style="font-size:12px;color:#185FA5;margin-top:6px;display:inline-block">👁 Voir le reçu</a>`:''}
+function renderFeed(){
+  const el=$('feed-list');
+  if(!feed.length){el.innerHTML=`<div class="empty-state"><span class="ei">📡</span><h3>En attente de reçus</h3><p>Envoyez le lien WhatsApp à votre famille</p></div>`;return;}
+  const icons={ENEO:'ic-eneo',CamWater:'ic-camwater',Camtel:'ic-camtel'};
+  const emojis={ENEO:'⚡',CamWater:'💧',Camtel:'📡'};
+  el.innerHTML=feed.map(b=>`
+    <div class="card" style="padding:14px;margin-bottom:8px;display:flex;align-items:center;gap:12px">
+      <div class="li-icon ${icons[b.company]||'ic-gray'}">${emojis[b.company]||'📌'}</div>
+      <div style="flex:1">
+        <div style="font-size:14px;font-weight:600;color:var(--text)">${b.company} — ${fmtMs(b.billing_month)}</div>
+        <div style="font-size:12px;color:var(--text2);margin-top:2px">Par ${b.added_by||'Famille'}</div>
       </div>
-      <div class="feed-time">${time}</div>
-    </div>`;
-  }).join('');
-}
-
-function renderReqs() {
-  const el = $('req-list');
-  if (!REQS.length) { el.innerHTML=`<div style="font-size:13px;color:var(--gray);text-align:center;padding:16px">Aucune demande</div>`; return; }
-  el.innerHTML = REQS.slice(0,4).map(r => `
-    <div class="pr-card ${r.status}">
-      <div class="pr-co">${companyIcon[r.company]||'📌'} ${r.company}</div>
-      ${r.estimated_amount?`<div class="pr-amt">~${fmtA(r.estimated_amount)}</div>`:''}
-      ${r.message?`<div class="pr-msg">💬 ${r.message}</div>`:''}
-      <span class="pill ${r.status==='paid'?'pill-paid':'pill-pending'}">${r.status==='paid'?'✅ Payée':'⏳ En attente'}</span>
+      <div style="text-align:right">
+        <div style="font-size:15px;font-weight:700;color:var(--text)">${fmtA(b.amount)}</div>
+        ${b.file_url?`<a href="${b.file_url}" target="_blank" style="font-size:11px;color:var(--purple)">👁 Voir</a>`:''}
+      </div>
     </div>`).join('');
 }
 
-// ── CURRENCY ──────────────────────────────────────────
-function convertCurrency() {
-  const amount = parseFloat($('conv-input').value) || 0;
-  const sel    = $('curr-select');
-  const opt    = sel.options[sel.selectedIndex];
-  const rate   = parseFloat(opt.dataset.rate);
-  $('fcfa-display').textContent  = fmt(amount)+' FCFA';
-  $('conv-display').textContent  = '≈ '+(amount*rate).toFixed(2)+' '+opt.value;
-  $('curr-flag').textContent     = opt.dataset.flag;
-  $('curr-label').textContent    = opt.dataset.label;
+function copyLink(){navigator.clipboard.writeText(window._inviteLink||'');toast('📋 Lien copié!');}
+function shareWA(){
+  const msg=encodeURIComponent(`🛡 *BillSafe*\n\nBonjour! Ajoutez nos reçus ENEO, CamWater et Camtel ici:\n${window._inviteLink}`);
+  window.open('https://wa.me/?text='+msg,'_blank');
 }
-</script>
-<nav class="mobile-nav">
-  <a href="dashboard.html" class="mn-item  active">
-    <i class="ph ph-chart-bar"></i>
-    <span>Dashboard</span>
-  </a>
-  <a href="bills.html" class="mn-item">
-    <i class="ph ph-file-text"></i>
-    <span>Factures</span>
-  </a>
-  <a href="upload.html" class="mn-item mn-fab">
-    <div class="mn-fab-circle"><i class="ph ph-scan"></i></div>
-    <span>Scanner</span>
-  </a>
-  <a href="meter-split.html" class="mn-item">
-    <i class="ph ph-lightning"></i>
-    <span>Partage</span>
-  </a>
-  <a href="alerts.html" class="mn-item">
-    <i class="ph ph-bell"></i>
-    <span>Alertes</span>
-  </a>
-</nav>
-</body>
-</html>
+function convert(){
+  const amount=parseFloat($('conv-in').value)||0;
+  const sel=$('curr-sel');
+  const rate=parseFloat(sel.options[sel.selectedIndex].dataset.rate)||0.001524;
+  $('conv-out').textContent='≈ '+(amount*rate).toFixed(2);
+}
+async function saveHH(){
+  const name=$('hh-name-in').value.trim();if(!name)return toast('Le nom est obligatoire','error');
+  const {error}=await db.from('households').insert([{diaspora_id:ME.id,name,city:$('hh-city').value.trim()||'Douala'}]);
+  if(error)return toast('Erreur: '+error.message,'error');
+  closeM('modal-hh');toast('🏠 Foyer créé!');await loadHH();
+}
+async function sendRequest(){
+  if(!HH)return toast('Créez d'abord un foyer','error');
+  const company=$('req-co').value;
+  const {error}=await db.from('payment_requests').insert([{household_id:HH.id,diaspora_id:ME.id,company,billing_month:$('req-month').value||null,estimated_amount:parseFloat($('req-amount').value)||null,message:$('req-msg').value.trim()||null}]);
+  if(error)return toast('Erreur: '+error.message,'error');
+  closeM('modal-req');toast('📨 Demande envoyée!');
+  const msg=encodeURIComponent(`🛡 *BillSafe — Demande*\n\n📌 ${company}\n${$('req-msg').value||''}\n\n${window._inviteLink}`);
+  window.open('https://wa.me/?text='+msg,'_blank');
+}
+</script></body></html>

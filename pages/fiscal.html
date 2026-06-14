@@ -1,966 +1,316 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-  <!-- PWA + iPhone Home Screen -->
-  <link rel="manifest" href="/manifest.json">
-  <link rel="apple-touch-icon" href="/icons/icon-180.png">
-  <link rel="apple-touch-icon" sizes="120x120" href="/icons/icon-120.png">
-  <link rel="apple-touch-icon" sizes="152x152" href="/icons/icon-152.png">
-  <link rel="apple-touch-icon" sizes="167x167" href="/icons/icon-167.png">
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <meta name="apple-mobile-web-app-title" content="BillSafe">
-  <meta name="theme-color" content="#0052FF">
-  <meta name="mobile-web-app-capable" content="yes">
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>BillSafe — Bouclier Fiscal</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="BillSafe">
+<meta name="theme-color" content="#4F46E5">
+<link rel="apple-touch-icon" href="/icons/icon-180.png">
+<link rel="manifest" href="/manifest.json">
+<title>BillSafe — E-Facturation DGI</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@phosphor-icons/web@2.1.1/src/regular/style.css">
-<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=DM+Sans:wght@400;500&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="../css/portal.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@phosphor-icons/web@2.1.1/src/fill/style.css">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
-/* ── HERO LEGAL BANNER ── */
-.legal-hero { background: var(--dark); border-radius: var(--radius); padding: 28px 32px; margin-bottom: 24px; position: relative; overflow: hidden; }
-.legal-hero::before { content:''; position:absolute; top:0; right:0; width:200px; height:100%; background: linear-gradient(90deg, transparent, rgba(202,255,64,0.06)); pointer-events:none; }
-.legal-hero-top { display:flex; align-items:center; gap:16px; margin-bottom:16px; }
-.law-badge { background: #ff5f5f; color: #fff; font-family: var(--font-h); font-weight:700; font-size:11px; padding:4px 12px; border-radius:20px; letter-spacing:0.04em; }
-.legal-hero h2 { font-family: var(--font-h); font-weight:800; font-size:22px; color:var(--white); margin-bottom:8px; }
-.legal-hero p { font-size:13px; color:#888; line-height:1.7; max-width:600px; }
-.legal-facts { display:flex; gap:24px; margin-top:20px; flex-wrap:wrap; }
-.legal-fact { border-left:3px solid var(--lime); padding-left:12px; }
-.legal-fact-val { font-family:var(--font-h); font-weight:800; font-size:18px; color:var(--lime); }
-.legal-fact-lbl { font-size:11px; color:#666; margin-top:2px; }
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --purple:#4F46E5;--purple-dark:#3730A3;--purple-dim:rgba(79,70,229,0.1);
+  --violet:#7C3AED;--blue:#2563EB;
+  --bg:#F5F5FA;--surface:#FFFFFF;--surface2:#F8F8FF;
+  --dark:#1E1B4B;--dark2:#312E81;
+  --text:#1E1B4B;--text2:#6B7280;--text3:#9CA3AF;
+  --green:#10B981;--green-bg:rgba(16,185,129,0.1);
+  --red:#EF4444;--red-bg:rgba(239,68,68,0.1);
+  --amber:#F59E0B;--amber-bg:rgba(245,158,11,0.1);
+  --white:#FFFFFF;--nav-h:72px;
+  --radius:20px;--radius-sm:14px;
+  --shadow:0 2px 12px rgba(79,70,229,0.08);
+  --f:'Inter',sans-serif;
+}
+html,body{height:100%;overflow-x:hidden}
+body{font-family:var(--f);background:var(--bg);color:var(--text);-webkit-font-smoothing:antialiased;padding-bottom:var(--nav-h)}
+.app{min-height:100vh;max-width:430px;margin:0 auto}
+@media(min-width:769px){.app{box-shadow:0 0 40px rgba(0,0,0,0.12)}}
+.page-header{background:linear-gradient(145deg,#4F46E5 0%,#7C3AED 100%);padding:env(safe-area-inset-top,44px) 20px 28px;position:relative;overflow:hidden}
+.page-header::before{content:'';position:absolute;top:-40px;right:-30px;width:120px;height:120px;background:rgba(255,255,255,0.06);border-radius:50%}
+.ph-row{display:flex;align-items:center;gap:14px;padding-top:8px;position:relative;z-index:1}
+.back-btn{width:38px;height:38px;border-radius:50%;background:rgba(255,255,255,0.15);border:none;color:#fff;font-size:20px;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0}
+.page-title{font-size:18px;font-weight:700;color:#fff;flex:1}
+.ph-action{width:38px;height:38px;border-radius:50%;background:rgba(255,255,255,0.15);border:none;color:#fff;font-size:18px;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0}
+.ph-sub{font-size:13px;color:rgba(255,255,255,0.6);margin-top:4px;padding-left:52px;position:relative;z-index:1}
+.content{padding:20px 16px}
+.card{background:var(--surface);border-radius:var(--radius);padding:18px;box-shadow:var(--shadow);margin-bottom:14px}
+.card-dark{background:linear-gradient(135deg,#1E1B4B,#312E81);color:#fff}
+.card-purple{background:linear-gradient(135deg,#4F46E5,#7C3AED);color:#fff}
+.card-title{font-size:15px;font-weight:700;color:var(--text);margin-bottom:14px}
+.card-dark .card-title,.card-purple .card-title{color:#fff}
+.card-header-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px}
+.form-group{margin-bottom:14px}
+.form-label{font-size:11px;font-weight:700;color:var(--text2);margin-bottom:6px;display:block;text-transform:uppercase;letter-spacing:0.05em}
+.form-input{width:100%;padding:14px 16px;border:1.5px solid #E5E7EB;border-radius:var(--radius-sm);font-size:15px;font-family:var(--f);background:var(--surface2);color:var(--text);outline:none;transition:all 0.2s;-webkit-appearance:none}
+.form-input:focus{border-color:var(--purple);background:#fff;box-shadow:0 0 0 4px rgba(79,70,229,0.1)}
+select.form-input{cursor:pointer}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.btn-primary{width:100%;padding:16px;background:linear-gradient(135deg,#4F46E5,#7C3AED);color:#fff;font-size:15px;font-weight:700;font-family:var(--f);border:none;border-radius:var(--radius-sm);cursor:pointer;box-shadow:0 4px 16px rgba(79,70,229,0.35);transition:all 0.2s;margin-top:6px}
+.btn-primary:active{transform:scale(0.98)}
+.btn-ghost{width:100%;padding:14px;background:transparent;border:1.5px solid #E5E7EB;color:var(--text2);font-size:14px;font-weight:600;font-family:var(--f);border-radius:var(--radius-sm);cursor:pointer;margin-top:8px}
+.btn-sm{padding:9px 18px;border-radius:100px;font-size:13px;font-weight:700;font-family:var(--f);border:none;cursor:pointer;display:inline-flex;align-items:center;gap:6px;-webkit-tap-highlight-color:transparent;transition:all 0.2s}
+.btn-sm:active{transform:scale(0.95)}
+.btn-sm-purple{background:var(--purple);color:#fff;box-shadow:0 3px 10px rgba(79,70,229,0.3)}
+.btn-sm-ghost{background:var(--purple-dim);color:var(--purple)}
+.btn-sm-red{background:var(--red-bg);color:var(--red)}
+.pill{display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:700;padding:4px 10px;border-radius:100px}
+.pill-paid{background:var(--green-bg);color:var(--green)}
+.pill-pending{background:var(--amber-bg);color:var(--amber)}
+.pill-active{background:var(--green-bg);color:var(--green)}
+.pill-inactive{background:#F3F4F6;color:var(--text2)}
+.li-icon{width:44px;height:44px;border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0}
+.ic-eneo{background:linear-gradient(135deg,#FEF08A,#EAB308)}
+.ic-camwater{background:linear-gradient(135deg,#BAE6FD,#0284C7)}
+.ic-camtel{background:linear-gradient(135deg,#DDD6FE,#7C3AED)}
+.ic-green{background:linear-gradient(135deg,#BBF7D0,#10B981)}
+.ic-purple{background:linear-gradient(135deg,#E0E7FF,#4F46E5)}
+.ic-amber{background:var(--amber-bg)}
+.ic-gray{background:#F3F4F6}
+.avatar{width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:14px;flex-shrink:0}
+.av-purple{background:var(--purple-dim);color:var(--purple)}
+.av-green{background:var(--green-bg);color:var(--green)}
+.av-amber{background:var(--amber-bg);color:var(--amber)}
+.empty-state{text-align:center;padding:48px 24px}
+.empty-state .ei{font-size:48px;margin-bottom:14px;display:block}
+.empty-state h3{font-size:16px;font-weight:700;color:var(--text2);margin-bottom:6px}
+.empty-state p{font-size:13px;color:var(--text3);line-height:1.6}
+.skeleton{background:linear-gradient(90deg,#F3F4F6 25%,#E9EAEC 50%,#F3F4F6 75%);background-size:200% 100%;animation:shimmer 1.5s infinite;border-radius:10px}
+@keyframes shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}
+.toast{position:fixed;top:calc(env(safe-area-inset-top,44px)+8px);left:16px;right:16px;background:#1E1B4B;color:#fff;padding:14px 18px;border-radius:14px;font-size:13px;font-weight:600;box-shadow:0 8px 32px rgba(0,0,0,0.2);transform:translateY(-80px);opacity:0;transition:all 0.3s;z-index:9999;display:flex;align-items:center;gap:10px}
+.toast.show{transform:translateY(0);opacity:1}
+.toast.success{border-left:4px solid var(--green)}
+.toast.error{border-left:4px solid var(--red)}
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.5);backdrop-filter:blur(6px);z-index:2000;display:flex;align-items:flex-end;opacity:0;pointer-events:none;transition:opacity 0.25s}
+.modal-overlay.open{opacity:1;pointer-events:all}
+.modal{background:var(--surface);border-radius:28px 28px 0 0;width:100%;padding:20px 20px 40px;transform:translateY(30px);transition:transform 0.3s;max-height:90vh;overflow-y:auto}
+.modal-overlay.open .modal{transform:translateY(0)}
+.modal-handle{width:40px;height:4px;background:#E5E7EB;border-radius:2px;margin:0 auto 20px}
+.modal-title{font-size:18px;font-weight:700;color:var(--text);margin-bottom:18px}
+.bottom-nav{position:fixed;bottom:0;left:0;right:0;max-width:430px;margin:0 auto;height:var(--nav-h);background:var(--white);border-top:1px solid rgba(0,0,0,0.06);display:flex;align-items:stretch;z-index:1000;padding-bottom:env(safe-area-inset-bottom,0px);box-shadow:0 -4px 24px rgba(0,0,0,0.08)}
+.bn-item{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;text-decoration:none;color:var(--text3);font-size:10px;font-weight:600;cursor:pointer;border:none;background:transparent;font-family:var(--f);-webkit-tap-highlight-color:transparent;transition:color 0.15s;position:relative}
+.bn-item.active{color:var(--purple)}
+.bn-item.active::before{content:'';position:absolute;top:0;left:20%;right:20%;height:3px;background:var(--purple);border-radius:0 0 4px 4px}
+.bn-item i{font-size:22px;transition:transform 0.15s}
+.bn-item.active i{transform:scale(1.1)}
+.bn-fab{flex:0 0 60px}
+.bn-fab-circle{width:52px;height:52px;border-radius:50%;background:linear-gradient(135deg,#4F46E5,#7C3AED);display:flex;align-items:center;justify-content:center;box-shadow:0 4px 20px rgba(79,70,229,0.45);border:3px solid #fff;position:relative;top:-10px}
+.bn-fab-circle i{font-size:24px;color:#fff}
+.bn-fab::before{display:none!important}
 
-/* ── MODE SWITCHER ── */
-.mode-row { display:flex; gap:10px; margin-bottom:24px; flex-wrap:wrap; }
-.mode-card { flex:1; min-width:180px; background:var(--white); border:2px solid #e8e8e8; border-radius:var(--radius); padding:20px; cursor:pointer; transition:all 0.2s; }
-.mode-card:hover { border-color:#ccc; transform:translateY(-2px); }
-.mode-card.active { border-color:var(--dark); background:#fafafa; }
-.mode-card.active.fiscal-mode { border-color:#ff5f5f; background:#fff8f8; }
-.mode-icon { font-size:28px; margin-bottom:10px; }
-.mode-title { font-family:var(--font-h); font-weight:700; font-size:14px; color:var(--dark); margin-bottom:4px; }
-.mode-desc { font-size:12px; color:var(--gray); line-height:1.5; }
-
-/* ── TABS ── */
-.tab-bar { display:flex; gap:4px; background:#f0f0ec; border-radius:12px; padding:4px; margin-bottom:24px; width:fit-content; }
-.tab-btn { padding:8px 18px; border-radius:8px; font-size:13px; font-weight:600; font-family:var(--font-h); border:none; background:transparent; color:var(--gray); cursor:pointer; transition:all 0.2s; white-space:nowrap; }
-.tab-btn.active { background:var(--white); color:var(--dark); box-shadow:0 2px 8px rgba(0,0,0,0.07); }
-
-/* ── INVOICE BUILDER ── */
-.invoice-preview { background:var(--white); border:1.5px solid #e8e8e8; border-radius:var(--radius); overflow:hidden; }
-.invoice-header { background:var(--dark); padding:20px 24px; display:flex; justify-content:space-between; align-items:flex-start; }
-.invoice-brand { font-family:var(--font-h); font-weight:800; font-size:18px; color:var(--white); }
-.invoice-brand-sub { font-size:11px; color:#666; margin-top:2px; }
-.invoice-meta { text-align:right; }
-.invoice-num { font-family:var(--font-h); font-weight:800; font-size:16px; color:var(--lime); }
-.invoice-date-label { font-size:11px; color:#666; margin-top:2px; }
-.invoice-body { padding:24px; }
-.invoice-parties { display:grid; grid-template-columns:1fr 1fr; gap:20px; margin-bottom:20px; padding-bottom:20px; border-bottom:1px solid #f0f0f0; }
-.party-label { font-size:10px; font-weight:700; font-family:var(--font-h); color:var(--gray); text-transform:uppercase; letter-spacing:0.06em; margin-bottom:8px; }
-.party-name { font-family:var(--font-h); font-weight:700; font-size:15px; color:var(--dark); margin-bottom:2px; }
-.party-info { font-size:12px; color:var(--gray); line-height:1.6; }
-
-/* ── LINE ITEMS ── */
-.items-table { width:100%; border-collapse:collapse; margin-bottom:16px; font-size:13px; }
-.items-table th { text-align:left; font-size:10px; font-weight:700; font-family:var(--font-h); color:var(--gray); letter-spacing:0.06em; text-transform:uppercase; padding:0 10px 10px; border-bottom:1px solid #f0f0f0; }
-.items-table td { padding:10px; border-bottom:1px solid #f8f8f8; vertical-align:middle; }
-.items-table tr:last-child td { border-bottom:none; }
-.item-input { border:none; background:transparent; font-size:13px; font-family:var(--font-b); color:var(--dark); width:100%; outline:none; padding:4px 0; }
-.item-input:focus { background:#f8f8f8; border-radius:4px; padding:4px 6px; }
-.item-input.num { text-align:right; }
-.remove-item-btn { background:none; border:none; color:#ddd; cursor:pointer; font-size:16px; padding:4px; transition:color 0.15s; }
-.remove-item-btn:hover { color:var(--red); }
-.add-item-btn { display:flex; align-items:center; gap:6px; font-size:12px; font-weight:600; font-family:var(--font-h); color:var(--gray); background:none; border:1.5px dashed #e0e0e0; border-radius:8px; padding:8px 16px; cursor:pointer; width:100%; justify-content:center; transition:all 0.15s; margin-bottom:16px; }
-.add-item-btn:hover { border-color:var(--dark); color:var(--dark); }
-
-/* ── TOTALS ── */
-.totals-box { background:#fafafa; border-radius:12px; padding:16px 20px; }
-.total-row { display:flex; justify-content:space-between; align-items:center; padding:6px 0; font-size:13px; }
-.total-row.grand { border-top:1px solid #e8e8e8; padding-top:12px; margin-top:6px; }
-.total-row.grand .total-label { font-family:var(--font-h); font-weight:800; font-size:16px; color:var(--dark); }
-.total-row.grand .total-val { font-family:var(--font-h); font-weight:800; font-size:18px; color:var(--dark); }
-.total-label { color:var(--gray); }
-.total-val { font-family:var(--font-h); font-weight:600; }
-.vat-badge { background:var(--green-bg); color:var(--green); font-size:10px; font-weight:700; padding:2px 8px; border-radius:20px; font-family:var(--font-h); }
-
-/* ── XML PREVIEW ── */
-.xml-preview { background:#0d0d0d; border-radius:var(--radius-sm); padding:20px; font-family:monospace; font-size:11px; line-height:1.8; overflow-x:auto; color:#aaa; max-height:320px; overflow-y:auto; }
-.xml-tag { color:#60C8FF; }
-.xml-attr { color:#B39DFF; }
-.xml-val { color:#CAFF40; }
-.xml-comment { color:#555; }
-
-/* ── SCAN ZONE ── */
-.scan-zone { background:var(--dark); border-radius:var(--radius); padding:32px; text-align:center; cursor:pointer; transition:all 0.2s; border:2px dashed #333; }
-.scan-zone:hover { border-color:var(--lime); }
-.scan-zone h3 { font-family:var(--font-h); font-weight:700; font-size:16px; color:var(--white); margin-bottom:6px; }
-.scan-zone p { font-size:13px; color:#666; margin-bottom:20px; }
-.scan-result { background:#111; border-radius:10px; padding:16px; margin-top:16px; text-align:left; display:none; }
-.scan-result-title { font-size:11px; font-weight:700; color:var(--lime); font-family:var(--font-h); letter-spacing:0.06em; margin-bottom:10px; }
-.scan-field { display:flex; justify-content:space-between; padding:6px 0; border-bottom:1px solid #1a1a1a; font-size:12px; }
-.scan-field:last-child { border-bottom:none; }
-.scan-field-label { color:#666; }
-.scan-field-value { color:var(--white); font-family:var(--font-h); font-weight:600; }
-
-/* ── DECLARATION CARD ── */
-.decl-card { background:var(--white); border-radius:var(--radius); overflow:hidden; border:1.5px solid #f0f0f0; margin-bottom:12px; }
-.decl-header { display:flex; align-items:center; justify-content:space-between; padding:18px 22px; }
-.decl-period { font-family:var(--font-h); font-weight:700; font-size:15px; color:var(--dark); }
-.decl-stats { display:flex; gap:20px; }
-.decl-stat-val { font-family:var(--font-h); font-weight:700; font-size:14px; color:var(--dark); }
-.decl-stat-lbl { font-size:11px; color:var(--gray); }
-.status-open     { background:#f0f0f0; color:var(--gray); }
-.status-ready    { background:var(--amber-bg); color:var(--amber); }
-.status-submitted{ background:var(--green-bg); color:var(--green); }
-
-/* ── COMPLIANCE SCORE ── */
-.compliance-ring { position:relative; width:100px; height:100px; }
-.compliance-score-text { position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; }
-.compliance-pct { font-family:var(--font-h); font-weight:800; font-size:22px; color:var(--dark); }
-.compliance-lbl { font-size:10px; color:var(--gray); }
-
-.scanning-overlay { position:fixed; inset:0; background:rgba(13,13,13,0.8); z-index:2000; display:none; flex-direction:column; align-items:center; justify-content:center; }
-.scanning-overlay.show { display:flex; }
-.scan-spinner { width:56px; height:56px; border:3px solid #333; border-top-color:var(--lime); border-radius:50%; animation:spin 0.8s linear infinite; margin-bottom:16px; }
-@keyframes spin { to { transform:rotate(360deg); } }
-.scanning-overlay p { font-size:15px; color:var(--lime); font-family:var(--font-h); font-weight:700; }
-.scanning-overlay small { font-size:12px; color:#666; margin-top:6px; }
-</style>
-</head>
-<body>
-
-<!-- SCANNING OVERLAY -->
-<div class="scanning-overlay" id="scan-overlay">
-  <div class="scan-spinner"></div>
-  <p>🤖 L'IA analyse votre reçu...</p>
-  <small>Extraction des données fiscales en cours</small>
-</div>
-
-<div class="layout">
-  <aside class="sidebar">
-    <div class="sidebar-brand"><div class="sidebar-logo"><i class="ph ph-shield-check" style="font-size:18px;color:var(--lime)"></i></div><div class="sidebar-name">BillSafe</div></div>
-    <span class="sidebar-plan">Business</span>
-    <div class="nav-group-label">Principal</div>
-    <a class="nav-item" href="dashboard.html"><span class="ni"><i class="ph ph-chart-bar"></i></span> Tableau de bord</a>
-    <a class="nav-item" href="bills.html"><span class="ni"><i class="ph ph-file-text"></i></span> Mes factures</a>
-    <a class="nav-item" href="upload.html"><span class="ni"><i class="ph ph-upload-simple"></i></span> Ajouter facture</a>
-    <div class="nav-group-label" style="color:#ff5f5f">⚖️ Bouclier Fiscal</div>
-    <a class="nav-item active" href="fiscal.html"><span class="ni"><i class="ph ph-bank"></i></span> E-Facturation DGI</a>
-    <a class="nav-item" href="fiscal.html#decl"><span class="ni"><i class="ph ph-calendar"></i></span> Déclarations</a>
-    <div class="nav-group-label">Portail Business</div>
-    <a class="nav-item" href="landlord.html"><span class="ni"><i class="ph ph-buildings"></i></span> Mes propriétés</a>
-    <a class="nav-item" href="tenants.html"><span class="ni"><i class="ph ph-users"></i></span> Locataires</a>
-    <div class="nav-group-label">Compte</div>
-    <a class="nav-item" href="settings.html"><span class="ni"><i class="ph ph-gear"></i></span> Paramètres</a>
-    <a class="nav-item" href="alerts.html"><span class="ni"><i class="ph ph-bell"></i></span> Alertes</a>
-    <div class="sidebar-bottom">
-      <div class="user-row">
-        <div class="user-avatar" id="user-avatar">?</div>
-        <div class="user-info"><div class="user-name" id="user-name">Chargement...</div><div class="user-role">Commerçant</div></div>
-        <button class="logout-btn" onclick="logout()">⏻</button>
-      </div>
-    </div>
-  </aside>
-
-  <main class="main">
-    <!-- LEGAL HERO BANNER -->
-    <div class="legal-hero">
-      <div class="legal-hero-top">
-        <span class="law-badge">⚖️ LOI 2025/012 — OBLIGATOIRE</span>
-        <span style="font-size:12px;color:#555">Loi de Finances 2026 du Cameroun</span>
-      </div>
-      <h2>🏛 Bouclier Fiscal — E-Facturation DGI</h2>
-      <p>La Loi de Finances 2026 rend la facturation électronique en temps réel <strong style="color:var(--white)">obligatoire pour toutes les entreprises</strong>. Sans conformité, vos factures sont refusées pour déductions fiscales et vous risquez des pénalités. BillSafe vous met en conformité automatiquement.</p>
-      <div class="legal-facts">
-        <div class="legal-fact">
-          <div class="legal-fact-val">17.5%</div>
-          <div class="legal-fact-lbl">TVA standard 2026</div>
-        </div>
-        <div class="legal-fact">
-          <div class="legal-fact-val">100%</div>
-          <div class="legal-fact-lbl">Transactions concernées</div>
-        </div>
-        <div class="legal-fact">
-          <div class="legal-fact-val">Temps réel</div>
-          <div class="legal-fact-lbl">Transmission à la DGI</div>
-        </div>
-        <div class="legal-fact">
-          <div class="legal-fact-val">0 FCFA</div>
-          <div class="legal-fact-lbl">Coût avec BillSafe Pro</div>
-        </div>
-      </div>
-    </div>
-
-    <!-- STATS -->
-    <div class="stats-grid" style="margin-bottom:24px">
-      <div class="stat-card dark">
-        <div class="stat-label">Factures émises</div>
-        <div class="stat-value" id="s-issued">—</div>
-        <div class="stat-sub">ce mois</div>
-      </div>
-      <div class="stat-card lime">
-        <div class="stat-label">Chiffre d'affaires</div>
-        <div class="stat-value" id="s-revenue">—</div>
-        <div class="stat-sub">FCFA ce mois</div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-label">TVA collectée</div>
-        <div class="stat-value" id="s-vat">—</div>
-        <div class="stat-sub">FCFA à déclarer</div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-label">Conformité DGI</div>
-        <div class="stat-value" id="s-compliance" style="color:var(--green)">—%</div>
-        <div class="stat-sub">factures conformes</div>
-      </div>
-    </div>
-
-    <!-- TABS -->
-    <div class="tab-bar">
-      <button class="tab-btn active" onclick="switchTab('create')">✏️ Créer une facture</button>
-      <button class="tab-btn" onclick="switchTab('scan')">📸 Scanner un reçu</button>
-      <button class="tab-btn" onclick="switchTab('history')">📋 Historique</button>
-      <button class="tab-btn" onclick="switchTab('declare')">📅 Déclarations</button>
-    </div>
-
-    <!-- ═══════════════════════════════════════════════════════ -->
-    <!-- TAB 1: CREATE INVOICE -->
-    <!-- ═══════════════════════════════════════════════════════ -->
-    <div id="tab-create">
-      <div style="display:grid;grid-template-columns:1fr 380px;gap:20px">
-        <!-- LEFT: FORM -->
-        <div>
-          <!-- Business setup check -->
-          <div id="no-business-warn" class="card" style="display:none;border:2px solid #ffd97d;background:#fffbeb;margin-bottom:16px">
-            <div style="font-family:var(--font-h);font-weight:700;font-size:14px;color:#92400e;margin-bottom:6px">⚠️ Configurez d'abord votre entreprise</div>
-            <p style="font-size:13px;color:#92400e;margin-bottom:12px">Pour émettre des factures conformes DGI, entrez les informations de votre boutique.</p>
-            <button class="btn btn-dark btn-sm" onclick="openModal('modal-business')">Configurer mon entreprise</button>
-          </div>
-
-          <div class="card" style="margin-bottom:16px">
-            <div class="card-title" style="margin-bottom:16px">👤 Informations client</div>
-            <div class="form-grid">
-              <div class="form-group">
-                <label class="form-label">Nom du client</label>
-                <input class="form-input" id="c-name" placeholder="ex: Jean Ndoumbe" oninput="updatePreview()">
-              </div>
-              <div class="form-group">
-                <label class="form-label">Téléphone</label>
-                <input class="form-input" id="c-phone" placeholder="+237 6XX XX XX XX" oninput="updatePreview()">
-              </div>
-              <div class="form-group">
-                <label class="form-label">NIF client (optionnel)</label>
-                <input class="form-input" id="c-nif" placeholder="ex: M012345678901A" oninput="updatePreview()">
-              </div>
-              <div class="form-group">
-                <label class="form-label">Date de facturation</label>
-                <input class="form-input" type="date" id="inv-date" oninput="updatePreview()">
-              </div>
-            </div>
-          </div>
-
-          <div class="card" style="margin-bottom:16px">
-            <div class="card-title" style="margin-bottom:16px">📦 Articles / Services</div>
-            <table class="items-table">
-              <thead><tr>
-                <th style="width:40%">Description</th>
-                <th style="width:12%;text-align:center">Qté</th>
-                <th style="width:20%;text-align:right">Prix unit.</th>
-                <th style="width:20%;text-align:right">Total</th>
-                <th style="width:8%"></th>
-              </tr></thead>
-              <tbody id="items-body"></tbody>
-            </table>
-            <button class="add-item-btn" onclick="addItem()">+ Ajouter un article</button>
-            <div class="totals-box">
-              <div class="total-row"><span class="total-label">Sous-total HT</span><span class="total-val" id="subtotal-display">0 FCFA</span></div>
-              <div class="total-row"><span class="total-label">TVA <span class="vat-badge">17.5%</span></span><span class="total-val" id="vat-display">0 FCFA</span></div>
-              <div class="total-row grand"><span class="total-label">Total TTC</span><span class="total-val" id="total-display">0 FCFA</span></div>
-            </div>
-          </div>
-
-          <div style="display:flex;gap:10px;flex-wrap:wrap">
-            <button class="btn btn-lime" style="flex:1;justify-content:center" onclick="saveAndIssue()">✅ Émettre la facture</button>
-            <button class="btn btn-ghost" onclick="showXML()">📄 Voir le XML DGI</button>
-          </div>
-        </div>
-
-        <!-- RIGHT: LIVE PREVIEW -->
-        <div>
-          <div style="font-size:11px;font-weight:700;font-family:var(--font-h);color:var(--gray);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:10px">Aperçu facture</div>
-          <div class="invoice-preview">
-            <div class="invoice-header">
-              <div>
-                <div class="invoice-brand" id="prev-biz-name">Ma Boutique</div>
-                <div class="invoice-brand-sub" id="prev-biz-nif">NIF: —</div>
-              </div>
-              <div class="invoice-meta">
-                <div class="invoice-num" id="prev-inv-num">INV-2026-0001</div>
-                <div class="invoice-date-label" id="prev-inv-date">—</div>
-                <div style="margin-top:6px"><span class="pill pill-pending" id="prev-status-pill">⏳ Brouillon</span></div>
-              </div>
-            </div>
-            <div class="invoice-body">
-              <div class="invoice-parties">
-                <div>
-                  <div class="party-label">Émetteur</div>
-                  <div class="party-name" id="prev-emit-name">—</div>
-                  <div class="party-info" id="prev-emit-info">—</div>
-                </div>
-                <div>
-                  <div class="party-label">Client</div>
-                  <div class="party-name" id="prev-client-name">—</div>
-                  <div class="party-info" id="prev-client-info">—</div>
-                </div>
-              </div>
-              <div id="prev-items-summary" style="font-size:13px;color:var(--gray);margin-bottom:16px">Aucun article ajouté</div>
-              <div style="border-top:1px solid #f0f0f0;padding-top:14px">
-                <div style="display:flex;justify-content:space-between;font-size:12px;color:var(--gray);margin-bottom:4px"><span>Sous-total HT</span><span id="prev-sub">0 FCFA</span></div>
-                <div style="display:flex;justify-content:space-between;font-size:12px;color:var(--gray);margin-bottom:8px"><span>TVA 17.5%</span><span id="prev-vat">0 FCFA</span></div>
-                <div style="display:flex;justify-content:space-between;font-family:var(--font-h);font-weight:800;font-size:16px;color:var(--dark)"><span>Total TTC</span><span id="prev-total">0 FCFA</span></div>
-              </div>
-              <div style="margin-top:16px;padding:10px 12px;background:#f8f8f8;border-radius:8px;font-size:11px;color:var(--gray);text-align:center">
-                🏛 Document conforme — Loi de Finances 2026 · DGI Cameroun
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- ═══════════════════════════════════════════════════════ -->
-    <!-- TAB 2: SCAN RECEIPT -->
-    <!-- ═══════════════════════════════════════════════════════ -->
-    <div id="tab-scan" style="display:none">
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px">
-        <div>
-          <div class="scan-zone" onclick="document.getElementById('receipt-input').click()">
-            <input type="file" id="receipt-input" accept="image/*" capture="environment" style="display:none" onchange="scanReceipt(this.files[0])">
-            <div style="font-size:48px;margin-bottom:14px">📸</div>
-            <h3>Photographiez votre reçu manuscrit</h3>
-            <p>L'IA extrait automatiquement les articles, montants et infos fiscales, puis génère une facture numérique conforme DGI.</p>
-            <button class="btn btn-lime" onclick="event.stopPropagation();" style="margin-bottom:10px" onclick="document.getElementById('receipt-input').click()">📷 Prendre une photo</button>
-            <br>
-            <button class="btn btn-ghost" style="color:#fff;border-color:#444;margin-top:8px" onclick="event.stopPropagation();document.getElementById('receipt-file').click()">🖼 Importer une image</button>
-            <input type="file" id="receipt-file" accept="image/*" style="display:none" onchange="scanReceipt(this.files[0])">
-
-            <div class="scan-result" id="scan-result">
-              <div class="scan-result-title">✓ DONNÉES EXTRAITES PAR L'IA</div>
-              <div id="scan-fields"></div>
-              <button class="btn btn-lime btn-sm" style="width:100%;justify-content:center;margin-top:12px" onclick="importScannedToInvoice()">➕ Créer la facture DGI</button>
-            </div>
-          </div>
-        </div>
-        <div class="card">
-          <div class="card-title" style="margin-bottom:8px">💡 Comment ça marche</div>
-          <div class="card-sub" style="margin-bottom:20px">3 étapes pour être en conformité</div>
-          <div style="display:flex;flex-direction:column;gap:16px">
-            <div style="display:flex;gap:14px;align-items:flex-start">
-              <div style="width:32px;height:32px;background:var(--dark);border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:var(--font-h);font-weight:800;font-size:13px;color:var(--lime);flex-shrink:0">1</div>
-              <div><div style="font-family:var(--font-h);font-weight:700;font-size:13px;color:var(--dark);margin-bottom:3px">Photographiez votre reçu</div><div style="font-size:12px;color:var(--gray);line-height:1.6">Reçu manuscrit, ticket de caisse, bon de commande — peu importe le format.</div></div>
-            </div>
-            <div style="display:flex;gap:14px;align-items:flex-start">
-              <div style="width:32px;height:32px;background:var(--dark);border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:var(--font-h);font-weight:800;font-size:13px;color:var(--lime);flex-shrink:0">2</div>
-              <div><div style="font-family:var(--font-h);font-weight:700;font-size:13px;color:var(--dark);margin-bottom:3px">L'IA lit et convertit</div><div style="font-size:12px;color:var(--gray);line-height:1.6">Extraction automatique des articles, quantités, prix et calcul de la TVA à 17.5%.</div></div>
-            </div>
-            <div style="display:flex;gap:14px;align-items:flex-start">
-              <div style="width:32px;height:32px;background:var(--dark);border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:var(--font-h);font-weight:800;font-size:13px;color:var(--lime);flex-shrink:0">3</div>
-              <div><div style="font-family:var(--font-h);font-weight:700;font-size:13px;color:var(--dark);margin-bottom:3px">Facture DGI générée</div><div style="font-size:12px;color:var(--gray);line-height:1.6">XML conforme à la Loi de Finances 2026 prêt pour votre déclaration mensuelle.</div></div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- ═══════════════════════════════════════════════════════ -->
-    <!-- TAB 3: HISTORY -->
-    <!-- ═══════════════════════════════════════════════════════ -->
-    <div id="tab-history" style="display:none">
-      <div class="card">
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px">
-          <div><div class="card-title">📋 Factures émises</div><div class="card-sub" style="margin-bottom:0">Toutes vos factures électroniques conformes DGI</div></div>
-          <button class="btn btn-dark btn-sm" onclick="switchTab('create');document.querySelector('.tab-btn').click()">+ Nouvelle facture</button>
-        </div>
-        <div class="table-wrap">
-          <table>
-            <thead><tr><th>N° Facture</th><th>Date</th><th>Client</th><th>Montant TTC</th><th>TVA</th><th>Statut</th><th>Actions</th></tr></thead>
-            <tbody id="invoices-tbody"><tr><td colspan="7" style="text-align:center;padding:40px;color:var(--gray)">Chargement...</td></tr></tbody>
-          </table>
-        </div>
-      </div>
-    </div>
-
-    <!-- ═══════════════════════════════════════════════════════ -->
-    <!-- TAB 4: DECLARATIONS -->
-    <!-- ═══════════════════════════════════════════════════════ -->
-    <div id="tab-declare" style="display:none">
-      <div style="display:grid;grid-template-columns:1fr 320px;gap:20px">
-        <div>
-          <div class="card" style="margin-bottom:16px">
-            <div class="card-title" style="margin-bottom:4px">📅 Déclarations mensuelles TVA</div>
-            <div class="card-sub">Résumé automatique de votre TVA collectée à déclarer à la DGI</div>
-            <div id="declarations-list"><div style="text-align:center;padding:32px;color:var(--gray)">Chargement...</div></div>
-          </div>
-        </div>
-        <div>
-          <div class="card" style="margin-bottom:16px;border:2px solid #ffd97d;background:#fffbeb">
-            <div style="font-family:var(--font-h);font-weight:700;font-size:14px;color:#92400e;margin-bottom:8px">⚠️ Rappel légal</div>
-            <div style="font-size:12px;color:#92400e;line-height:1.7">
-              Selon la Loi de Finances 2026:<br><br>
-              • TVA à déclarer <strong>chaque mois</strong><br>
-              • Délai: avant le <strong>15 du mois suivant</strong><br>
-              • Pénalité retard: <strong>10% + intérêts</strong><br>
-              • Facture non conforme: <strong>refusée en déduction</strong>
-            </div>
-          </div>
-          <div class="card" style="background:var(--dark)">
-            <div style="font-family:var(--font-h);font-weight:700;font-size:14px;color:var(--white);margin-bottom:12px">📞 Contacts DGI</div>
-            <div style="font-size:12px;color:#666;line-height:1.9">
-              Direction Générale des Impôts<br>
-              <span style="color:var(--lime)">Centre des Impôts Douala Wouri</span><br>
-              Tel: <span style="color:var(--white)">+237 222 22 22 22</span><br><br>
-              <span style="color:var(--lime)">Portail DGI en ligne</span><br>
-              <span style="color:#555">impots.cm</span>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </main>
-</div>
-
-<!-- MODAL: Business Setup -->
-<div class="modal-overlay" id="modal-business">
-  <div class="modal">
-    <div class="modal-header">
-      <div class="modal-title">🏪 Configurer mon entreprise</div>
-      <button class="modal-close" onclick="closeModal('modal-business')">✕</button>
-    </div>
-    <p style="font-size:13px;color:var(--gray);margin-bottom:20px">Ces informations apparaissent sur toutes vos factures DGI.</p>
-    <div class="form-grid" style="margin-bottom:20px">
-      <div class="form-group span-2">
-        <label class="form-label">Nom de l'entreprise *</label>
-        <input class="form-input" id="b-name" placeholder="ex: Boutique Chez Marie">
-      </div>
-      <div class="form-group">
-        <label class="form-label">NIF (Numéro Identificateur Fiscal)</label>
-        <input class="form-input" id="b-nif" placeholder="ex: M012345678901A">
-      </div>
-      <div class="form-group">
-        <label class="form-label">Type d'activité</label>
-        <select class="form-input" id="b-type">
-          <option value="boutique">🏪 Boutique / Commerce</option>
-          <option value="restaurant">🍽 Restaurant / Snack</option>
-          <option value="service">🔧 Prestation de service</option>
-          <option value="pharmacie">💊 Pharmacie</option>
-          <option value="transport">🚗 Transport</option>
-          <option value="autre">📦 Autre</option>
-        </select>
-      </div>
-      <div class="form-group span-2">
-        <label class="form-label">Adresse</label>
-        <input class="form-input" id="b-address" placeholder="ex: Rue Joss, Akwa">
-      </div>
-      <div class="form-group">
-        <label class="form-label">Ville</label>
-        <input class="form-input" id="b-city" placeholder="Douala" value="Douala">
-      </div>
-      <div class="form-group">
-        <label class="form-label">Téléphone</label>
-        <input class="form-input" id="b-phone" placeholder="+237 6XX XX XX XX">
-      </div>
-    </div>
-    <button class="btn btn-lime" style="width:100%;justify-content:center" onclick="saveBusiness()">💾 Enregistrer mon entreprise</button>
+</style></head><body>
+<div class="app">
+<div class="page-header">
+  <div class="ph-row">
+    <button class="back-btn" onclick="history.back()"><i class="ph ph-arrow-left"></i></button>
+    <span class="page-title">⚖️ Bouclier Fiscal</span>
+    <button class="ph-action" onclick="openM('modal-invoice')"><i class="ph ph-plus"></i></button>
   </div>
+  <div class="ph-sub">E-Facturation DGI — Loi de Finances 2026</div>
 </div>
+<div class="content">
 
-<!-- MODAL: XML Preview -->
-<div class="modal-overlay" id="modal-xml">
-  <div class="modal" style="max-width:640px">
-    <div class="modal-header">
-      <div class="modal-title">📄 Facture XML — Format DGI</div>
-      <button class="modal-close" onclick="closeModal('modal-xml')">✕</button>
-    </div>
-    <p style="font-size:13px;color:var(--gray);margin-bottom:16px">Fichier XML conforme à la Loi de Finances 2026 du Cameroun. Ce format sera transmis à la DGI.</p>
-    <div class="xml-preview" id="xml-content"></div>
-    <div style="display:flex;gap:10px;margin-top:16px">
-      <button class="btn btn-dark" style="flex:1;justify-content:center" onclick="downloadXML()">⬇️ Télécharger le XML</button>
-      <button class="btn btn-ghost" onclick="closeModal('modal-xml')">Fermer</button>
+  <!-- LAW ALERT -->
+  <div style="background:linear-gradient(135deg,#7F1D1D,#991B1B);border-radius:var(--radius);padding:16px;margin-bottom:16px;display:flex;align-items:center;gap:12px">
+    <div style="font-size:28px;flex-shrink:0">⚖️</div>
+    <div>
+      <div style="font-size:14px;font-weight:700;color:#fff;margin-bottom:3px">Obligatoire depuis Janvier 2026</div>
+      <div style="font-size:12px;color:rgba(255,255,255,0.65);line-height:1.5">Toutes les entreprises doivent émettre des factures électroniques XML conformes DGI. Non-conformité = amendes.</div>
     </div>
   </div>
-</div>
 
+  <!-- SETUP BUSINESS (no business) -->
+  <div id="no-biz" style="display:none">
+    <div class="card" style="text-align:center;padding:28px">
+      <div style="font-size:40px;margin-bottom:12px">🏪</div>
+      <div style="font-size:16px;font-weight:700;color:var(--text);margin-bottom:6px">Configurez votre entreprise</div>
+      <div style="font-size:13px;color:var(--text2);margin-bottom:16px;line-height:1.6">Entrez les informations de votre boutique pour émettre des factures conformes DGI.</div>
+      <button class="btn-sm btn-sm-purple" onclick="openM('modal-biz')" style="margin:0 auto">🏪 Configurer</button>
+    </div>
+  </div>
+
+  <!-- STATS (with business) -->
+  <div id="with-biz" style="display:none">
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:16px">
+      <div class="card" style="padding:14px;text-align:center">
+        <div style="font-size:22px;font-weight:800;color:var(--purple)" id="s-invoices">—</div>
+        <div style="font-size:10px;color:var(--text2);margin-top:4px;text-transform:uppercase;letter-spacing:0.04em">Factures</div>
+      </div>
+      <div class="card" style="padding:14px;text-align:center">
+        <div style="font-size:22px;font-weight:800;color:var(--green)" id="s-revenue">—</div>
+        <div style="font-size:10px;color:var(--text2);margin-top:4px;text-transform:uppercase;letter-spacing:0.04em">CA (k)</div>
+      </div>
+      <div class="card" style="padding:14px;text-align:center">
+        <div style="font-size:22px;font-weight:800;color:var(--red)" id="s-vat">—</div>
+        <div style="font-size:10px;color:var(--text2);margin-top:4px;text-transform:uppercase;letter-spacing:0.04em">TVA due</div>
+      </div>
+    </div>
+
+    <!-- INVOICES LIST -->
+    <div style="font-size:15px;font-weight:700;color:var(--text);margin-bottom:12px">Factures émises</div>
+    <div id="invoices-list"><div class="skeleton" style="height:72px;margin-bottom:8px"></div><div class="skeleton" style="height:72px"></div></div>
+
+    <button class="btn-primary" onclick="openM('modal-invoice')" style="margin-top:6px">✏️ Créer une facture DGI</button>
+  </div>
+</div>
+</div>
+<nav class="bottom-nav"><a class="bn-item" href="dashboard.html"><i class="ph ph-house-simple"></i><span>Accueil</span></a><a class="bn-item" href="bills.html"><i class="ph ph-file-text"></i><span>Factures</span></a><a class="bn-item bn-fab" href="upload.html"><div class="bn-fab-circle"><i class="ph ph-scan"></i></div><span>Scanner</span></a><a class="bn-item" href="meter-split.html"><i class="ph ph-lightning"></i><span>Partage</span></a><a class="bn-item" href="alerts.html"><i class="ph ph-bell"></i><span>Alertes</span></a></nav>
 <div class="toast" id="toast"></div>
 
+<!-- MODAL: Business -->
+<div class="modal-overlay" id="modal-biz">
+<div class="modal"><div class="modal-handle"></div><div class="modal-title">🏪 Mon entreprise</div>
+  <div class="form-group"><label class="form-label">Nom de l'entreprise</label><input class="form-input" id="b-name" placeholder="Boutique Chez Marie"></div>
+  <div class="form-grid" style="margin-bottom:14px">
+    <div class="form-group" style="margin-bottom:0"><label class="form-label">NIF</label><input class="form-input" id="b-nif" placeholder="M012345678901A"></div>
+    <div class="form-group" style="margin-bottom:0"><label class="form-label">Type</label>
+      <select class="form-input" id="b-type"><option value="boutique">🏪 Boutique</option><option value="restaurant">🍽 Restaurant</option><option value="service">🔧 Service</option><option value="pharmacie">💊 Pharmacie</option></select>
+    </div>
+  </div>
+  <div class="form-group"><label class="form-label">Adresse</label><input class="form-input" id="b-addr" placeholder="Rue Joss, Akwa"></div>
+  <div class="form-group"><label class="form-label">Téléphone</label><input class="form-input" id="b-phone" placeholder="+237 6XX XX XX XX"></div>
+  <button class="btn-primary" onclick="saveBiz()">💾 Enregistrer</button>
+</div></div>
+
+<!-- MODAL: New Invoice -->
+<div class="modal-overlay" id="modal-invoice">
+<div class="modal"><div class="modal-handle"></div><div class="modal-title">📄 Nouvelle facture DGI</div>
+  <div class="form-group"><label class="form-label">Client</label><input class="form-input" id="inv-client" placeholder="Nom du client"></div>
+  <div class="form-grid" style="margin-bottom:14px">
+    <div class="form-group" style="margin-bottom:0"><label class="form-label">Date</label><input class="form-input" type="date" id="inv-date"></div>
+    <div class="form-group" style="margin-bottom:0"><label class="form-label">Téléphone client</label><input class="form-input" id="inv-phone" placeholder="+237..."></div>
+  </div>
+  <div style="font-size:12px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:8px">Articles</div>
+  <div id="inv-items">
+    <div class="form-grid" style="margin-bottom:8px">
+      <input class="form-input" id="item-desc" placeholder="Description">
+      <input class="form-input" type="number" id="item-price" placeholder="Prix">
+    </div>
+  </div>
+  <div style="background:var(--surface2);border-radius:12px;padding:12px 14px;margin-bottom:14px">
+    <div style="display:flex;justify-content:space-between;font-size:12px;color:var(--text2);margin-bottom:4px"><span>Sous-total HT</span><span id="inv-sub">0 F</span></div>
+    <div style="display:flex;justify-content:space-between;font-size:12px;color:var(--text2);margin-bottom:4px"><span>TVA 17.5%</span><span id="inv-vat">0 F</span></div>
+    <div style="display:flex;justify-content:space-between;font-size:15px;font-weight:700;color:var(--text)"><span>Total TTC</span><span id="inv-total">0 F</span></div>
+  </div>
+  <div id="inv-msg" style="font-size:13px;color:var(--red);margin-bottom:10px;display:none"></div>
+  <button class="btn-primary" onclick="calcAndSave()">✅ Émettre la facture</button>
+  <button class="btn-ghost" onclick="downloadXML()">📄 Télécharger XML DGI</button>
+</div></div>
+
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="../js/portal.js"></script>
 <script>
-// ── CONFIG ─────────────────────────────────────────────
-const ANTHROPIC_KEY = 'YOUR_ANTHROPIC_API_KEY'; // From console.anthropic.com
-// ──────────────────────────────────────────────────────
 
-let currentUser = null;
-let currentBusiness = null;
-let invoices = [];
-let items = [];
-let invoiceCounter = 1;
-let scannedData = null;
+const SUPA_URL='https://rjnsnodvqwwhkxbznzqa.supabase.co';
+const SUPA_ANON='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJqbnNub2R2cXd3aGt4YnpuenFhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzgxODg1OTksImV4cCI6MjA5Mzc2NDU5OX0.gkV9ynTFdY8B72s2fnRpTkUH71FUz59ICIpQLZQDsIc';
+const db=supabase.createClient(SUPA_URL,SUPA_ANON);
+let ME=null;
+const $=id=>document.getElementById(id);
+const fmt=n=>Math.round(n||0).toLocaleString('fr-FR');
+const fmtA=n=>fmt(n)+' F';
+const fmtM=m=>m?new Date(m+'-01').toLocaleDateString('fr-FR',{month:'long',year:'numeric'}):'—';
+const fmtMs=m=>m?new Date(m+'-01').toLocaleDateString('fr-FR',{month:'short',year:'numeric'}):'—';
+const fmtD=d=>d?new Date(d).toLocaleDateString('fr-FR'):'—';
+const ini=n=>(n||'?').split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2);
+const avCol=['av-purple','av-green','av-amber'];
+function toast(msg,type='success'){const t=$('toast');t.innerHTML=msg;t.className='toast '+type+' show';setTimeout(()=>t.classList.remove('show'),3000)}
+function openM(id){$(id).classList.add('open')}
+function closeM(id){$(id).classList.remove('open')}
+document.addEventListener('click',e=>{if(e.target.classList.contains('modal-overlay'))e.target.classList.remove('open')});
+async function initAuth(){const {data:{session}}=await db.auth.getSession();if(!session){window.location.href='auth.html';return null;}ME=session.user;return ME;}
 
-window.addEventListener('DOMContentLoaded', async () => {
-  currentUser = await requireAuth();
-  if (!currentUser) return;
-  renderSidebarUser(currentUser);
-  document.getElementById('inv-date').value = new Date().toISOString().split('T')[0];
-  await loadBusiness();
-  await loadInvoices();
-  addItem(); // start with one empty row
-  updatePreview();
+let BIZ=null,invoices=[];
+
+window.addEventListener('DOMContentLoaded',async()=>{
+  ME=await initAuth();if(!ME)return;
+  $('inv-date').value=new Date().toISOString().split('T')[0];
+  $('item-price').oninput=$('item-desc').oninput=calcTotal;
+  await load();
 });
 
-// ── TABS ───────────────────────────────────────────────
-function switchTab(tab) {
-  ['create','scan','history','declare'].forEach(t => {
-    document.getElementById('tab-'+t).style.display = t===tab ? 'block' : 'none';
-  });
-  document.querySelectorAll('.tab-btn').forEach((b,i) => {
-    b.classList.toggle('active', ['create','scan','history','declare'][i]===tab);
-  });
-  if (tab === 'history') renderInvoicesTable();
-  if (tab === 'declare') renderDeclarations();
-}
-
-// ── LOAD BUSINESS ──────────────────────────────────────
-async function loadBusiness() {
-  const { data } = await db.from('businesses').select('*').eq('owner_id', currentUser.id).single().catch(()=>({data:null}));
-  currentBusiness = data;
-  if (!data) {
-    document.getElementById('no-business-warn').style.display = 'block';
-  } else {
-    document.getElementById('no-business-warn').style.display = 'none';
-    document.getElementById('prev-biz-name').textContent = data.business_name;
-    document.getElementById('prev-biz-nif').textContent = 'NIF: ' + (data.tax_id || 'Non renseigné');
-    document.getElementById('prev-emit-name').textContent = data.business_name;
-    document.getElementById('prev-emit-info').textContent = (data.address||'') + (data.city ? ', '+data.city : '') + '\n' + (data.phone||'');
-    // Generate invoice number
-    const { data: cnt } = await db.from('einvoices').select('id', {count:'exact'}).eq('business_id', data.id);
-    invoiceCounter = (cnt?.length || 0) + 1;
-    document.getElementById('prev-inv-num').textContent = 'INV-' + new Date().getFullYear() + '-' + String(invoiceCounter).padStart(4,'0');
+async function load(){
+  const [bizRes,invRes]=await Promise.all([
+    db.from('businesses').select('*').eq('owner_id',ME.id).limit(1),
+    db.from('einvoices').select('*').eq('owner_id',ME.id).order('created_at',{ascending:false})
+  ]);
+  BIZ=bizRes.data?.[0]||null;invoices=invRes.data||[];
+  $('no-biz').style.display=BIZ?'none':'block';
+  $('with-biz').style.display=BIZ?'block':'none';
+  if(BIZ){
+    $('s-invoices').textContent=invoices.length;
+    const rev=invoices.reduce((s,i)=>s+(i.subtotal||0),0);
+    const vat=invoices.reduce((s,i)=>s+(i.vat_amount||0),0);
+    $('s-revenue').textContent=Math.round(rev/1000)+'k';
+    $('s-vat').textContent=Math.round(vat/1000)+'k';
+    renderInvoices();
   }
 }
 
-async function saveBusiness() {
-  const name = document.getElementById('b-name').value.trim();
-  if (!name) return showToast('Le nom est obligatoire','error');
-  const payload = { owner_id:currentUser.id, business_name:name, tax_id:document.getElementById('b-nif').value.trim()||null, business_type:document.getElementById('b-type').value, address:document.getElementById('b-address').value.trim()||null, city:document.getElementById('b-city').value.trim()||'Douala', phone:document.getElementById('b-phone').value.trim()||null };
-  const { error } = currentBusiness
-    ? await db.from('businesses').update(payload).eq('id', currentBusiness.id)
-    : await db.from('businesses').insert([payload]);
-  if (error) return showToast('Erreur: '+error.message,'error');
-  closeModal('modal-business');
-  showToast('✅ Entreprise enregistrée!','success');
-  await loadBusiness();
-}
-
-// ── ITEMS ──────────────────────────────────────────────
-function addItem(desc='', qty=1, price=0) {
-  const id = Date.now();
-  items.push({ id, desc, qty, price });
-  renderItems();
-}
-
-function renderItems() {
-  const tbody = document.getElementById('items-body');
-  tbody.innerHTML = items.map(item => `<tr id="item-${item.id}">
-    <td><input class="item-input" value="${item.desc}" placeholder="Description de l'article" oninput="updateItem(${item.id},'desc',this.value)"></td>
-    <td><input class="item-input num" type="number" value="${item.qty}" min="1" style="width:60px;text-align:center" oninput="updateItem(${item.id},'qty',this.value)"></td>
-    <td><input class="item-input num" type="number" value="${item.price}" min="0" placeholder="0" oninput="updateItem(${item.id},'price',this.value)"></td>
-    <td style="text-align:right;font-family:var(--font-h);font-weight:600">${fmtNum(item.qty * item.price)} F</td>
-    <td><button class="remove-item-btn" onclick="removeItem(${item.id})">×</button></td>
-  </tr>`).join('');
-  calcTotals();
-}
-
-function updateItem(id, field, val) {
-  const item = items.find(i => i.id === id);
-  if (!item) return;
-  item[field] = field === 'desc' ? val : (parseFloat(val)||0);
-  calcTotals();
-  updatePreview();
-}
-
-function removeItem(id) {
-  items = items.filter(i => i.id !== id);
-  renderItems();
-  updatePreview();
-}
-
-function calcTotals() {
-  const sub = items.reduce((s,i) => s + i.qty*i.price, 0);
-  const vat = sub * 0.175;
-  const tot = sub + vat;
-  document.getElementById('subtotal-display').textContent = fmtNum(sub) + ' FCFA';
-  document.getElementById('vat-display').textContent      = fmtNum(vat) + ' FCFA';
-  document.getElementById('total-display').textContent    = fmtNum(tot) + ' FCFA';
-  document.getElementById('prev-sub').textContent         = fmtNum(sub) + ' FCFA';
-  document.getElementById('prev-vat').textContent         = fmtNum(vat) + ' FCFA';
-  document.getElementById('prev-total').textContent       = fmtNum(tot) + ' FCFA';
-  return { sub, vat, tot };
-}
-
-function fmtNum(n) { return Math.round(n).toLocaleString('fr-FR'); }
-
-// ── PREVIEW ────────────────────────────────────────────
-function updatePreview() {
-  const cname = document.getElementById('c-name').value || '—';
-  const cphone = document.getElementById('c-phone').value || '';
-  const cnif   = document.getElementById('c-nif').value || '';
-  const date   = document.getElementById('inv-date').value || '';
-  document.getElementById('prev-client-name').textContent = cname;
-  document.getElementById('prev-client-info').textContent = [cphone, cnif ? 'NIF: '+cnif : ''].filter(Boolean).join('\n');
-  document.getElementById('prev-inv-date').textContent = date ? new Date(date).toLocaleDateString('fr-FR') : '—';
-  // Items summary
-  const filled = items.filter(i => i.desc);
-  document.getElementById('prev-items-summary').innerHTML = filled.length
-    ? filled.map(i => `<div style="display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid #f8f8f8;font-size:12px"><span>${i.desc}</span><span style="font-family:var(--font-h);font-weight:600">${fmtNum(i.qty*i.price)} F</span></div>`).join('')
-    : '<div style="font-size:12px;color:var(--gray)">Aucun article ajouté</div>';
-}
-
-// ── GENERATE XML ───────────────────────────────────────
-function generateXML() {
-  const biz  = currentBusiness;
-  const date = document.getElementById('inv-date').value || new Date().toISOString().split('T')[0];
-  const num  = document.getElementById('prev-inv-num').textContent;
-  const cname= document.getElementById('c-name').value || 'Client Anonyme';
-  const { sub, vat, tot } = calcTotals();
-
-  const lineItems = items.filter(i => i.desc).map((item, idx) => `
-    <InvoiceLine>
-      <ID>${idx+1}</ID>
-      <InvoicedQuantity unitCode="EA">${item.qty}</InvoicedQuantity>
-      <LineExtensionAmount currencyID="XAF">${Math.round(item.qty*item.price)}</LineExtensionAmount>
-      <Item>
-        <Description>${item.desc}</Description>
-        <Price><PriceAmount currencyID="XAF">${Math.round(item.price)}</PriceAmount></Price>
-      </Item>
-    </InvoiceLine>`).join('');
-
-  return `<?xml version="1.0" encoding="UTF-8"?>
-<!-- Facture Électronique Conforme — Loi de Finances 2026 — DGI Cameroun -->
-<Invoice xmlns="urn:oasis:names:specification:ubl:schema:xsd:Invoice-2"
-         xmlns:cac="urn:oasis:names:specification:ubl:schema:xsd:CommonAggregateComponents-2"
-         xmlns:cbc="urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2">
-
-  <cbc:UBLVersionID>2.1</cbc:UBLVersionID>
-  <cbc:CustomizationID>DGI-CMR-2026</cbc:CustomizationID>
-  <cbc:ID>${num}</cbc:ID>
-  <cbc:IssueDate>${date}</cbc:IssueDate>
-  <cbc:InvoiceTypeCode>380</cbc:InvoiceTypeCode>
-  <cbc:DocumentCurrencyCode>XAF</cbc:DocumentCurrencyCode>
-
-  <!-- ÉMETTEUR -->
-  <cac:AccountingSupplierParty>
-    <cac:Party>
-      <cac:PartyName><cbc:Name>${biz?.business_name || 'Mon Entreprise'}</cbc:Name></cac:PartyName>
-      <cac:PartyTaxScheme>
-        <cbc:CompanyID>${biz?.tax_id || 'NIF-NON-RENSEIGNE'}</cbc:CompanyID>
-        <cac:TaxScheme><cbc:ID>TVA</cbc:ID></cac:TaxScheme>
-      </cac:PartyTaxScheme>
-      <cac:PostalAddress>
-        <cbc:StreetName>${biz?.address || ''}</cbc:StreetName>
-        <cbc:CityName>${biz?.city || 'Douala'}</cbc:CityName>
-        <cac:Country><cbc:IdentificationCode>CM</cbc:IdentificationCode></cac:Country>
-      </cac:PostalAddress>
-    </cac:Party>
-  </cac:AccountingSupplierParty>
-
-  <!-- CLIENT -->
-  <cac:AccountingCustomerParty>
-    <cac:Party>
-      <cac:PartyName><cbc:Name>${cname}</cbc:Name></cac:PartyName>
-    </cac:Party>
-  </cac:AccountingCustomerParty>
-
-  <!-- TVA -->
-  <cac:TaxTotal>
-    <cbc:TaxAmount currencyID="XAF">${Math.round(vat)}</cbc:TaxAmount>
-    <cac:TaxSubtotal>
-      <cbc:TaxableAmount currencyID="XAF">${Math.round(sub)}</cbc:TaxableAmount>
-      <cbc:TaxAmount currencyID="XAF">${Math.round(vat)}</cbc:TaxAmount>
-      <cac:TaxCategory>
-        <cbc:ID>S</cbc:ID>
-        <cbc:Percent>17.5</cbc:Percent>
-        <cac:TaxScheme><cbc:ID>TVA</cbc:ID></cac:TaxScheme>
-      </cac:TaxCategory>
-    </cac:TaxSubtotal>
-  </cac:TaxTotal>
-
-  <!-- TOTAUX -->
-  <cac:LegalMonetaryTotal>
-    <cbc:LineExtensionAmount currencyID="XAF">${Math.round(sub)}</cbc:LineExtensionAmount>
-    <cbc:TaxExclusiveAmount currencyID="XAF">${Math.round(sub)}</cbc:TaxExclusiveAmount>
-    <cbc:TaxInclusiveAmount currencyID="XAF">${Math.round(tot)}</cbc:TaxInclusiveAmount>
-    <cbc:PayableAmount currencyID="XAF">${Math.round(tot)}</cbc:PayableAmount>
-  </cac:LegalMonetaryTotal>
-
-  <!-- LIGNES -->
-  ${lineItems}
-
-</Invoice>`;
-}
-
-function showXML() {
-  const xml = generateXML();
-  const el  = document.getElementById('xml-content');
-  el.innerHTML = xml
-    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
-    .replace(/(&lt;\/?[\w:]+)/g,'<span class="xml-tag">$1</span>')
-    .replace(/(&lt;!--.*?--&gt;)/g,'<span class="xml-comment">$1</span>')
-    .replace(/([\w:]+="[^"]*")/g,'<span class="xml-attr">$1</span>');
-  openModal('modal-xml');
-}
-
-function downloadXML() {
-  const xml  = generateXML();
-  const blob = new Blob([xml], { type:'application/xml' });
-  const url  = URL.createObjectURL(blob);
-  const a    = document.createElement('a');
-  a.href = url;
-  a.download = document.getElementById('prev-inv-num').textContent + '.xml';
-  a.click();
-  URL.revokeObjectURL(url);
-  showToast('📄 XML téléchargé!','success');
-}
-
-// ── SAVE & ISSUE ───────────────────────────────────────
-async function saveAndIssue() {
-  if (!currentBusiness) return openModal('modal-business');
-  const filledItems = items.filter(i => i.desc && i.price > 0);
-  if (!filledItems.length) return showToast('Ajoutez au moins un article avec un prix','error');
-
-  const { sub, vat, tot } = calcTotals();
-  const num = document.getElementById('prev-inv-num').textContent;
-  const xml = generateXML();
-
-  const { error } = await db.from('einvoices').insert([{
-    business_id:    currentBusiness.id,
-    owner_id:       currentUser.id,
-    invoice_number: num,
-    invoice_date:   document.getElementById('inv-date').value,
-    customer_name:  document.getElementById('c-name').value || null,
-    customer_phone: document.getElementById('c-phone').value || null,
-    customer_tax_id:document.getElementById('c-nif').value || null,
-    line_items:     JSON.stringify(filledItems),
-    subtotal:       Math.round(sub),
-    vat_amount:     Math.round(vat),
-    total_amount:   Math.round(tot),
-    vat_rate:       17.5,
-    status:         'issued',
-    xml_content:    xml,
-  }]);
-
-  if (error) return showToast('Erreur: '+error.message,'error');
-
-  showToast('✅ Facture émise et enregistrée!','success');
-  document.getElementById('prev-status-pill').textContent = '✓ Émise';
-  document.getElementById('prev-status-pill').className   = 'pill pill-paid';
-  items = []; addItem();
-  updatePreview();
-  await loadInvoices();
-  updateStats();
-}
-
-// ── SCAN RECEIPT ───────────────────────────────────────
-async function scanReceipt(file) {
-  if (!file) return;
-  document.getElementById('scan-overlay').classList.add('show');
-  try {
-    const reader = new FileReader();
-    const b64 = await new Promise(res => { reader.onload=e=>res(e.target.result.split(',')[1]); reader.readAsDataURL(file); });
-    const mime = file.type || 'image/jpeg';
-
-    const res = await fetch('https://api.anthropic.com/v1/messages', {
-      method:'POST',
-      headers:{ 'Content-Type':'application/json','x-api-key':ANTHROPIC_KEY,'anthropic-version':'2023-06-01','anthropic-dangerous-client-side-api-key-access':'true' },
-      body: JSON.stringify({
-        model:'claude-sonnet-4-6', max_tokens:800,
-        messages:[{ role:'user', content:[
-          { type:'image', source:{ type:'base64', media_type:mime, data:b64 } },
-          { type:'text', text:`You are a fiscal OCR specialist for Cameroon. Analyze this receipt/invoice image.
-Extract ALL items and business data. Respond ONLY with valid JSON, no markdown:
-{
-  "business_name": string|null,
-  "customer_name": string|null,
-  "date": "YYYY-MM-DD"|null,
-  "items": [{"desc": string, "qty": number, "unit_price": number}],
-  "subtotal_ht": number|null,
-  "notes": string|null,
-  "confidence": "high"|"medium"|"low"
-}
-For amounts in FCFA, return numbers only (no spaces or letters).
-If you can read amounts but not item details, create one item with desc="Vente" and the total as unit_price.` }
-        ]}]
-      })
-    });
-    const data = await res.json();
-    if (data.error) throw new Error(data.error.message);
-    scannedData = JSON.parse(data.content[0].text.replace(/```json|```/g,'').trim());
-    renderScanResult(scannedData);
-  } catch(e) {
-    showToast('Erreur scan: '+e.message,'error');
-  } finally {
-    document.getElementById('scan-overlay').classList.remove('show');
-  }
-}
-
-function renderScanResult(data) {
-  const el = document.getElementById('scan-result');
-  const sf = document.getElementById('scan-fields');
-  const totalHT = data.items?.reduce((s,i)=>s+i.qty*i.unit_price,0) || data.subtotal_ht || 0;
-  const vat = totalHT * 0.175;
-
-  sf.innerHTML = [
-    data.business_name ? `<div class="scan-field"><span class="scan-field-label">Entreprise</span><span class="scan-field-value">${data.business_name}</span></div>` : '',
-    data.customer_name ? `<div class="scan-field"><span class="scan-field-label">Client</span><span class="scan-field-value">${data.customer_name}</span></div>` : '',
-    data.date          ? `<div class="scan-field"><span class="scan-field-label">Date</span><span class="scan-field-value">${data.date}</span></div>` : '',
-    `<div class="scan-field"><span class="scan-field-label">Articles</span><span class="scan-field-value">${(data.items||[]).length} article(s)</span></div>`,
-    `<div class="scan-field"><span class="scan-field-label">Sous-total HT</span><span class="scan-field-value">${fmtNum(totalHT)} FCFA</span></div>`,
-    `<div class="scan-field"><span class="scan-field-label">TVA 17.5%</span><span class="scan-field-value">${fmtNum(vat)} FCFA</span></div>`,
-    `<div class="scan-field"><span class="scan-field-label">Total TTC</span><span class="scan-field-value">${fmtNum(totalHT+vat)} FCFA</span></div>`,
-  ].join('');
-  el.style.display = 'block';
-}
-
-function importScannedToInvoice() {
-  if (!scannedData) return;
-  if (scannedData.customer_name) document.getElementById('c-name').value = scannedData.customer_name;
-  if (scannedData.date)          document.getElementById('inv-date').value = scannedData.date;
-  items = [];
-  (scannedData.items || []).forEach(i => addItem(i.desc, i.qty, i.unit_price));
-  if (!items.length) addItem();
-  updatePreview();
-  switchTab('create');
-  showToast('✅ Données importées! Vérifiez et émettez la facture.','success');
-}
-
-// ── LOAD & RENDER INVOICES ─────────────────────────────
-async function loadInvoices() {
-  const { data } = await db.from('einvoices').select('*').eq('owner_id', currentUser.id).order('created_at',{ascending:false});
-  invoices = data || [];
-  updateStats();
-}
-
-function updateStats() {
-  const now = new Date();
-  const month = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}`;
-  const monthInv = invoices.filter(i => i.invoice_date?.startsWith(month));
-  const rev  = monthInv.reduce((s,i)=>s+(i.subtotal||0),0);
-  const vat  = monthInv.reduce((s,i)=>s+(i.vat_amount||0),0);
-  const comp = invoices.length ? Math.round((invoices.filter(i=>i.status==='issued').length/invoices.length)*100) : 0;
-  document.getElementById('s-issued').textContent    = monthInv.length;
-  document.getElementById('s-revenue').textContent   = fmtNum(rev);
-  document.getElementById('s-vat').textContent       = fmtNum(vat);
-  document.getElementById('s-compliance').textContent= comp;
-}
-
-function renderInvoicesTable() {
-  const tbody = document.getElementById('invoices-tbody');
-  if (!invoices.length) {
-    tbody.innerHTML = `<tr><td colspan="7"><div class="empty"><div class="empty-icon">📄</div><h3>Aucune facture</h3><p>Créez votre première facture DGI ci-dessus.</p></div></td></tr>`;
-    return;
-  }
-  tbody.innerHTML = invoices.map(inv => `<tr>
-    <td style="font-family:var(--font-h);font-weight:700">${inv.invoice_number}</td>
-    <td style="font-size:12px;color:var(--gray)">${fmtDate(inv.invoice_date)}</td>
-    <td>${inv.customer_name||'—'}</td>
-    <td style="font-family:var(--font-h);font-weight:700">${fmtNum(inv.total_amount)} F</td>
-    <td style="color:var(--gray)">${fmtNum(inv.vat_amount)} F</td>
-    <td><span class="pill pill-paid">✓ Émise</span></td>
-    <td><div class="icon-btns">
-      <button class="icon-btn" onclick="previewXML('${inv.id}')" title="Voir XML">📄</button>
-      <button class="icon-btn" onclick="downloadInvoiceXML('${inv.id}')" title="Télécharger">⬇️</button>
-    </div></td>
-  </tr>`).join('');
-}
-
-function renderDeclarations() {
-  // Group invoices by month
-  const groups = {};
-  invoices.forEach(inv => {
-    const m = inv.invoice_date?.slice(0,7) || 'unknown';
-    if (!groups[m]) groups[m] = { invoices:[], revenue:0, vat:0 };
-    groups[m].invoices.push(inv);
-    groups[m].revenue += inv.subtotal   || 0;
-    groups[m].vat     += inv.vat_amount || 0;
-  });
-  const el = document.getElementById('declarations-list');
-  const months = Object.keys(groups).sort().reverse();
-  if (!months.length) {
-    el.innerHTML = `<div class="empty" style="padding:32px"><div class="empty-icon">📅</div><h3>Aucune déclaration</h3><p>Émettez des factures pour voir vos déclarations mensuelles.</p></div>`;
-    return;
-  }
-  el.innerHTML = months.map(m => {
-    const g = groups[m];
-    const label = new Date(m+'-01').toLocaleDateString('fr-FR',{month:'long',year:'numeric'});
-    const isCurrentMonth = m === new Date().toISOString().slice(0,7);
-    return `<div class="decl-card">
-      <div class="decl-header">
-        <div>
-          <div class="decl-period">${label}</div>
-          <div style="font-size:11px;color:var(--gray);margin-top:2px">${g.invoices.length} facture${g.invoices.length>1?'s':''}</div>
-        </div>
-        <div class="decl-stats">
-          <div><div class="decl-stat-val">${fmtNum(g.revenue)} F</div><div class="decl-stat-lbl">CA HT</div></div>
-          <div><div class="decl-stat-val" style="color:var(--red)">${fmtNum(g.vat)} F</div><div class="decl-stat-lbl">TVA due</div></div>
-        </div>
-        <span class="pill ${isCurrentMonth?'pill-pending':'pill-paid'}">${isCurrentMonth?'⏳ En cours':'✓ Clôturé'}</span>
+function renderInvoices(){
+  const el=$('invoices-list');
+  if(!invoices.length){el.innerHTML=`<div class="empty-state"><span class="ei">📄</span><h3>Aucune facture</h3><p>Émettez votre première facture DGI</p></div>`;return;}
+  el.innerHTML=invoices.slice(0,8).map(inv=>`
+    <div class="card" style="padding:14px;margin-bottom:8px;display:flex;align-items:center;gap:12px">
+      <div class="li-icon ic-purple">📄</div>
+      <div style="flex:1">
+        <div style="font-size:14px;font-weight:600;color:var(--text)">${inv.invoice_number}</div>
+        <div style="font-size:12px;color:var(--text2);margin-top:2px">${inv.customer_name||'Client anonyme'} · ${fmtD(inv.invoice_date)}</div>
       </div>
-    </div>`;
-  }).join('');
+      <div style="text-align:right">
+        <div style="font-size:15px;font-weight:700;color:var(--text)">${fmtA(inv.total_amount)}</div>
+        <span class="pill pill-paid" style="font-size:10px">✓ DGI</span>
+      </div>
+    </div>`).join('');
 }
 
-async function previewXML(id) {
-  const inv = invoices.find(i=>i.id===id);
-  if (!inv?.xml_content) return showToast('XML non disponible','error');
-  const el = document.getElementById('xml-content');
-  el.innerHTML = inv.xml_content
-    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
-    .replace(/(&lt;\/?[\w:]+)/g,'<span class="xml-tag">$1</span>')
-    .replace(/(&lt;!--.*?--&gt;)/g,'<span class="xml-comment">$1</span>');
-  openModal('modal-xml');
+function calcTotal(){
+  const price=parseFloat($('item-price').value)||0;
+  const vat=price*0.175;
+  $('inv-sub').textContent=fmtA(price);
+  $('inv-vat').textContent=fmtA(vat);
+  $('inv-total').textContent=fmtA(price+vat);
 }
 
-function downloadInvoiceXML(id) {
-  const inv = invoices.find(i=>i.id===id);
-  if (!inv?.xml_content) return;
-  const blob = new Blob([inv.xml_content],{type:'application/xml'});
-  const url  = URL.createObjectURL(blob);
-  const a    = document.createElement('a');
-  a.href=url; a.download=inv.invoice_number+'.xml'; a.click();
-  URL.revokeObjectURL(url);
+async function calcAndSave(){
+  if(!BIZ){$('inv-msg').textContent='Configurez d'abord votre entreprise';$('inv-msg').style.display='block';return;}
+  const price=parseFloat($('item-price').value)||0;
+  const desc=$('item-desc').value.trim();
+  if(!price||!desc){$('inv-msg').textContent='Description et prix obligatoires';$('inv-msg').style.display='block';return;}
+  const vat=price*0.175,total=price+vat;
+  const num='INV-'+new Date().getFullYear()+'-'+String(invoices.length+1).padStart(4,'0');
+  const xml=generateXML(num,price,vat,total,desc);
+  const {error}=await db.from('einvoices').insert([{business_id:BIZ.id,owner_id:ME.id,invoice_number:num,invoice_date:$('inv-date').value,customer_name:$('inv-client').value.trim()||null,customer_phone:$('inv-phone').value.trim()||null,line_items:JSON.stringify([{desc,qty:1,unit_price:price,total:price}]),subtotal:price,vat_amount:vat,total_amount:total,vat_rate:17.5,status:'issued',xml_content:xml}]);
+  if(error){$('inv-msg').textContent='Erreur: '+error.message;$('inv-msg').style.display='block';return;}
+  closeM('modal-invoice');toast('✅ Facture DGI émise!');await load();
 }
-</script>
-<nav class="mobile-nav">
-  <a href="dashboard.html" class="mn-item  active">
-    <i class="ph ph-chart-bar"></i>
-    <span>Dashboard</span>
-  </a>
-  <a href="bills.html" class="mn-item">
-    <i class="ph ph-file-text"></i>
-    <span>Factures</span>
-  </a>
-  <a href="upload.html" class="mn-item mn-fab">
-    <div class="mn-fab-circle"><i class="ph ph-scan"></i></div>
-    <span>Scanner</span>
-  </a>
-  <a href="meter-split.html" class="mn-item">
-    <i class="ph ph-lightning"></i>
-    <span>Partage</span>
-  </a>
-  <a href="alerts.html" class="mn-item">
-    <i class="ph ph-bell"></i>
-    <span>Alertes</span>
-  </a>
-</nav>
-</body>
-</html>
+
+function generateXML(num,sub,vat,total,desc){
+  return `<?xml version="1.0" encoding="UTF-8"?>\n<!-- DGI-CMR-2026 -->\n<Invoice xmlns="urn:oasis:names:specification:ubl:schema:xsd:Invoice-2">\n  <ID>${num}</ID>\n  <IssueDate>${$('inv-date').value}</IssueDate>\n  <DocumentCurrencyCode>XAF</DocumentCurrencyCode>\n  <TaxTotal><TaxAmount currencyID="XAF">${Math.round(vat)}</TaxAmount></TaxTotal>\n  <LegalMonetaryTotal>\n    <TaxExclusiveAmount currencyID="XAF">${Math.round(sub)}</TaxExclusiveAmount>\n    <TaxInclusiveAmount currencyID="XAF">${Math.round(total)}</TaxInclusiveAmount>\n  </LegalMonetaryTotal>\n  <InvoiceLine><ID>1</ID><Description>${desc}</Description><LineExtensionAmount currencyID="XAF">${Math.round(sub)}</LineExtensionAmount></InvoiceLine>\n</Invoice>`;
+}
+
+function downloadXML(){
+  const price=parseFloat($('item-price').value)||0;
+  const vat=price*0.175,total=price+vat;
+  const num='INV-DRAFT-'+Date.now();
+  const xml=generateXML(num,price,vat,total,$('item-desc').value||'Article');
+  const blob=new Blob([xml],{type:'application/xml'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');a.href=url;a.download=num+'.xml';a.click();URL.revokeObjectURL(url);
+  toast('📄 XML téléchargé!');
+}
+
+async function saveBiz(){
+  const name=$('b-name').value.trim();if(!name)return toast('Le nom est obligatoire','error');
+  const payload={owner_id:ME.id,business_name:name,tax_id:$('b-nif').value.trim()||null,business_type:$('b-type').value,address:$('b-addr').value.trim()||null,phone:$('b-phone').value.trim()||null};
+  const {error}=BIZ?await db.from('businesses').update(payload).eq('id',BIZ.id):await db.from('businesses').insert([payload]);
+  if(error)return toast('Erreur: '+error.message,'error');
+  closeM('modal-biz');toast('✅ Entreprise enregistrée!');await load();
+}
+</script></body></html>
