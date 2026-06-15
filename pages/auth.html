@@ -180,6 +180,21 @@
       <button class="btn-submit" id="email-btn" onclick="handleEmail()">
         <span id="email-btn-text">Se connecter</span>
       </button>
+
+      <!-- ── BIOMETRIC LOGIN ── -->
+      <div id="bio-section" style="display:none">
+        <div class="bio-divider"><span>ou continuer avec</span></div>
+        <button class="bio-btn" id="bio-btn" onclick="triggerBiometric()">
+          <span class="bio-icon" id="bio-icon">🔒</span>
+          <span class="bio-text">
+            <span class="bio-title" id="bio-title">Connexion biométrique</span>
+            <span class="bio-sub" id="bio-sub">Face ID · Touch ID · Empreinte</span>
+          </span>
+        </button>
+        <p class="bio-not-supported" id="bio-not-supported">
+          Biométrie non disponible sur cet appareil
+        </p>
+      </div>
     </div>
 
     <!-- ── PHONE FORM ── -->
@@ -441,6 +456,237 @@ db.auth.onAuthStateChange((event, session) => {
     window.location.href = 'dashboard.html';
   }
 });
+
+// ═══════════════════════════════════════════════════════════
+//  BIOMETRIC AUTH — Face ID / Fingerprint / Touch ID
+//  Uses WebAuthn (Passkeys) — works on Safari iOS, Chrome Android
+// ═══════════════════════════════════════════════════════════
+
+const BIO_KEY = 'billsafe_bio_credential';
+const BIO_USER_KEY = 'billsafe_bio_email';
+
+// Check if WebAuthn is supported on this device
+async function checkBiometricSupport() {
+  const section = document.getElementById('bio-section');
+  if (!section) return;
+
+  // Need: HTTPS + PublicKeyCredential API + authenticator
+  if (!window.PublicKeyCredential) {
+    section.style.display = 'none';
+    return;
+  }
+
+  try {
+    const available = await PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable();
+    if (available) {
+      section.style.display = 'block';
+      // Detect what type of biometric
+      const ua = navigator.userAgent;
+      const isIOS = /iPhone|iPad/.test(ua);
+      const isMac = /Mac/.test(ua) && !isIOS;
+      const isAndroid = /Android/.test(ua);
+      const bioIcon = document.getElementById('bio-icon');
+      const bioTitle = document.getElementById('bio-title');
+      const bioSub = document.getElementById('bio-sub');
+
+      if (isIOS) {
+        bioIcon.textContent = '👤';
+        bioTitle.textContent = 'Connexion avec Face ID';
+        bioSub.textContent = 'Ou Touch ID selon votre iPhone';
+      } else if (isMac) {
+        bioIcon.textContent = '👆';
+        bioTitle.textContent = 'Connexion avec Touch ID';
+        bioSub.textContent = 'Capteur d'empreinte Mac';
+      } else if (isAndroid) {
+        bioIcon.textContent = '🔏';
+        bioTitle.textContent = 'Connexion biométrique';
+        bioSub.textContent = 'Empreinte digitale Android';
+      }
+
+      // If already registered, show as primary option
+      const savedEmail = localStorage.getItem(BIO_USER_KEY);
+      const savedCred = localStorage.getItem(BIO_KEY);
+      if (savedEmail && savedCred) {
+        bioSub.textContent = savedEmail;
+      }
+    }
+  } catch(e) {
+    console.log('Biometric check failed:', e);
+  }
+}
+
+async function triggerBiometric() {
+  const btn = document.getElementById('bio-btn');
+  const savedEmail = localStorage.getItem(BIO_USER_KEY);
+  const savedCred = localStorage.getItem(BIO_KEY);
+
+  // Ripple effect
+  const ripple = document.createElement('span');
+  ripple.className = 'bio-ripple';
+  ripple.style.cssText = 'width:100px;height:100px;left:calc(50% - 50px);top:calc(50% - 50px)';
+  btn.appendChild(ripple);
+  setTimeout(() => ripple.remove(), 700);
+
+  if (savedCred) {
+    // ── AUTHENTICATE with existing passkey ──
+    await authenticateWithPasskey();
+  } else {
+    // ── REGISTER new passkey (need email first) ──
+    const email = document.getElementById('email')?.value?.trim();
+    if (!email) {
+      showMsg('Entrez votre email d'abord, puis activez la biométrie', 'error');
+      document.getElementById('email')?.focus();
+      return;
+    }
+    await registerPasskey(email);
+  }
+}
+
+async function registerPasskey(email) {
+  const btn = document.getElementById('bio-btn');
+  const origHTML = btn.innerHTML;
+  btn.innerHTML = '<span class="bio-icon">⏳</span><span class="bio-text"><span class="bio-title">Activation...</span><span class="bio-sub">Suivez les instructions</span></span>';
+  btn.disabled = true;
+
+  try {
+    // Create a passkey challenge
+    const challenge = new Uint8Array(32);
+    crypto.getRandomValues(challenge);
+
+    const userId = new TextEncoder().encode(email);
+
+    const credential = await navigator.credentials.create({
+      publicKey: {
+        challenge,
+        rp: { name: 'BillSafe', id: window.location.hostname === 'localhost' ? 'localhost' : window.location.hostname },
+        user: { id: userId, name: email, displayName: email.split('@')[0] },
+        pubKeyCredParams: [
+          { alg: -7, type: 'public-key' },   // ES256
+          { alg: -257, type: 'public-key' },  // RS256
+        ],
+        authenticatorSelection: {
+          authenticatorAttachment: 'platform',  // Device biometrics only
+          userVerification: 'required',          // Must use biometrics
+          requireResidentKey: true,
+        },
+        timeout: 60000,
+      }
+    });
+
+    // Save credential ID locally
+    const credId = btoa(String.fromCharCode(...new Uint8Array(credential.rawId)));
+    localStorage.setItem(BIO_KEY, credId);
+    localStorage.setItem(BIO_USER_KEY, email);
+
+    // Flash success
+    const flash = document.createElement('div');
+    flash.className = 'bio-success-flash';
+    document.body.appendChild(flash);
+    setTimeout(() => flash.remove(), 400);
+
+    showMsg('✅ Biométrie activée! Reconnectez-vous avec votre empreinte.', 'success');
+    btn.innerHTML = '<span class="bio-icon">✅</span><span class="bio-text"><span class="bio-title">Biométrie activée</span><span class="bio-sub">' + email + '</span></span>';
+    btn.disabled = false;
+
+  } catch(e) {
+    btn.innerHTML = origHTML;
+    btn.disabled = false;
+    if (e.name === 'NotAllowedError') {
+      showMsg('Biométrie annulée ou refusée. Réessayez.', 'error');
+    } else if (e.name === 'SecurityError') {
+      showMsg('Biométrie disponible uniquement sur HTTPS', 'error');
+    } else {
+      showMsg('Erreur biométrique: ' + e.message, 'error');
+    }
+  }
+}
+
+async function authenticateWithPasskey() {
+  const btn = document.getElementById('bio-btn');
+  const savedEmail = localStorage.getItem(BIO_USER_KEY);
+  const origHTML = btn.innerHTML;
+  btn.innerHTML = '<span class="bio-icon">⏳</span><span class="bio-text"><span class="bio-title">Vérification...</span><span class="bio-sub">Posez votre doigt / regardez</span></span>';
+  btn.disabled = true;
+
+  try {
+    const challenge = new Uint8Array(32);
+    crypto.getRandomValues(challenge);
+
+    const assertion = await navigator.credentials.get({
+      publicKey: {
+        challenge,
+        userVerification: 'required',
+        timeout: 60000,
+      }
+    });
+
+    if (assertion) {
+      // Passkey verified — now sign in with Supabase using saved email
+      // In production: verify assertion on server. Here we use stored session.
+      const { data: { session } } = await db.auth.getSession();
+
+      if (session) {
+        // Already have a session — go straight to dashboard
+        showBioSuccess(savedEmail);
+        setTimeout(() => { window.location.href = 'dashboard.html'; }, 800);
+        return;
+      }
+
+      // No active session — prompt for password once then remember
+      const pw = document.getElementById('password')?.value?.trim();
+      if (pw) {
+        const { error } = await db.auth.signInWithPassword({ email: savedEmail, password: pw });
+        if (error) throw error;
+        showBioSuccess(savedEmail);
+        setTimeout(() => { window.location.href = 'dashboard.html'; }, 800);
+      } else {
+        // Fill email and ask for password
+        if (document.getElementById('email')) document.getElementById('email').value = savedEmail;
+        showMsg('✅ Biométrie OK! Entrez votre mot de passe pour terminer.', 'success');
+        document.getElementById('password')?.focus();
+        btn.innerHTML = origHTML;
+        btn.disabled = false;
+      }
+    }
+  } catch(e) {
+    btn.innerHTML = origHTML;
+    btn.disabled = false;
+    if (e.name === 'NotAllowedError') {
+      showMsg('Authentification annulée. Réessayez.', 'error');
+    } else {
+      showMsg('Échec de la biométrie. Utilisez votre mot de passe.', 'error');
+    }
+  }
+}
+
+function showBioSuccess(email) {
+  const btn = document.getElementById('bio-btn');
+  btn.innerHTML = '<span class="bio-icon">✅</span><span class="bio-text"><span class="bio-title">Identité confirmée</span><span class="bio-sub">' + (email || '') + '</span></span>';
+  btn.style.borderColor = '#0052FF';
+  btn.style.background = 'rgba(0,82,255,0.05)';
+  const flash = document.createElement('div');
+  flash.className = 'bio-success-flash';
+  document.body.appendChild(flash);
+  setTimeout(() => flash.remove(), 400);
+}
+
+// Show biometric option when email is typed (to register)
+document.addEventListener('DOMContentLoaded', () => {
+  checkBiometricSupport();
+
+  const emailInput = document.getElementById('email');
+  if (emailInput) {
+    emailInput.addEventListener('blur', () => {
+      const hasSaved = localStorage.getItem(BIO_KEY);
+      const section = document.getElementById('bio-section');
+      if (section && section.style.display !== 'none' && !hasSaved) {
+        const sub = document.getElementById('bio-sub');
+        if (sub && emailInput.value) sub.textContent = 'Activer pour ' + emailInput.value;
+      }
+    });
+  }
+});
+
 </script>
 </body>
 </html>
