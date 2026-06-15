@@ -79,6 +79,87 @@
 
   .powered { margin-top: 40px; font-size: 12px; color: #bbb; text-align: center; }
   .powered span { color: var(--dark); font-weight: 700; }
+
+/* ═══════════════════════════════════════════════════════════
+   PAGE TRANSITIONS — slide in from right, slide out to left
+   ═══════════════════════════════════════════════════════════ */
+@keyframes slideInRight {
+  from { opacity:0; transform:translateX(32px); }
+  to   { opacity:1; transform:translateX(0); }
+}
+@keyframes slideOutLeft {
+  from { opacity:1; transform:translateX(0); }
+  to   { opacity:0; transform:translateX(-32px); }
+}
+@keyframes slideInLeft {
+  from { opacity:0; transform:translateX(-32px); }
+  to   { opacity:1; transform:translateX(0); }
+}
+@keyframes fadeUp {
+  from { opacity:0; transform:translateY(16px); }
+  to   { opacity:1; transform:translateY(0); }
+}
+@keyframes scaleIn {
+  from { opacity:0; transform:scale(0.97); }
+  to   { opacity:1; transform:scale(1); }
+}
+
+/* Page enters */
+.page-enter {
+  animation: slideInRight 0.28s cubic-bezier(0.25,0.46,0.45,0.94) both;
+}
+/* Page exits */
+.page-exit {
+  animation: slideOutLeft 0.22s cubic-bezier(0.55,0,1,0.45) both;
+  pointer-events: none;
+}
+/* Modal sheet enters */
+.modal-enter {
+  animation: fadeUp 0.3s cubic-bezier(0.25,0.46,0.45,0.94) both;
+}
+/* Card stagger children */
+.stagger-children > * {
+  opacity: 0;
+  animation: fadeUp 0.35s cubic-bezier(0.25,0.46,0.45,0.94) both;
+}
+.stagger-children > *:nth-child(1) { animation-delay:0.05s }
+.stagger-children > *:nth-child(2) { animation-delay:0.10s }
+.stagger-children > *:nth-child(3) { animation-delay:0.15s }
+.stagger-children > *:nth-child(4) { animation-delay:0.20s }
+.stagger-children > *:nth-child(5) { animation-delay:0.25s }
+.stagger-children > *:nth-child(6) { animation-delay:0.30s }
+.stagger-children > *:nth-child(7) { animation-delay:0.35s }
+.stagger-children > *:nth-child(8) { animation-delay:0.40s }
+
+/* Back transition (slide from left) */
+.page-enter-back {
+  animation: slideInLeft 0.28s cubic-bezier(0.25,0.46,0.45,0.94) both;
+}
+
+/* Bottom nav tap ripple */
+.bn-item { overflow:hidden; }
+.nav-ripple {
+  position:absolute;
+  border-radius:50%;
+  background:rgba(79,70,229,0.15);
+  transform:scale(0);
+  animation:navRipple 0.5s ease-out forwards;
+  pointer-events:none;
+}
+@keyframes navRipple {
+  to { transform:scale(3.5); opacity:0; }
+}
+
+/* Page overlay for transition */
+#page-transition-overlay {
+  position:fixed;inset:0;
+  background:rgba(79,70,229,0.04);
+  z-index:9000;
+  pointer-events:none;
+  opacity:0;
+  transition:opacity 0.15s;
+}
+#page-transition-overlay.active { opacity:1; }
 </style>
 </head>
 <body>

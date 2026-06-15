@@ -36,4 +36,122 @@
     <span>Alertes</span>
   </a>
 </nav>
+<script>
+/* ═══════════════════════════════════════════════════════════
+   PAGE TRANSITION ENGINE
+   ═══════════════════════════════════════════════════════════ */
+(function() {
+  // Add overlay element
+  const overlay = document.createElement('div');
+  overlay.id = 'page-transition-overlay';
+  document.body.appendChild(overlay);
+
+  // Mark page as entered
+  function enterPage() {
+    const isBack = sessionStorage.getItem('bs_nav_back') === '1';
+    sessionStorage.removeItem('bs_nav_back');
+    const app = document.querySelector('.app, body > div:first-child');
+    if (app) {
+      app.classList.add(isBack ? 'page-enter-back' : 'page-enter');
+      app.addEventListener('animationend', () => {
+        app.classList.remove('page-enter', 'page-enter-back');
+      }, { once: true });
+    }
+  }
+
+  // Navigate with exit animation
+  function navigateTo(href, isBack) {
+    if (href === window.location.pathname ||
+        href === window.location.href) return;
+
+    const app = document.querySelector('.app, body > div:first-child');
+    if (!app) { window.location.href = href; return; }
+
+    if (isBack) sessionStorage.setItem('bs_nav_back', '1');
+    else sessionStorage.removeItem('bs_nav_back');
+
+    // Vibrate on navigate (haptic)
+    if (navigator.vibrate) navigator.vibrate(8);
+
+    // Exit animation
+    app.classList.add('page-exit');
+    overlay.classList.add('active');
+
+    app.addEventListener('animationend', () => {
+      window.location.href = href;
+    }, { once: true });
+
+    // Fallback in case animationend doesn't fire
+    setTimeout(() => { window.location.href = href; }, 350);
+  }
+
+  // Intercept ALL internal link clicks
+  document.addEventListener('click', function(e) {
+    const link = e.target.closest('a[href]');
+    if (!link) return;
+    const href = link.getAttribute('href');
+    if (!href || href.startsWith('http') || href.startsWith('#') ||
+        href.startsWith('mailto') || href.startsWith('tel') ||
+        href.startsWith('https://wa.me') || href.startsWith('javascript')) return;
+    if (link.target === '_blank') return;
+
+    e.preventDefault();
+    const isBack = link.closest('.back-btn') !== null ||
+                   link.classList.contains('back-btn');
+    navigateTo(href, isBack);
+  });
+
+  // Intercept back buttons (onclick="history.back()")
+  const origBack = history.back.bind(history);
+  window._navBack = function() {
+    sessionStorage.setItem('bs_nav_back', '1');
+    if (navigator.vibrate) navigator.vibrate(8);
+    const app = document.querySelector('.app');
+    if (app) {
+      app.classList.add('page-exit');
+      overlay.classList.add('active');
+      setTimeout(() => origBack(), 200);
+    } else {
+      origBack();
+    }
+  };
+
+  // Override history.back for back buttons
+  document.addEventListener('click', function(e) {
+    const btn = e.target.closest('[onclick*="history.back"]');
+    if (btn) {
+      e.preventDefault();
+      e.stopPropagation();
+      window._navBack();
+    }
+  }, true);
+
+  // Bottom nav ripple
+  document.addEventListener('click', function(e) {
+    const navItem = e.target.closest('.bn-item');
+    if (!navItem) return;
+    const ripple = document.createElement('span');
+    ripple.className = 'nav-ripple';
+    const rect = navItem.getBoundingClientRect();
+    const size = Math.max(rect.width, rect.height);
+    ripple.style.cssText = `width:${size}px;height:${size}px;left:${e.clientX - rect.left - size/2}px;top:${e.clientY - rect.top - size/2}px`;
+    navItem.appendChild(ripple);
+    ripple.addEventListener('animationend', () => ripple.remove());
+  });
+
+  // Run entrance animation on load
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', enterPage);
+  } else {
+    enterPage();
+  }
+
+  // Stagger card items on load
+  document.addEventListener('DOMContentLoaded', () => {
+    // Auto-stagger bill lists and card grids
+    const lists = document.querySelectorAll('.bills-list, .payment-grid, .stats-row, #props-list, #tenants-list, #groups-list');
+    lists.forEach(list => list.classList.add('stagger-children'));
+  });
+})();
+</script>
 </body></html>
