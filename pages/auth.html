@@ -390,14 +390,23 @@ function switchMethod(method) {
 // ── EMAIL AUTH ───────────────────────────────────────────────
 async function handleEmail() {
   clearMsg();
-  const email = document.getElementById('email').value.trim();
-  const password = document.getElementById('password').value;
 
-  if (!email || !password) return showMsg('Veuillez remplir tous les champs.');
+  const emailEl = document.getElementById('email');
+  const passEl  = document.getElementById('password');
+  if (!emailEl || !passEl) return showMsg('Erreur de formulaire. Rechargez la page.');
 
-  const btn = document.getElementById('email-btn');
+  const email    = emailEl.value.trim();
+  const password = passEl.value;
+
+  if (!email)    return showMsg('Veuillez entrer votre email.');
+  if (!password) return showMsg('Veuillez entrer votre mot de passe.');
+
+  const btn     = document.getElementById('email-btn');
+  const btnText = btn.querySelector('span') || btn;
+
+  btn.disabled = true;
   btn.classList.add('loading');
-  btn.querySelector('span').textContent = 'Chargement...';
+  btnText.textContent = 'Connexion en cours...';
 
   // Wake up Supabase if paused (free tier auto-pauses after 1 week inactivity)
   try {
@@ -410,10 +419,16 @@ async function handleEmail() {
 
   try {
     if (currentTab === 'login') {
-      const { error } = await db.auth.signInWithPassword({ email, password });
+      const { data: loginData, error } = await db.auth.signInWithPassword({ email, password });
       if (error) throw error;
-      showMsg('Connexion réussie! Redirection...', 'success');
-      setTimeout(() => window.location.href = 'dashboard.html', 800);
+      if (!loginData?.session) throw new Error('Session non créée. Réessayez.');
+      // Success
+      window._redirecting = true;
+      showMsg('✅ Connexion réussie!', 'success');
+      btnText.textContent = '✅ Connecté!';
+      btn.style.background = 'linear-gradient(135deg,#059669,#10B981)';
+      if (navigator.vibrate) navigator.vibrate([10, 50, 10]);
+      setTimeout(() => { window.location.replace('/pages/dashboard.html'); }, 800);
     } else {
       const confirm = document.getElementById('confirm-password').value;
       const name = document.getElementById('full-name').value.trim();
@@ -428,19 +443,22 @@ async function handleEmail() {
       // Try immediate session (email confirm disabled)
       if (signUpData.session) {
         showMsg('Compte créé! Redirection...', 'success');
-        setTimeout(() => window.location.href = 'dashboard.html', 800);
+        setTimeout(() => { window.location.replace('/pages/dashboard.html'); }, 600);
         return;
       }
       // Fallback: try signing in right away
       const { data: siData } = await db.auth.signInWithPassword({ email, password });
       if (siData?.session) {
         showMsg('Compte créé! Redirection...', 'success');
-        setTimeout(() => window.location.href = 'dashboard.html', 800);
+        setTimeout(() => { window.location.replace('/pages/dashboard.html'); }, 600);
         return;
       }
       showMsg('Compte créé! Vérifiez votre email, puis connectez-vous.', 'success');
     }
   } catch(e) {
+    btn.disabled = false;
+    btn.classList.remove('loading');
+    btnText.textContent = currentTab === 'login' ? 'Se connecter' : "S'inscrire";
     const msg = e.message || '';
     if (msg.includes('Failed to fetch') || msg.includes('NetworkError') || msg.includes('fetch')) {
       showMsg('❌ Connexion impossible au serveur. Réessayez dans 30 secondes.', 'error');
@@ -450,15 +468,17 @@ async function handleEmail() {
       const retryInterval = setInterval(() => {
         countdown--;
         const btn2 = document.getElementById('email-btn');
+        const sp2  = btn2 && (btn2.querySelector('span') || btn2);
         if (btn2 && countdown > 0) {
-          btn2.querySelector('span').textContent = `Réessayer dans ${countdown}s...`;
+          if (sp2) sp2.textContent = `Réessayer dans ${countdown}s...`;
           btn2.disabled = true;
         } else {
           clearInterval(retryInterval);
           if (btn2) {
-            btn2.querySelector('span').textContent = 'Se connecter';
+            if (sp2) sp2.textContent = 'Se connecter';
             btn2.disabled = false;
-            document.getElementById('server-banner').innerHTML += '<br><strong style="color:green">✅ Prêt — Cliquez sur Se connecter</strong>';
+            const sb = document.getElementById('server-banner');
+            if (sb) sb.innerHTML += '<br><strong style="color:green">✅ Prêt — Cliquez sur Se connecter</strong>';
           }
         }
       }, 1000);
@@ -474,8 +494,11 @@ async function handleEmail() {
       showMsg('❌ ' + (msg || 'Une erreur est survenue. Réessayez.'), 'error');
     }
   } finally {
-    btn.classList.remove('loading');
-    btn.querySelector('span').textContent = currentTab === 'login' ? 'Se connecter' : "S'inscrire";
+    if (!window.location.href.includes('dashboard')) {
+      btn.disabled = false;
+      btn.classList.remove('loading');
+      (btn.querySelector('span') || btn).textContent = currentTab === 'login' ? 'Se connecter' : "S'inscrire";
+    }
   }
 }
 
@@ -511,7 +534,7 @@ async function verifyOTP() {
     const { error } = await db.auth.verifyOtp({ phone: fullPhone, token: digits, type: 'sms' });
     if (error) throw error;
     showMsg('Vérification réussie! Redirection...', 'success');
-    setTimeout(() => window.location.href = 'dashboard.html', 800);
+    setTimeout(() => { window.location.replace('/pages/dashboard.html'); }, 600);
   } catch(e) {
     showMsg(e.message || 'Code incorrect. Réessayez.');
   }
@@ -529,12 +552,12 @@ document.querySelectorAll('.otp-input').forEach((input, i, all) => {
 
 // ── Check if already logged in + listen for auth changes ────
 db.auth.getSession().then(({ data: { session } }) => {
-  if (session) window.location.href = 'dashboard.html';
+  if (session) window.location.replace('/pages/dashboard.html');
 });
 
 db.auth.onAuthStateChange((event, session) => {
   if (session && (event === 'SIGNED_IN' || event === 'USER_UPDATED')) {
-    window.location.href = 'dashboard.html';
+    window.location.replace('/pages/dashboard.html');
   }
 });
 
@@ -709,7 +732,7 @@ async function authenticateWithPasskey() {
       if (session) {
         // Already have a session — go straight to dashboard
         showBioSuccess(savedEmail);
-        setTimeout(() => { window.location.href = 'dashboard.html'; }, 800);
+        setTimeout(() => { window.location.replace('/pages/dashboard.html'); }, 800);
         return;
       }
 
@@ -719,7 +742,7 @@ async function authenticateWithPasskey() {
         const { error } = await db.auth.signInWithPassword({ email: savedEmail, password: pw });
         if (error) throw error;
         showBioSuccess(savedEmail);
-        setTimeout(() => { window.location.href = 'dashboard.html'; }, 800);
+        setTimeout(() => { window.location.replace('/pages/dashboard.html'); }, 800);
       } else {
         // Fill email and ask for password
         if (document.getElementById('email')) document.getElementById('email').value = savedEmail;
