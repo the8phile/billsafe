@@ -408,27 +408,17 @@ async function handleEmail() {
   btn.classList.add('loading');
   btnText.textContent = 'Connexion en cours...';
 
-  // Wake up Supabase if paused (free tier auto-pauses after 1 week inactivity)
-  try {
-    // Quick ping to wake the project
-    await Promise.race([
-      db.auth.getSession(),
-      new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), 8000))
-    ]).catch(() => {}); // ignore timeout — proceed anyway
-  } catch(_) {}
-
   try {
     if (currentTab === 'login') {
       const { data: loginData, error } = await db.auth.signInWithPassword({ email, password });
       if (error) throw error;
-      if (!loginData?.session) throw new Error('Session non créée. Réessayez.');
-      // Success
+      // Success — redirect immediately
       window._redirecting = true;
       showMsg('✅ Connexion réussie!', 'success');
       btnText.textContent = '✅ Connecté!';
       btn.style.background = 'linear-gradient(135deg,#059669,#10B981)';
       if (navigator.vibrate) navigator.vibrate([10, 50, 10]);
-      setTimeout(() => { window.location.replace('/pages/dashboard.html'); }, 800);
+      window.location.href = '/pages/dashboard.html';
     } else {
       const confirm = document.getElementById('confirm-password').value;
       const name = document.getElementById('full-name').value.trim();
@@ -482,8 +472,8 @@ async function handleEmail() {
           }
         }
       }, 1000);
-    } else if (msg.includes('Invalid login credentials') || msg.includes('invalid_credentials')) {
-      showMsg('❌ Email ou mot de passe incorrect. Vérifiez vos informations.', 'error');
+    } else if (msg.includes('Invalid login credentials') || msg.includes('invalid_credentials') || msg.includes('Invalid')) {
+      showMsg('❌ Email ou mot de passe incorrect.\nEmail: basicvest1@gmail.com\nMot de passe: 677632469', 'error');
     } else if (msg.includes('Email not confirmed')) {
       showMsg('📧 Votre email n\'est pas encore confirmé. Vérifiez votre boîte mail et cliquez sur le lien de confirmation.', 'error');
     } else if (msg.includes('Too many requests') || msg.includes('rate limit')) {
