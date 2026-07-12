@@ -410,15 +410,20 @@ async function handleEmail() {
 
   try {
     if (currentTab === 'login') {
+      console.log('BillSafe: attempting login for', email);
       const { data: loginData, error } = await db.auth.signInWithPassword({ email, password });
+      console.log('BillSafe: login result', { error: error?.message, hasSession: !!loginData?.session });
       if (error) throw error;
       // Success — redirect immediately
       window._redirecting = true;
-      showMsg('✅ Connexion réussie!', 'success');
+      showMsg('✅ Connexion réussie! Redirection...', 'success');
       btnText.textContent = '✅ Connecté!';
       btn.style.background = 'linear-gradient(135deg,#059669,#10B981)';
       if (navigator.vibrate) navigator.vibrate([10, 50, 10]);
-      window.location.href = '/pages/dashboard.html';
+      // Use multiple redirect methods to ensure it works
+      setTimeout(() => {
+        window.location.href = '/pages/dashboard.html';
+      }, 500);
     } else {
       const confirm = document.getElementById('confirm-password').value;
       const name = document.getElementById('full-name').value.trim();
@@ -450,9 +455,12 @@ async function handleEmail() {
     btn.classList.remove('loading');
     btnText.textContent = currentTab === 'login' ? 'Se connecter' : "S'inscrire";
     const msg = e.message || '';
-    if (msg.includes('Failed to fetch') || msg.includes('NetworkError') || msg.includes('fetch')) {
-      showMsg('❌ Connexion impossible au serveur. Réessayez dans 30 secondes.', 'error');
-      document.getElementById('server-banner').style.display = 'block';
+    console.error('BillSafe login error:', msg);
+    // Show ALL errors visibly
+    if (msg.includes('Failed to fetch') || msg.includes('NetworkError') || msg.includes('fetch') || msg.includes('Load failed')) {
+      showMsg('❌ Serveur inaccessible. Vérifiez votre connexion internet et réessayez.', 'error');
+      const sb = document.getElementById('server-banner');
+      if (sb) sb.style.display = 'block';
       // Auto-retry after 30s
       let countdown = 30;
       const retryInterval = setInterval(() => {
@@ -547,8 +555,9 @@ db.auth.getSession().then(({ data: { session } }) => {
 });
 
 db.auth.onAuthStateChange((event, session) => {
-  if (session && (event === 'SIGNED_IN' || event === 'USER_UPDATED')) {
-    window.location.replace('/pages/dashboard.html');
+  // Only redirect on explicit sign in, not page load
+  if (session && event === 'SIGNED_IN') {
+    window.location.href = '/pages/dashboard.html';
   }
 });
 
