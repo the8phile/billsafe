@@ -402,7 +402,7 @@ async function handleEmail() {
   if (!password) return showMsg('Veuillez entrer votre mot de passe.');
 
   const btn     = document.getElementById('email-btn');
-  const btnText = btn.querySelector('span') || btn;
+  const btnText = document.getElementById('email-btn-text') || btn.querySelector('span') || btn;
 
   btn.disabled = true;
   btn.classList.add('loading');
@@ -494,10 +494,11 @@ async function handleEmail() {
       showMsg('❌ ' + (msg || 'Une erreur est survenue. Réessayez.'), 'error');
     }
   } finally {
-    if (!window.location.href.includes('dashboard')) {
+    if (!window._redirecting) {
       btn.disabled = false;
       btn.classList.remove('loading');
-      (btn.querySelector('span') || btn).textContent = currentTab === 'login' ? 'Se connecter' : "S'inscrire";
+      const bts = document.getElementById('email-btn-text') || btn.querySelector('span') || btn;
+      bts.textContent = currentTab === 'login' ? 'Se connecter' : "S'inscrire";
     }
   }
 }
