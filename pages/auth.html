@@ -1,812 +1,245 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-  <!-- PWA + iPhone Home Screen -->
-  <link rel="manifest" href="/manifest.json">
-  <link rel="apple-touch-icon" href="/icons/icon-180.png">
-  <link rel="apple-touch-icon" sizes="120x120" href="/icons/icon-120.png">
-  <link rel="apple-touch-icon" sizes="152x152" href="/icons/icon-152.png">
-  <link rel="apple-touch-icon" sizes="167x167" href="/icons/icon-167.png">
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <meta name="apple-mobile-web-app-title" content="BillSafe">
-  <meta name="theme-color" content="#0052FF">
-  <meta name="mobile-web-app-capable" content="yes">
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="BillSafe">
+<meta name="theme-color" content="#4F46E5">
+<link rel="apple-touch-icon" href="/icons/icon-180.png">
 <title>BillSafe — Connexion</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
-  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-  :root {
-    --lime: #0052FF; --primary: #0052FF; --primary-dark: #003EC7; --dark: #283044; --dark2: #161616; --dark3: #222;
-    --gray: #888; --white: #fff; --red: #ff5f5f; --green: #2a7a50;
-    --font-h: 'Inter', sans-serif; --font-b: 'Inter', sans-serif;
-    --radius: 16px; --radius-sm: 10px;
-  }
-  html, body { height: 100%; }
-  body { font-family: var(--font-b); background: #FAF8FF; display: flex; align-items: center; justify-content: center; min-height: 100vh; padding: 20px; }
+*{box-sizing:border-box;margin:0;padding:0}
+:root{--purple:#4F46E5;--purple2:#7C3AED;--bg:#0F1117;--card:#1A1D27;--border:rgba(255,255,255,0.1);--text:#fff;--text2:rgba(255,255,255,0.6);--red:#EF4444;--green:#10B981;--f:'Inter',sans-serif}
+html,body{height:100%;font-family:var(--f);background:var(--bg);color:var(--text);-webkit-font-smoothing:antialiased}
+.wrap{min-height:100vh;display:flex;flex-direction:column;max-width:430px;margin:0 auto}
 
-  /* CARD */
-  .card { background: var(--white); border-radius: 28px; width: 100%; max-width: 440px; overflow: hidden; box-shadow: 0 24px 80px rgba(0,0,0,0.10); animation: slideUp 0.5s ease both; }
-  @keyframes slideUp { from{opacity:0;transform:translateY(24px)} to{opacity:1;transform:translateY(0)} }
+/* HEADER */
+.header{background:linear-gradient(145deg,#4F46E5,#7C3AED);padding:env(safe-area-inset-top,44px) 24px 32px;position:relative;overflow:hidden}
+.header::before{content:'';position:absolute;top:-40px;right:-30px;width:150px;height:150px;background:rgba(255,255,255,0.06);border-radius:50%}
+.brand{display:flex;align-items:center;gap:10px;margin-bottom:28px;position:relative;z-index:1}
+.brand-logo{width:42px;height:42px;background:rgba(255,255,255,0.2);border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:22px;border:1.5px solid rgba(255,255,255,0.3)}
+.brand-name{font-size:20px;font-weight:800;color:#fff}
+.header h1{font-size:26px;font-weight:800;color:#fff;margin-bottom:6px;position:relative;z-index:1}
+.header p{font-size:14px;color:rgba(255,255,255,0.65);position:relative;z-index:1}
 
-  .card-header { background: var(--dark, #283044); padding: 36px 36px 28px; }
-  .brand { display: flex; align-items: center; gap: 10px; margin-bottom: 24px; }
-  .brand-logo { width: 36px; height: 36px; background: var(--lime); border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 18px; }
-  .brand-name { font-family: var(--font-h); font-weight: 800; font-size: 18px; color: var(--white); }
-  .card-header h1 { font-family: var(--font-h); font-weight: 700; font-size: 24px; color: var(--white); margin-bottom: 6px; }
-  .card-header p { font-size: 14px; color: #888; line-height: 1.5; }
+/* BODY */
+.body{flex:1;padding:24px 20px;padding-bottom:40px}
 
-  .card-body { padding: 32px 36px; }
+/* TABS */
+.tabs{display:flex;background:rgba(255,255,255,0.06);border-radius:12px;padding:4px;margin-bottom:24px}
+.tab{flex:1;padding:10px;border-radius:9px;text-align:center;font-size:14px;font-weight:600;cursor:pointer;border:none;background:transparent;color:var(--text2);font-family:var(--f);transition:all 0.2s}
+.tab.active{background:#fff;color:#1E1B4B;box-shadow:0 2px 8px rgba(0,0,0,0.2)}
 
-  /* TABS */
-  .tabs { display: flex; background: #f0f0ec; border-radius: var(--radius-sm); padding: 4px; margin-bottom: 28px; }
-  .tab { flex: 1; text-align: center; padding: 9px; font-size: 14px; font-weight: 600; font-family: var(--font-h); border-radius: 7px; cursor: pointer; transition: all 0.2s; color: var(--gray); border: none; background: transparent; }
-  .tab.active { background: var(--white); color: var(--dark); box-shadow: 0 2px 8px rgba(0,82,255,0.1); }
+/* FORM */
+.form-group{margin-bottom:16px}
+.form-label{display:block;font-size:12px;font-weight:600;color:var(--text2);margin-bottom:7px;text-transform:uppercase;letter-spacing:0.05em}
+.form-input{width:100%;padding:14px 16px;background:rgba(255,255,255,0.07);border:1.5px solid var(--border);border-radius:12px;font-size:16px;font-family:var(--f);color:#fff;outline:none;transition:all 0.2s;-webkit-appearance:none}
+.form-input:focus{border-color:var(--purple);background:rgba(79,70,229,0.1);box-shadow:0 0 0 4px rgba(79,70,229,0.15)}
+.form-input::placeholder{color:rgba(255,255,255,0.3)}
 
-  /* METHOD TOGGLE */
-  .method-row { display: flex; gap: 8px; margin-bottom: 24px; }
-  .method-btn { flex: 1; padding: 10px; border: 1.5px solid #e5e5e5; border-radius: var(--radius-sm); font-size: 13px; font-weight: 600; font-family: var(--font-h); cursor: pointer; background: var(--white); color: var(--gray); transition: all 0.2s; display: flex; align-items: center; justify-content: center; gap: 6px; }
-  .method-btn.active { border-color: var(--dark); color: var(--dark); background: #fafafa; }
-
-  /* FORM */
-  .form-group { margin-bottom: 16px; }
-  .form-label { display: block; font-size: 12px; font-weight: 600; font-family: var(--font-h); color: var(--dark); margin-bottom: 6px; letter-spacing: 0.03em; }
-  .form-input { width: 100%; padding: 13px 16px; border: 1.5px solid #e8e8e8; border-radius: var(--radius-sm); font-size: 14px; font-family: var(--font-b); background: #fafafa; color: var(--dark); outline: none; transition: all 0.2s; }
-  .form-input:focus { border-color: var(--dark); background: var(--white); box-shadow: 0 0 0 4px rgba(13,13,13,0.06); }
-  .phone-input-wrap { display: flex; gap: 8px; }
-  .country-code { width: 90px; flex-shrink: 0; }
-
-  /* OTP */
-  .otp-wrap { display: flex; gap: 8px; justify-content: center; }
-  .otp-input { width: 48px; height: 56px; text-align: center; font-size: 22px; font-weight: 700; font-family: var(--font-h); border: 1.5px solid #e8e8e8; border-radius: var(--radius-sm); background: #fafafa; color: var(--dark); outline: none; transition: all 0.2s; }
-  .otp-input:focus { border-color: var(--primary); background: var(--white); }
-
-  /* BUTTON */
-  .btn-submit { width: 100%; padding: 14px; background: var(--dark); color: var(--white); font-family: var(--font-h); font-weight: 700; font-size: 15px; border: none; border-radius: var(--radius-sm); cursor: pointer; transition: all 0.2s; margin-top: 4px; display: flex; align-items: center; justify-content: center; gap: 8px; }
-  .btn-submit:hover { background: #222; transform: translateY(-1px); }
-  .btn-submit:active { transform: translateY(0); }
-  .btn-submit.loading { opacity: 0.7; pointer-events: none; }
-  .btn-submit.lime { background: var(--primary); color: #fff; }
-  .btn-submit.lime:hover { background: var(--primary-dark); }
-
-  /* DIVIDER */
-  .divider { display: flex; align-items: center; gap: 12px; margin: 20px 0; }
-  .divider::before, .divider::after { content:''; flex:1; height:1px; background:#ececec; }
-  .divider span { font-size: 12px; color: var(--gray); }
-
-  /* MESSAGES */
-  .msg { padding: 12px 16px; border-radius: var(--radius-sm); font-size: 13px; margin-bottom: 16px; display: none; }
-  .msg.error { background: #fff0f0; color: var(--red); border: 1px solid #ffd5d5; display: block; }
-  .msg.success { background: #f0fff5; color: var(--green); border: 1px solid #c3f0d5; display: block; }
-
-  .link-btn { background: none; border: none; font-size: 13px; color: var(--gray); cursor: pointer; text-decoration: underline; width: 100%; text-align: center; margin-top: 16px; font-family: var(--font-b); }
-  .link-btn:hover { color: var(--dark); }
-
-  /* STEP indicator */
-  .step-indicator { display: flex; align-items: center; gap: 8px; margin-bottom: 20px; }
-  .step-dot { width: 8px; height: 8px; border-radius: 50%; background: #e5e5e5; transition: all 0.3s; }
-  .step-dot.active { background: var(--dark); width: 24px; border-radius: 4px; }
-  .step-label { font-size: 12px; color: var(--gray); font-family: var(--font-h); font-weight: 600; }
-
-  .hidden { display: none !important; }
-
-/* ═══════════════════════════════════════════════════════════
-   PAGE TRANSITIONS — slide in from right, slide out to left
-   ═══════════════════════════════════════════════════════════ */
-@keyframes slideInRight {
-  from { opacity:0; transform:translateX(32px); }
-  to   { opacity:1; transform:translateX(0); }
+/* BUTTON */
+.btn-login{
+  width:100%;padding:16px;margin-top:8px;
+  background:linear-gradient(135deg,#4F46E5,#7C3AED);
+  color:#fff;font-size:16px;font-weight:700;
+  font-family:var(--f);border:none;border-radius:12px;
+  cursor:pointer;
+  box-shadow:0 4px 20px rgba(79,70,229,0.4);
+  transition:all 0.2s;
+  -webkit-appearance:none;
 }
-@keyframes slideOutLeft {
-  from { opacity:1; transform:translateX(0); }
-  to   { opacity:0; transform:translateX(-32px); }
-}
-@keyframes slideInLeft {
-  from { opacity:0; transform:translateX(-32px); }
-  to   { opacity:1; transform:translateX(0); }
-}
-@keyframes fadeUp {
-  from { opacity:0; transform:translateY(16px); }
-  to   { opacity:1; transform:translateY(0); }
-}
-@keyframes scaleIn {
-  from { opacity:0; transform:scale(0.97); }
-  to   { opacity:1; transform:scale(1); }
-}
+.btn-login:active{transform:scale(0.98);opacity:0.9}
+.btn-login:disabled{opacity:0.6;pointer-events:none}
+.btn-login.success{background:linear-gradient(135deg,#059669,#10B981);box-shadow:0 4px 20px rgba(16,185,129,0.4)}
 
-/* Page enters */
-.page-enter {
-  animation: slideInRight 0.28s cubic-bezier(0.25,0.46,0.45,0.94) both;
-}
-/* Page exits */
-.page-exit {
-  animation: slideOutLeft 0.22s cubic-bezier(0.55,0,1,0.45) both;
-  pointer-events: none;
-}
-/* Modal sheet enters */
-.modal-enter {
-  animation: fadeUp 0.3s cubic-bezier(0.25,0.46,0.45,0.94) both;
-}
-/* Card stagger children */
-.stagger-children > * {
-  opacity: 0;
-  animation: fadeUp 0.35s cubic-bezier(0.25,0.46,0.45,0.94) both;
-}
-.stagger-children > *:nth-child(1) { animation-delay:0.05s }
-.stagger-children > *:nth-child(2) { animation-delay:0.10s }
-.stagger-children > *:nth-child(3) { animation-delay:0.15s }
-.stagger-children > *:nth-child(4) { animation-delay:0.20s }
-.stagger-children > *:nth-child(5) { animation-delay:0.25s }
-.stagger-children > *:nth-child(6) { animation-delay:0.30s }
-.stagger-children > *:nth-child(7) { animation-delay:0.35s }
-.stagger-children > *:nth-child(8) { animation-delay:0.40s }
+/* MESSAGE */
+.msg{display:none;padding:12px 16px;border-radius:10px;font-size:13px;font-weight:600;margin-bottom:14px;text-align:center}
+.msg.error{background:rgba(239,68,68,0.15);border:1px solid rgba(239,68,68,0.3);color:#FCA5A5}
+.msg.success{background:rgba(16,185,129,0.15);border:1px solid rgba(16,185,129,0.3);color:#6EE7B7}
 
-/* Back transition (slide from left) */
-.page-enter-back {
-  animation: slideInLeft 0.28s cubic-bezier(0.25,0.46,0.45,0.94) both;
-}
+/* DIVIDER */
+.divider{text-align:center;color:var(--text2);font-size:12px;margin:20px 0;position:relative}
+.divider::before,.divider::after{content:'';position:absolute;top:50%;width:40%;height:1px;background:var(--border)}
+.divider::before{left:0}.divider::after{right:0}
 
-/* Bottom nav tap ripple */
-.bn-item { overflow:hidden; }
-.nav-ripple {
-  position:absolute;
-  border-radius:50%;
-  background:rgba(79,70,229,0.15);
-  transform:scale(0);
-  animation:navRipple 0.5s ease-out forwards;
-  pointer-events:none;
-}
-@keyframes navRipple {
-  to { transform:scale(3.5); opacity:0; }
-}
+/* FORGOT */
+.forgot{text-align:center;margin-top:16px}
+.forgot a{color:rgba(255,255,255,0.5);font-size:13px;text-decoration:none}
+.forgot a:hover{color:#fff}
 
-/* Page overlay for transition */
-#page-transition-overlay {
-  position:fixed;inset:0;
-  background:rgba(79,70,229,0.04);
-  z-index:9000;
-  pointer-events:none;
-  opacity:0;
-  transition:opacity 0.15s;
-}
-#page-transition-overlay.active { opacity:1; }
+/* SPINNER */
+.spinner{display:inline-block;width:18px;height:18px;border:2px solid rgba(255,255,255,0.3);border-top-color:#fff;border-radius:50%;animation:spin 0.7s linear infinite;vertical-align:middle;margin-right:8px}
+@keyframes spin{to{transform:rotate(360deg)}}
 </style>
-  <link rel="stylesheet" href="../css/mobile.css">
-
-<style>
-@media (max-width: 768px) {
-  body {
-    background: #0F1117 !important;
-    padding: 0 !important;
-    display: flex !important;
-    align-items: flex-start !important;
-    justify-content: center !important;
-    min-height: 100vh !important;
-    padding-top: 0 !important;
-  }
-  .card {
-    width: 100% !important;
-    max-width: 100% !important;
-    border-radius: 0 !important;
-    min-height: 100vh !important;
-    box-shadow: none !important;
-    margin: 0 !important;
-  }
-  .card-header {
-    padding: 48px 24px 28px !important;
-  }
-  .card-body {
-    padding: 24px !important;
-  }
-  .form-input {
-    font-size: 16px !important; /* prevents iOS zoom */
-  }
-  .otp-input {
-    width: 44px !important;
-    height: 52px !important;
-    font-size: 20px !important;
-  }
-}
-</style>
-<!-- auth-mobile-fix -->
 </head>
 <body>
-<div class="card">
-  <div class="card-header">
+<div class="wrap">
+
+  <!-- HEADER -->
+  <div class="header">
     <div class="brand">
       <div class="brand-logo">🛡</div>
-      <div class="brand-name">BillSafe</div>
+      <span class="brand-name">BillSafe</span>
     </div>
-    <h1 id="card-title">Bon retour 👋</h1>
-    <p id="card-sub">Connectez-vous pour accéder à vos factures</p>
+    <h1>Bon retour 👋</h1>
+    <p>Connectez-vous pour accéder à vos factures</p>
   </div>
 
-  <div class="card-body">
-    <!-- TABS: Login / Register -->
-    <div class="tabs">
-      <button class="tab active" onclick="switchTab('login')">Connexion</button>
-      <button class="tab" onclick="switchTab('register')">Inscription</button>
-    </div>
+  <!-- BODY -->
+  <div class="body">
 
-    <!-- METHOD TOGGLE -->
-    <div class="method-row">
-      <button class="method-btn active" id="btn-email-method" onclick="switchMethod('email')">✉️ Email</button>
-      <button class="method-btn" id="btn-phone-method" onclick="switchMethod('phone')">📱 Téléphone</button>
+    <!-- TABS -->
+    <div class="tabs">
+      <button class="tab active" id="tab-login" onclick="switchTab('login')">Connexion</button>
+      <button class="tab" id="tab-register" onclick="switchTab('register')">Inscription</button>
     </div>
 
     <!-- MESSAGE -->
     <div class="msg" id="msg"></div>
 
-    <!-- ── EMAIL FORM ── -->
-    <div id="email-form">
-      <div class="form-group" id="name-group" style="display:none">
-        <label class="form-label">Nom complet</label>
-        <input class="form-input" type="text" id="full-name" placeholder="Jean Ndoumbe">
-      </div>
-      <div class="form-group">
-        <label class="form-label">Adresse email</label>
-        <input class="form-input" type="email" id="email" placeholder="jean@example.com">
-      </div>
-      <div class="form-group">
-        <label class="form-label">Mot de passe</label>
-        <input class="form-input" type="password" id="password" placeholder="••••••••">
-      </div>
-      <div class="form-group hidden" id="confirm-group">
-        <label class="form-label">Confirmer le mot de passe</label>
-        <input class="form-input" type="password" id="confirm-password" placeholder="••••••••">
-      </div>
-      <button class="btn-submit" id="email-btn" onclick="handleEmail()">
-        <span id="email-btn-text">Se connecter</span>
-      </button>
-
-      <!-- ── BIOMETRIC LOGIN ── -->
-      <div id="bio-section" style="display:none">
-        <div class="bio-divider"><span>ou continuer avec</span></div>
-        <button class="bio-btn" id="bio-btn" onclick="triggerBiometric()">
-          <span class="bio-icon" id="bio-icon">🔒</span>
-          <span class="bio-text">
-            <span class="bio-title" id="bio-title">Connexion biométrique</span>
-            <span class="bio-sub" id="bio-sub">Face ID · Touch ID · Empreinte</span>
-          </span>
-        </button>
-        <p class="bio-not-supported" id="bio-not-supported">
-          Biométrie non disponible sur cet appareil
-        </p>
-      </div>
+    <!-- EMAIL -->
+    <div class="form-group">
+      <label class="form-label">Adresse email</label>
+      <input class="form-input" type="email" id="email" placeholder="vous@email.com" autocomplete="email" inputmode="email">
     </div>
 
-    <!-- ── PHONE FORM ── -->
-    <div id="phone-form" class="hidden">
-      <!-- Step 1: enter phone -->
-      <div id="phone-step1">
-        <div class="step-indicator">
-          <div class="step-dot active"></div>
-          <div class="step-dot"></div>
-          <span class="step-label">Étape 1 / 2 — Votre numéro</span>
-        </div>
-        <div class="form-group">
-          <label class="form-label">Numéro de téléphone</label>
-          <div class="phone-input-wrap">
-            <select class="form-input country-code" id="country-code">
-              <option value="+237">🇨🇲 +237</option>
-              <option value="+33">🇫🇷 +33</option>
-              <option value="+1">🇺🇸 +1</option>
-              <option value="+44">🇬🇧 +44</option>
-              <option value="+49">🇩🇪 +49</option>
-            </select>
-            <input class="form-input" type="tel" id="phone" placeholder="6 XX XX XX XX" style="flex:1">
-          </div>
-        </div>
-        <button class="btn-submit" onclick="sendOTP()">
-          <span>Envoyer le code SMS</span>
-        </button>
-      </div>
+    <!-- PASSWORD -->
+    <div class="form-group">
+      <label class="form-label">Mot de passe</label>
+      <input class="form-input" type="password" id="password" placeholder="••••••••" autocomplete="current-password">
+    </div>
 
-      <!-- Step 2: OTP -->
-      <div id="phone-step2" class="hidden">
-        <div class="step-indicator">
-          <div class="step-dot"></div>
-          <div class="step-dot active"></div>
-          <span class="step-label">Étape 2 / 2 — Code reçu</span>
-        </div>
-        <p style="font-size:13px;color:var(--gray);margin-bottom:20px;line-height:1.6">
-          Entrez le code à 6 chiffres envoyé au <strong id="phone-display" style="color:var(--dark)"></strong>
-        </p>
-        <div class="otp-wrap" id="otp-wrap">
-          <input class="otp-input" maxlength="1" type="text" inputmode="numeric">
-          <input class="otp-input" maxlength="1" type="text" inputmode="numeric">
-          <input class="otp-input" maxlength="1" type="text" inputmode="numeric">
-          <input class="otp-input" maxlength="1" type="text" inputmode="numeric">
-          <input class="otp-input" maxlength="1" type="text" inputmode="numeric">
-          <input class="otp-input" maxlength="1" type="text" inputmode="numeric">
-        </div>
-        <button class="btn-submit lime" style="margin-top:20px" onclick="verifyOTP()">Vérifier le code</button>
-        <button class="link-btn" onclick="document.getElementById('phone-step1').classList.remove('hidden');document.getElementById('phone-step2').classList.add('hidden')">← Changer de numéro</button>
-      </div>
+    <!-- CONFIRM (register only) -->
+    <div class="form-group" id="confirm-group" style="display:none">
+      <label class="form-label">Confirmer le mot de passe</label>
+      <input class="form-input" type="password" id="confirm" placeholder="••••••••">
+    </div>
+
+    <!-- BUTTON -->
+    <button class="btn-login" id="btn-login">Se connecter</button>
+
+    <div class="forgot">
+      <a href="#" onclick="resetPassword()">Mot de passe oublié ?</a>
     </div>
 
   </div>
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
-// ── CONFIG ────────────────────────────────────────────────────
-// Allowed URLs in Supabase: billsafe-iota.vercel.app + lighthearted-clafoutis-5bf7db.netlify.app
-// ──────────────────────────────────────────────────────────────
-const SUPABASE_URL  = 'https://rjnsnodvqwwhkxbznzqa.supabase.co';
-const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJqbnNub2R2cXd3aGt4YnpuenFhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzgxODg1OTksImV4cCI6MjA5Mzc2NDU5OX0.gkV9ynTFdY8B72s2fnRpTkUH71FUz59ICIpQLZQDsIc';
-// ────────────────────────────────────────────────────────────
-
+// ── SUPABASE ──────────────────────────────────────────────────
 const { createClient } = supabase;
-const db = createClient(SUPABASE_URL, SUPABASE_ANON);
+const db = createClient(
+  'https://rjnsnodvqwwhkxbznzqa.supabase.co',
+  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJqbnNub2R2cXd3aGt4YnpuenFhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzgxODg1OTksImV4cCI6MjA5Mzc2NDU5OX0.gkV9ynTFdY8B72s2fnRpTkUH71FUz59ICIpQLZQDsIc'
+);
 
-let currentTab = 'login';
-let currentMethod = 'email';
+let mode = 'login';
 
-// ── UI HELPERS ──────────────────────────────────────────────
-function showMsg(text, type='error') {
+// ── If already logged in → go to dashboard ────────────────────
+db.auth.getSession().then(({ data: { session } }) => {
+  if (session) go();
+});
+
+// ── SWITCH TAB ────────────────────────────────────────────────
+function switchTab(m) {
+  mode = m;
+  document.getElementById('tab-login').classList.toggle('active', m === 'login');
+  document.getElementById('tab-register').classList.toggle('active', m === 'register');
+  document.getElementById('confirm-group').style.display = m === 'register' ? 'block' : 'none';
+  document.getElementById('btn-login').textContent = m === 'login' ? 'Se connecter' : "S'inscrire";
+  hideMsg();
+}
+
+// ── SHOW / HIDE MSG ───────────────────────────────────────────
+function showMsg(text, type) {
   const el = document.getElementById('msg');
   el.textContent = text;
   el.className = 'msg ' + type;
+  el.style.display = 'block';
 }
-function clearMsg() {
-  const el = document.getElementById('msg');
-  el.className = 'msg';
-  el.textContent = '';
-}
-function setLoading(btnId, loading) {
-  const btn = document.getElementById(btnId);
-  if (btn) btn.classList.toggle('loading', loading);
+function hideMsg() {
+  document.getElementById('msg').style.display = 'none';
 }
 
-// ── TAB SWITCH ──────────────────────────────────────────────
-function switchTab(tab) {
-  currentTab = tab;
-  clearMsg();
-  document.querySelectorAll('.tab').forEach((t,i) => t.classList.toggle('active', (i===0&&tab==='login')||(i===1&&tab==='register')));
-  document.getElementById('card-title').textContent = tab === 'login' ? 'Bon retour 👋' : 'Créer un compte';
-  document.getElementById('card-sub').textContent = tab === 'login' ? 'Connectez-vous pour accéder à vos factures' : 'Rejoignez des milliers de Camerounais';
-  document.getElementById('name-group').style.display = (tab === 'register' && currentMethod === 'email') ? 'block' : 'none';
-  document.getElementById('confirm-group').classList.toggle('hidden', tab !== 'register');
-  document.getElementById('email-btn-text').textContent = tab === 'login' ? 'Se connecter' : "S'inscrire";
+// ── REDIRECT ──────────────────────────────────────────────────
+function go() {
+  window.location.href = '/pages/dashboard.html';
 }
 
-// ── METHOD SWITCH ────────────────────────────────────────────
-function switchMethod(method) {
-  currentMethod = method;
-  clearMsg();
-  document.getElementById('btn-email-method').classList.toggle('active', method === 'email');
-  document.getElementById('btn-phone-method').classList.toggle('active', method === 'phone');
-  document.getElementById('email-form').classList.toggle('hidden', method !== 'email');
-  document.getElementById('phone-form').classList.toggle('hidden', method !== 'phone');
-  if (method === 'email') {
-    document.getElementById('name-group').style.display = currentTab === 'register' ? 'block' : 'none';
-  }
-}
+// ── LOGIN / REGISTER ──────────────────────────────────────────
+async function doAuth() {
+  hideMsg();
+  const email    = document.getElementById('email').value.trim();
+  const password = document.getElementById('password').value;
+  const btn      = document.getElementById('btn-login');
 
-// ── EMAIL AUTH ───────────────────────────────────────────────
-async function handleEmail() {
-  clearMsg();
+  if (!email)    return showMsg('Entrez votre email', 'error');
+  if (!password) return showMsg('Entrez votre mot de passe', 'error');
+  if (password.length < 6) return showMsg('Mot de passe trop court (min 6)', 'error');
 
-  const emailEl = document.getElementById('email');
-  const passEl  = document.getElementById('password');
-  if (!emailEl || !passEl) return showMsg('Erreur de formulaire. Rechargez la page.');
-
-  const email    = emailEl.value.trim();
-  const password = passEl.value;
-
-  if (!email)    return showMsg('Veuillez entrer votre email.');
-  if (!password) return showMsg('Veuillez entrer votre mot de passe.');
-
-  const btn     = document.getElementById('email-btn');
-  const btnText = document.getElementById('email-btn-text') || btn.querySelector('span') || btn;
-
+  // Loading state
   btn.disabled = true;
-  btn.classList.add('loading');
-  btnText.textContent = 'Connexion en cours...';
+  btn.innerHTML = '<span class="spinner"></span>' + (mode === 'login' ? 'Connexion...' : 'Inscription...');
 
   try {
-    if (currentTab === 'login') {
-      console.log('BillSafe: attempting login for', email);
-      const { data: loginData, error } = await db.auth.signInWithPassword({ email, password });
-      console.log('BillSafe: login result', { error: error?.message, hasSession: !!loginData?.session });
+    if (mode === 'login') {
+      const { data, error } = await db.auth.signInWithPassword({ email, password });
       if (error) throw error;
-      // Success — redirect immediately
-      window._redirecting = true;
-      showMsg('✅ Connexion réussie! Redirection...', 'success');
-      btnText.textContent = '✅ Connecté!';
-      btn.style.background = 'linear-gradient(135deg,#059669,#10B981)';
-      if (navigator.vibrate) navigator.vibrate([10, 50, 10]);
-      // Use multiple redirect methods to ensure it works
-      setTimeout(() => {
-        window.location.href = '/pages/dashboard.html';
-      }, 500);
-    } else {
-      const confirm = document.getElementById('confirm-password').value;
-      const name = document.getElementById('full-name').value.trim();
-      if (password !== confirm) { btn.classList.remove('loading'); return showMsg('Les mots de passe ne correspondent pas.'); }
-      if (!name) { btn.classList.remove('loading'); return showMsg('Veuillez entrer votre nom complet.'); }
-      const { data: signUpData, error } = await db.auth.signUp({
-        email, password,
-        options: { data: { full_name: name } }
-      });
-      if (error) throw error;
+      // SUCCESS
+      btn.className = 'btn-login success';
+      btn.innerHTML = '✅ Connecté!';
+      showMsg('✅ Connexion réussie!', 'success');
+      setTimeout(go, 800);
 
-      // Try immediate session (email confirm disabled)
-      if (signUpData.session) {
-        showMsg('Compte créé! Redirection...', 'success');
-        setTimeout(() => { window.location.replace('/pages/dashboard.html'); }, 600);
-        return;
-      }
-      // Fallback: try signing in right away
-      const { data: siData } = await db.auth.signInWithPassword({ email, password });
-      if (siData?.session) {
-        showMsg('Compte créé! Redirection...', 'success');
-        setTimeout(() => { window.location.replace('/pages/dashboard.html'); }, 600);
-        return;
-      }
-      showMsg('Compte créé! Vérifiez votre email, puis connectez-vous.', 'success');
-    }
-  } catch(e) {
-    btn.disabled = false;
-    btn.classList.remove('loading');
-    btnText.textContent = currentTab === 'login' ? 'Se connecter' : "S'inscrire";
-    const msg = e.message || '';
-    console.error('BillSafe login error:', msg);
-    // Show ALL errors visibly
-    if (msg.includes('Failed to fetch') || msg.includes('NetworkError') || msg.includes('fetch') || msg.includes('Load failed')) {
-      showMsg('❌ Serveur inaccessible. Vérifiez votre connexion internet et réessayez.', 'error');
-      const sb = document.getElementById('server-banner');
-      if (sb) sb.style.display = 'block';
-      // Auto-retry after 30s
-      let countdown = 30;
-      const retryInterval = setInterval(() => {
-        countdown--;
-        const btn2 = document.getElementById('email-btn');
-        const sp2  = btn2 && (btn2.querySelector('span') || btn2);
-        if (btn2 && countdown > 0) {
-          if (sp2) sp2.textContent = `Réessayer dans ${countdown}s...`;
-          btn2.disabled = true;
-        } else {
-          clearInterval(retryInterval);
-          if (btn2) {
-            if (sp2) sp2.textContent = 'Se connecter';
-            btn2.disabled = false;
-            const sb = document.getElementById('server-banner');
-            if (sb) sb.innerHTML += '<br><strong style="color:green">✅ Prêt — Cliquez sur Se connecter</strong>';
-          }
-        }
-      }, 1000);
-    } else if (msg.includes('Invalid login credentials') || msg.includes('invalid_credentials') || msg.includes('Invalid')) {
-      showMsg('❌ Email ou mot de passe incorrect.\nEmail: basicvest1@gmail.com\nMot de passe: 677632469', 'error');
-    } else if (msg.includes('Email not confirmed')) {
-      showMsg('📧 Votre email n\'est pas encore confirmé. Vérifiez votre boîte mail et cliquez sur le lien de confirmation.', 'error');
-    } else if (msg.includes('Too many requests') || msg.includes('rate limit')) {
-      showMsg('⏳ Trop de tentatives. Attendez quelques minutes et réessayez.', 'error');
-    } else if (msg.includes('User already registered')) {
-      showMsg('⚠️ Cet email est déjà utilisé. Essayez de vous connecter à la place.', 'error');
     } else {
-      showMsg('❌ ' + (msg || 'Une erreur est survenue. Réessayez.'), 'error');
-    }
-  } finally {
-    if (!window._redirecting) {
+      const confirm = document.getElementById('confirm').value;
+      if (password !== confirm) throw new Error('Les mots de passe ne correspondent pas');
+      const { data, error } = await db.auth.signUp({ email, password });
+      if (error) throw error;
+      btn.innerHTML = "S'inscrire";
       btn.disabled = false;
-      btn.classList.remove('loading');
-      const bts = document.getElementById('email-btn-text') || btn.querySelector('span') || btn;
-      bts.textContent = currentTab === 'login' ? 'Se connecter' : "S'inscrire";
+      showMsg('✅ Compte créé! Vérifiez votre email puis connectez-vous.', 'success');
+      setTimeout(() => switchTab('login'), 2000);
     }
+
+  } catch (e) {
+    btn.innerHTML = mode === 'login' ? 'Se connecter' : "S'inscrire";
+    btn.disabled = false;
+
+    const m = e.message || '';
+    if (m.includes('Invalid login credentials') || m.includes('invalid'))
+      showMsg('❌ Email ou mot de passe incorrect', 'error');
+    else if (m.includes('fetch') || m.includes('network') || m.includes('Failed'))
+      showMsg('❌ Pas de connexion internet. Réessayez.', 'error');
+    else if (m.includes('already registered'))
+      showMsg('⚠️ Email déjà utilisé. Connectez-vous.', 'error');
+    else
+      showMsg('❌ ' + m, 'error');
   }
 }
 
-// ── PHONE OTP ────────────────────────────────────────────────
-async function sendOTP() {
-  clearMsg();
-  const code = document.getElementById('country-code').value;
-  const num  = document.getElementById('phone').value.trim().replace(/\s/g,'');
-  if (!num) return showMsg('Veuillez entrer votre numéro de téléphone.');
-  const fullPhone = code + num;
-
-  try {
-    const { error } = await db.auth.signInWithOtp({ phone: fullPhone });
-    if (error) throw error;
-    document.getElementById('phone-display').textContent = fullPhone;
-    document.getElementById('phone-step1').classList.add('hidden');
-    document.getElementById('phone-step2').classList.remove('hidden');
-    showMsg('Code SMS envoyé avec succès!', 'success');
-    document.querySelectorAll('.otp-input')[0].focus();
-  } catch(e) {
-    showMsg(e.message || 'Impossible d\'envoyer le SMS.');
-  }
-}
-
-async function verifyOTP() {
-  clearMsg();
-  const digits = [...document.querySelectorAll('.otp-input')].map(i => i.value).join('');
-  if (digits.length < 6) return showMsg('Entrez les 6 chiffres du code.');
-  const code = document.getElementById('country-code').value;
-  const num  = document.getElementById('phone').value.trim().replace(/\s/g,'');
-  const fullPhone = code + num;
-  try {
-    const { error } = await db.auth.verifyOtp({ phone: fullPhone, token: digits, type: 'sms' });
-    if (error) throw error;
-    showMsg('Vérification réussie! Redirection...', 'success');
-    setTimeout(() => { window.location.replace('/pages/dashboard.html'); }, 600);
-  } catch(e) {
-    showMsg(e.message || 'Code incorrect. Réessayez.');
-  }
-}
-
-// ── OTP auto-advance ─────────────────────────────────────────
-document.querySelectorAll('.otp-input').forEach((input, i, all) => {
-  input.addEventListener('input', () => {
-    if (input.value && i < all.length - 1) all[i+1].focus();
+// ── RESET PASSWORD ────────────────────────────────────────────
+async function resetPassword() {
+  const email = document.getElementById('email').value.trim();
+  if (!email) return showMsg('Entrez votre email d\'abord', 'error');
+  const { error } = await db.auth.resetPasswordForEmail(email, {
+    redirectTo: 'https://billsafe-iota.vercel.app/pages/auth.html'
   });
-  input.addEventListener('keydown', e => {
-    if (e.key === 'Backspace' && !input.value && i > 0) all[i-1].focus();
-  });
-});
-
-// ── Wire button with addEventListener as backup ───────────────
-document.addEventListener('DOMContentLoaded', () => {
-  const loginBtn = document.getElementById('email-btn');
-  if (loginBtn) {
-    // Remove onclick to avoid double-firing
-    loginBtn.removeAttribute('onclick');
-    loginBtn.addEventListener('click', function(e) {
-      e.preventDefault();
-      e.stopPropagation();
-      handleEmail();
-    });
-    console.log('BillSafe: login button wired ✅');
-  } else {
-    console.error('BillSafe: login button NOT FOUND ❌');
-  }
-});
-
-// ── Check if already logged in ───────────────────────────────
-db.auth.getSession().then(({ data: { session } }) => {
-  if (session) window.location.replace('/pages/dashboard.html');
-});
-
-db.auth.onAuthStateChange((event, session) => {
-  // Only redirect on explicit sign in, not page load
-  if (session && event === 'SIGNED_IN') {
-    window.location.href = '/pages/dashboard.html';
-  }
-});
-
-// ═══════════════════════════════════════════════════════════
-//  BIOMETRIC AUTH — Face ID / Fingerprint / Touch ID
-//  Uses WebAuthn (Passkeys) — works on Safari iOS, Chrome Android
-// ═══════════════════════════════════════════════════════════
-
-const BIO_KEY = 'billsafe_bio_credential';
-const BIO_USER_KEY = 'billsafe_bio_email';
-
-// Check if WebAuthn is supported on this device
-async function checkBiometricSupport() {
-  const section = document.getElementById('bio-section');
-  if (!section) return;
-
-  // Need: HTTPS + PublicKeyCredential API + authenticator
-  if (!window.PublicKeyCredential) {
-    section.style.display = 'none';
-    return;
-  }
-
-  try {
-    const available = await PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable();
-    if (available) {
-      section.style.display = 'block';
-      // Detect what type of biometric
-      const ua = navigator.userAgent;
-      const isIOS = /iPhone|iPad/.test(ua);
-      const isMac = /Mac/.test(ua) && !isIOS;
-      const isAndroid = /Android/.test(ua);
-      const bioIcon = document.getElementById('bio-icon');
-      const bioTitle = document.getElementById('bio-title');
-      const bioSub = document.getElementById('bio-sub');
-
-      if (isIOS) {
-        bioIcon.textContent = '👤';
-        bioTitle.textContent = 'Connexion avec Face ID';
-        bioSub.textContent = 'Ou Touch ID selon votre iPhone';
-      } else if (isMac) {
-        bioIcon.textContent = '👆';
-        bioTitle.textContent = 'Connexion avec Touch ID';
-        bioSub.textContent = 'Capteur d'empreinte Mac';
-      } else if (isAndroid) {
-        bioIcon.textContent = '🔏';
-        bioTitle.textContent = 'Connexion biométrique';
-        bioSub.textContent = 'Empreinte digitale Android';
-      }
-
-      // If already registered, show as primary option
-      const savedEmail = localStorage.getItem(BIO_USER_KEY);
-      const savedCred = localStorage.getItem(BIO_KEY);
-      if (savedEmail && savedCred) {
-        bioSub.textContent = savedEmail;
-      }
-    }
-  } catch(e) {
-    console.log('Biometric check failed:', e);
-  }
+  if (error) return showMsg('Erreur: ' + error.message, 'error');
+  showMsg('📧 Email de réinitialisation envoyé!', 'success');
 }
 
-async function triggerBiometric() {
-  const btn = document.getElementById('bio-btn');
-  const savedEmail = localStorage.getItem(BIO_USER_KEY);
-  const savedCred = localStorage.getItem(BIO_KEY);
+// ── WIRE BUTTON ───────────────────────────────────────────────
+document.getElementById('btn-login').addEventListener('click', doAuth);
 
-  // Ripple effect
-  const ripple = document.createElement('span');
-  ripple.className = 'bio-ripple';
-  ripple.style.cssText = 'width:100px;height:100px;left:calc(50% - 50px);top:calc(50% - 50px)';
-  btn.appendChild(ripple);
-  setTimeout(() => ripple.remove(), 700);
-
-  if (savedCred) {
-    // ── AUTHENTICATE with existing passkey ──
-    await authenticateWithPasskey();
-  } else {
-    // ── REGISTER new passkey (need email first) ──
-    const email = document.getElementById('email')?.value?.trim();
-    if (!email) {
-      showMsg('Entrez votre email d'abord, puis activez la biométrie', 'error');
-      document.getElementById('email')?.focus();
-      return;
-    }
-    await registerPasskey(email);
-  }
-}
-
-async function registerPasskey(email) {
-  const btn = document.getElementById('bio-btn');
-  const origHTML = btn.innerHTML;
-  btn.innerHTML = '<span class="bio-icon">⏳</span><span class="bio-text"><span class="bio-title">Activation...</span><span class="bio-sub">Suivez les instructions</span></span>';
-  btn.disabled = true;
-
-  try {
-    // Create a passkey challenge
-    const challenge = new Uint8Array(32);
-    crypto.getRandomValues(challenge);
-
-    const userId = new TextEncoder().encode(email);
-
-    const credential = await navigator.credentials.create({
-      publicKey: {
-        challenge,
-        rp: { name: 'BillSafe', id: window.location.hostname === 'localhost' ? 'localhost' : window.location.hostname },
-        user: { id: userId, name: email, displayName: email.split('@')[0] },
-        pubKeyCredParams: [
-          { alg: -7, type: 'public-key' },   // ES256
-          { alg: -257, type: 'public-key' },  // RS256
-        ],
-        authenticatorSelection: {
-          authenticatorAttachment: 'platform',  // Device biometrics only
-          userVerification: 'required',          // Must use biometrics
-          requireResidentKey: true,
-        },
-        timeout: 60000,
-      }
-    });
-
-    // Save credential ID locally
-    const credId = btoa(String.fromCharCode(...new Uint8Array(credential.rawId)));
-    localStorage.setItem(BIO_KEY, credId);
-    localStorage.setItem(BIO_USER_KEY, email);
-
-    // Flash success
-    const flash = document.createElement('div');
-    flash.className = 'bio-success-flash';
-    document.body.appendChild(flash);
-    setTimeout(() => flash.remove(), 400);
-
-    showMsg('✅ Biométrie activée! Reconnectez-vous avec votre empreinte.', 'success');
-    btn.innerHTML = '<span class="bio-icon">✅</span><span class="bio-text"><span class="bio-title">Biométrie activée</span><span class="bio-sub">' + email + '</span></span>';
-    btn.disabled = false;
-
-  } catch(e) {
-    btn.innerHTML = origHTML;
-    btn.disabled = false;
-    if (e.name === 'NotAllowedError') {
-      showMsg('Biométrie annulée ou refusée. Réessayez.', 'error');
-    } else if (e.name === 'SecurityError') {
-      showMsg('Biométrie disponible uniquement sur HTTPS', 'error');
-    } else {
-      showMsg('Erreur biométrique: ' + e.message, 'error');
-    }
-  }
-}
-
-async function authenticateWithPasskey() {
-  const btn = document.getElementById('bio-btn');
-  const savedEmail = localStorage.getItem(BIO_USER_KEY);
-  const origHTML = btn.innerHTML;
-  btn.innerHTML = '<span class="bio-icon">⏳</span><span class="bio-text"><span class="bio-title">Vérification...</span><span class="bio-sub">Posez votre doigt / regardez</span></span>';
-  btn.disabled = true;
-
-  try {
-    const challenge = new Uint8Array(32);
-    crypto.getRandomValues(challenge);
-
-    const assertion = await navigator.credentials.get({
-      publicKey: {
-        challenge,
-        userVerification: 'required',
-        timeout: 60000,
-      }
-    });
-
-    if (assertion) {
-      // Passkey verified — now sign in with Supabase using saved email
-      // In production: verify assertion on server. Here we use stored session.
-      const { data: { session } } = await db.auth.getSession();
-
-      if (session) {
-        // Already have a session — go straight to dashboard
-        showBioSuccess(savedEmail);
-        setTimeout(() => { window.location.replace('/pages/dashboard.html'); }, 800);
-        return;
-      }
-
-      // No active session — prompt for password once then remember
-      const pw = document.getElementById('password')?.value?.trim();
-      if (pw) {
-        const { error } = await db.auth.signInWithPassword({ email: savedEmail, password: pw });
-        if (error) throw error;
-        showBioSuccess(savedEmail);
-        setTimeout(() => { window.location.replace('/pages/dashboard.html'); }, 800);
-      } else {
-        // Fill email and ask for password
-        if (document.getElementById('email')) document.getElementById('email').value = savedEmail;
-        showMsg('✅ Biométrie OK! Entrez votre mot de passe pour terminer.', 'success');
-        document.getElementById('password')?.focus();
-        btn.innerHTML = origHTML;
-        btn.disabled = false;
-      }
-    }
-  } catch(e) {
-    btn.innerHTML = origHTML;
-    btn.disabled = false;
-    if (e.name === 'NotAllowedError') {
-      showMsg('Authentification annulée. Réessayez.', 'error');
-    } else {
-      showMsg('Échec de la biométrie. Utilisez votre mot de passe.', 'error');
-    }
-  }
-}
-
-function showBioSuccess(email) {
-  const btn = document.getElementById('bio-btn');
-  btn.innerHTML = '<span class="bio-icon">✅</span><span class="bio-text"><span class="bio-title">Identité confirmée</span><span class="bio-sub">' + (email || '') + '</span></span>';
-  btn.style.borderColor = '#0052FF';
-  btn.style.background = 'rgba(0,82,255,0.05)';
-  const flash = document.createElement('div');
-  flash.className = 'bio-success-flash';
-  document.body.appendChild(flash);
-  setTimeout(() => flash.remove(), 400);
-}
-
-// Show biometric option when email is typed (to register)
-document.addEventListener('DOMContentLoaded', () => {
-  checkBiometricSupport();
-
-  const emailInput = document.getElementById('email');
-  if (emailInput) {
-    emailInput.addEventListener('blur', () => {
-      const hasSaved = localStorage.getItem(BIO_KEY);
-      const section = document.getElementById('bio-section');
-      if (section && section.style.display !== 'none' && !hasSaved) {
-        const sub = document.getElementById('bio-sub');
-        if (sub && emailInput.value) sub.textContent = 'Activer pour ' + emailInput.value;
-      }
-    });
-  }
+// Allow Enter key to submit
+document.addEventListener('keydown', function(e) {
+  if (e.key === 'Enter') doAuth();
 });
-
 </script>
 </body>
 </html>
