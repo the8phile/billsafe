@@ -589,6 +589,28 @@ select.form-input{cursor:pointer}
       <button class="promo-btn" onclick="window.location.href='fiscal.html'">Activer →</button>
     </div>
 
+
+    <!-- ① PREDICTION CARD -->
+    <div class="predict-card" id="predict-card" style="display:none">
+      <div class="predict-label">🔮 Prédiction — mois prochain</div>
+      <div class="predict-rows" id="predict-rows"></div>
+    </div>
+
+    <!-- ② MONTH-OVER-MONTH INSIGHT -->
+    <div class="insight-banner" id="insight-banner" style="display:none">
+      <div class="insight-title">📊 Ce mois vs mois dernier</div>
+      <div id="insight-rows"></div>
+    </div>
+
+    <!-- ③ TODO CHECKLIST -->
+    <div class="todo-card" id="todo-card" style="display:none">
+      <div class="todo-header">
+        <span class="todo-title">✅ Factures à régler</span>
+        <span class="todo-progress" id="todo-progress">—</span>
+      </div>
+      <div id="todo-rows"></div>
+    </div>
+
     <!-- CHART -->
     <div class="chart-card">
       <div class="section-header" style="margin-bottom:10px">
@@ -753,9 +775,26 @@ async function loadBills(){
   if(error){console.error(error);return;}
   allBills=data||[];
   renderStats();
+  renderInsight();
+  renderTodo();
+  renderPrediction();
   renderChart();
   renderBills();
   checkAnomalies();
+}
+
+function animateCount(el, target, prefix='', suffix='', duration=900){
+  const start=performance.now();
+  const startVal=0;
+  function tick(now){
+    const p=Math.min((now-start)/duration,1);
+    const ease=1-Math.pow(1-p,3); // ease-out cubic
+    const val=Math.round(startVal+(target-startVal)*ease);
+    el.textContent=prefix+fmt(val)+suffix;
+    el.classList.add('count-anim');
+    if(p<1) requestAnimationFrame(tick);
+  }
+  requestAnimationFrame(tick);
 }
 
 function renderStats(){
@@ -766,13 +805,14 @@ function renderStats(){
   const paid=allBills.filter(b=>b.status==='paid').length;
   const pending=allBills.filter(b=>b.status==='pending').length;
 
-  $('balance-amount').textContent=fmt(total)+' FCFA';
+  // Animated counters
+  animateCount($('balance-amount'),total,'',' FCFA',1000);
   $('balance-sub').innerHTML=`FCFA · <span id="bill-count">${allBills.length} facture${allBills.length!==1?'s':''}</span>`;
-  $('stat-total').textContent=fmt(total);
-  $('stat-paid').textContent=paid;
+  animateCount($('stat-total'),total,'','',800);
+  animateCount($('stat-paid'),paid,'','',700);
   $('stat-total-count').textContent=allBills.length;
-  $('stat-pending').textContent=pending;
-  $('stat-vault').textContent=allBills.length;
+  animateCount($('stat-pending'),pending,'','',600);
+  animateCount($('stat-vault'),allBills.length,'','',750);
 }
 
 function renderChart(){
@@ -808,6 +848,16 @@ function renderChart(){
   });
 }
 
+function getDueCountdown(billingMonth){
+  // Bills are typically due on the 15th of the following month
+  if(!billingMonth)return null;
+  const [y,m]=billingMonth.split('-').map(Number);
+  const dueDate=new Date(y, m, 15); // 15th of next month
+  const now=new Date();
+  const days=Math.ceil((dueDate-now)/(1000*60*60*24));
+  return days;
+}
+
 function renderBills(){
   const el=$('bills-list');
   const recent=allBills.slice(0,5);
@@ -827,18 +877,137 @@ function renderBills(){
     const isPaid=b.status==='paid';
     const isFirst=i===0, isLast=i===recent.length-1;
     const radius=isFirst?'20px 20px 14px 14px':isLast?'14px 14px 20px 20px':'14px';
+    // Due date countdown for pending bills
+    let dueTag='';
+    if(!isPaid){
+      const days=getDueCountdown(b.billing_month);
+      if(days!==null){
+        if(days<=0) dueTag=`<span style="font-size:10px;font-weight:800;color:#EF4444;background:rgba(239,68,68,0.1);padding:2px 8px;border-radius:20px">⚠️ En retard</span>`;
+        else if(days<=3) dueTag=`<span style="font-size:10px;font-weight:800;color:#EF4444;background:rgba(239,68,68,0.1);padding:2px 8px;border-radius:20px">🔴 ${days}j restants</span>`;
+        else if(days<=7) dueTag=`<span style="font-size:10px;font-weight:800;color:#F59E0B;background:rgba(245,158,11,0.1);padding:2px 8px;border-radius:20px">⏰ ${days}j restants</span>`;
+        else dueTag=`<span style="font-size:10px;font-weight:600;color:#10B981;background:rgba(16,185,129,0.1);padding:2px 8px;border-radius:20px">${days}j restants</span>`;
+      }
+    }
     return `<div class="bill-item" style="border-radius:${radius}">
       <div class="bill-icon ${cls}">${emoji}</div>
       <div class="bill-info">
         <div class="bill-name">${b.company}</div>
         <div class="bill-date">${fmtM(b.billing_month)} · ${fmtD(b.payment_date)}</div>
+        ${dueTag?`<div style="margin-top:4px">${dueTag}</div>`:''}
       </div>
       <div class="bill-right">
         <div class="bill-amount">${fmtA(b.amount)}</div>
-        <span class="bill-status ${isPaid?'bs-paid':'bs-pending'}">${isPaid?'✓ Payée':'⏳ Attente'}</span>
+        <span class="bill-status ${isPaid?'bs-paid':'bs-pending'}">${isPaid?'✓ Payée':'⏳'}</span>
       </div>
     </div>`;
   }).join('');
+}
+
+
+// ── ① MONTH-OVER-MONTH INSIGHT ────────────────────────────────
+function renderInsight(){
+  const now=new Date();
+  const mo=`${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}`;
+  const lastD=new Date(now);lastD.setMonth(lastD.getMonth()-1);
+  const lastMo=`${lastD.getFullYear()}-${String(lastD.getMonth()+1).padStart(2,'0')}`;
+  const cos=['ENEO','CamWater','Camtel'];
+  const emojis={ENEO:'⚡',CamWater:'💧',Camtel:'📡'};
+  const rows=cos.map(co=>{
+    const cur=allBills.filter(b=>b.company===co&&b.billing_month?.startsWith(mo)).reduce((s,b)=>s+(b.amount||0),0);
+    const prev=allBills.filter(b=>b.company===co&&b.billing_month?.startsWith(lastMo)).reduce((s,b)=>s+(b.amount||0),0);
+    if(!cur&&!prev)return null;
+    let arrow,cls,pct='';
+    if(!prev){arrow='Nouveau';cls='arrow-same';}
+    else{
+      const p=Math.round(((cur-prev)/prev)*100);
+      if(p>5){arrow=`↑ +${p}%`;cls='arrow-up';pct=`+${fmt(cur-prev)} F`;}
+      else if(p<-5){arrow=`↓ ${p}%`;cls='arrow-down';pct=`${fmt(cur-prev)} F`;}
+      else{arrow='≈ stable';cls='arrow-same';}
+    }
+    return `<div class="insight-row">
+      <span class="insight-emoji">${emojis[co]}</span>
+      <span class="insight-co">${co}</span>
+      <span class="insight-pct">${fmtA(cur)}</span>
+      <span class="insight-arrow ${cls}">${arrow}</span>
+    </div>`;
+  }).filter(Boolean);
+  if(!rows.length)return;
+  $('insight-rows').innerHTML=rows.join('');
+  $('insight-banner').style.display='block';
+}
+
+// ── ② TODO CHECKLIST ───────────────────────────────────────────
+function renderTodo(){
+  const pending=allBills.filter(b=>b.status==='pending');
+  const paid=allBills.filter(b=>b.status==='paid').slice(0,2);
+  const items=[...pending,...paid].slice(0,6);
+  if(!items.length)return;
+  const emojis={ENEO:'⚡',CamWater:'💧',Camtel:'📡'};
+  const doneCount=allBills.filter(b=>b.status==='paid').length;
+  const totalCount=allBills.length;
+  $('todo-progress').textContent=`${doneCount}/${totalCount} faites`;
+  $('todo-rows').innerHTML=items.map(b=>{
+    const isPaid=b.status==='paid';
+    const days=getDueCountdown(b.billing_month);
+    let dueClass='due-ok',dueText='';
+    if(!isPaid&&days!==null){
+      if(days<=0){dueClass='due-urgent';dueText='En retard!';}
+      else if(days<=3){dueClass='due-urgent';dueText=`${days} jours restants`;}
+      else if(days<=7){dueClass='due-soon';dueText=`${days} jours restants`;}
+      else{dueClass='due-ok';dueText=`Échéance dans ${days}j`;}
+    }
+    return `<div class="todo-item" onclick="toggleTodo('${b.id}','${b.status}',this)">
+      <div class="todo-check ${isPaid?'done':'pending'}">${isPaid?'✓':''}</div>
+      <div class="todo-body">
+        <div class="todo-name${isPaid?' done':''}">${b.company} — ${fmtMs(b.billing_month)}</div>
+        ${dueText?`<div class="todo-sub ${dueClass}">${dueText}</div>`:'<div class="todo-sub">'+fmtD(b.payment_date)+'</div>'}
+      </div>
+      <div class="todo-right">
+        <div class="todo-amount">${fmtA(b.amount)}</div>
+      </div>
+    </div>`;
+  }).join('');
+  $('todo-card').style.display='block';
+}
+
+async function toggleTodo(id,currentStatus,el){
+  if(currentStatus==='paid')return;
+  const check=el.querySelector('.todo-check');
+  const name=el.querySelector('.todo-name');
+  check.classList.add('done');check.textContent='✓';
+  name.classList.add('done');
+  if(navigator.vibrate)navigator.vibrate([10,30,10]);
+  await db.from('bills').update({status:'paid',payment_date:new Date().toISOString().split('T')[0]}).eq('id',id).eq('user_id',ME.id);
+  setTimeout(()=>loadBills(),600);
+}
+
+// ── ③ NEXT BILL PREDICTION ─────────────────────────────────────
+function renderPrediction(){
+  const cos=['ENEO','CamWater','Camtel'];
+  const emojis={ENEO:'⚡',CamWater:'💧',Camtel:'📡'};
+  const predictions=cos.map(co=>{
+    const bills=allBills.filter(b=>b.company===co&&b.amount>0).slice(0,6);
+    if(bills.length<2)return null;
+    const avg=Math.round(bills.reduce((s,b)=>s+(b.amount||0),0)/bills.length);
+    const last=bills[0].amount||0;
+    const trend=bills.length>=3?(bills[0].amount-bills[2].amount)/2:0;
+    const predicted=Math.max(0,Math.round(avg+trend*0.3));
+    const conf=bills.length>=4?'Fiable':'Estimation';
+    return {co,emoji:emojis[co],predicted,conf,bills:bills.length};
+  }).filter(Boolean);
+  if(!predictions.length)return;
+  $('predict-rows').innerHTML=predictions.map(p=>`
+    <div class="predict-row">
+      <span style="font-size:18px">${p.emoji}</span>
+      <div style="flex:1">
+        <div class="predict-co">${p.co}</div>
+        <div class="predict-conf">${p.conf} · basé sur ${p.bills} factures</div>
+      </div>
+      <div style="text-align:right">
+        <div class="predict-amt">~${fmtA(p.predicted)}</div>
+      </div>
+    </div>`).join('');
+  $('predict-card').style.display='block';
 }
 
 async function checkAnomalies(){
